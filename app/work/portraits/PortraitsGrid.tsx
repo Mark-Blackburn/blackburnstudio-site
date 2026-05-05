@@ -1,7 +1,13 @@
 "use client";
 
 import Image from "next/image";
-import { useCallback, useEffect, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type TouchEvent as ReactTouchEvent,
+} from "react";
 
 type PortraitImage = {
   id: number;
@@ -18,6 +24,9 @@ const images: PortraitImage[] = [
   { id: 7, src: "/portraits/environment.jpg", alt: "Environmental portrait outdoors" },
   { id: 5, src: "/portraits/moody.jpg", alt: "Portrait with subtle shadow and contrast" },
 ];
+
+const SWIPE_THRESHOLD = 50;
+const DRAG_DAMPING = 0.6;
 
 function ImageCard({
   image,
@@ -58,7 +67,18 @@ function Lightbox({
   onNext: () => void;
 }) {
   const image = images[index];
+  const [enterKey, setEnterKey] = useState(index);
+  const [dragX, setDragX] = useState(0);
+  const [isDragging, setIsDragging] = useState(false);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
+  // re-trigger fade/slide when index changes
+  useEffect(() => {
+    setEnterKey(index);
+  }, [index]);
+
+  // keyboard + scroll lock
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -74,17 +94,44 @@ function Lightbox({
     };
   }, [onClose, onPrev, onNext]);
 
+  const handleTouchStart = (e: ReactTouchEvent) => {
+    const t = e.touches[0];
+    touchStartX.current = t.clientX;
+    touchStartY.current = t.clientY;
+    setIsDragging(true);
+  };
+
+  const handleTouchMove = (e: ReactTouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+    const t = e.touches[0];
+    const dx = t.clientX - touchStartX.current;
+    const dy = t.clientY - touchStartY.current;
+    // ignore mostly-vertical gestures
+    if (Math.abs(dy) > Math.abs(dx)) return;
+    setDragX(dx * DRAG_DAMPING);
+  };
+
+  const handleTouchEnd = () => {
+    const dx = dragX;
+    setIsDragging(false);
+    setDragX(0);
+    touchStartX.current = null;
+    touchStartY.current = null;
+    if (dx <= -SWIPE_THRESHOLD) onNext();
+    else if (dx >= SWIPE_THRESHOLD) onPrev();
+  };
+
   return (
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Portrait viewer"
+      aria-label="Portrait image viewer"
       onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/90 p-4 backdrop-blur-sm motion-safe:animate-fade-in"
     >
       <button
         type="button"
-        aria-label="Close"
+        aria-label="Close image viewer"
         onClick={onClose}
         className="absolute right-4 top-4 inline-flex h-10 w-10 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
       >
@@ -98,7 +145,7 @@ function Lightbox({
           e.stopPropagation();
           onPrev();
         }}
-        className="absolute left-2 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:left-6"
+        className="absolute left-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:inline-flex md:left-6"
       >
         <span aria-hidden="true" className="text-3xl leading-none">‹</span>
       </button>
@@ -110,23 +157,37 @@ function Lightbox({
           e.stopPropagation();
           onNext();
         }}
-        className="absolute right-2 top-1/2 inline-flex h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:right-6"
+        className="absolute right-2 top-1/2 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:inline-flex md:right-6"
       >
         <span aria-hidden="true" className="text-3xl leading-none">›</span>
       </button>
 
       <div
         onClick={(e) => e.stopPropagation()}
-        className="relative h-[85vh] w-[90vw]"
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
+        className="relative flex h-[84vh] w-[92vw] max-w-[92vw] items-center justify-center touch-pan-y select-none"
       >
-        <Image
-          src={image.src}
-          alt={image.alt}
-          fill
-          sizes="90vw"
-          priority
-          className="rounded-xl object-contain"
-        />
+        <div
+          key={enterKey}
+          style={{ transform: `translateX(${dragX}px)` }}
+          className={`relative h-full w-full motion-safe:animate-fade-slide ${
+            isDragging
+              ? ""
+              : "transition-transform duration-200 ease-out"
+          }`}
+        >
+          <Image
+            src={image.src}
+            alt={image.alt}
+            fill
+            sizes="92vw"
+            priority
+            draggable={false}
+            className="object-contain"
+          />
+        </div>
       </div>
     </div>
   );
