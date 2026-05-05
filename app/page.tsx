@@ -23,7 +23,7 @@ export default function Home() {
             Blackburn Studio
           </span>
           <nav className="hidden gap-8 text-sm text-neutral-400 md:flex">
-            <a href="#work" className="transition-colors hover:text-white">Work</a>
+            <a href="/work" className="transition-colors hover:text-white">Work</a>
             <a href="#about" className="transition-colors hover:text-white">About</a>
             <a href="#contact" className="transition-colors hover:text-white">Contact</a>
           </nav>

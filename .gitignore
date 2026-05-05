@@ -39,3 +39,9 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# local-only image originals (not used by the site)
+/public/images/*-old.jpg
+/public/images/portrait-02-sarah.jpg
+/public/images/portrait-03-amber back.jpg
+/public/images/Sarah_*.jpg
