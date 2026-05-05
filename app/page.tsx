@@ -1,4 +1,5 @@
 import Image from "next/image";
+import Link from "next/link";
 
 const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/images";
 
@@ -88,9 +89,11 @@ export default function Home() {
 
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-5">
             {portraits.map((file) => (
-              <figure
+              <Link
                 key={file}
-                className="group relative aspect-4/5 overflow-hidden rounded-2xl bg-neutral-900"
+                href="/work"
+                aria-label="View selected work"
+                className="group relative block aspect-4/5 overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
               >
                 <Image
                   src={`${baseUrl}/${file}`}
@@ -99,7 +102,7 @@ export default function Home() {
                   sizes="(min-width: 768px) 33vw, 100vw"
                   className="object-cover transition duration-700 ease-out group-hover:-translate-y-0.5 group-hover:scale-[1.01]"
                 />
-              </figure>
+              </Link>
             ))}
           </div>
         </div>
@@ -123,9 +126,11 @@ export default function Home() {
 
           <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-5">
             {japan.map((file) => (
-              <figure
+              <Link
                 key={file}
-                className="group relative aspect-4/5 overflow-hidden rounded-2xl bg-neutral-900"
+                href="/work"
+                aria-label="View selected work"
+                className="group relative block aspect-4/5 overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
               >
                 <Image
                   src={`${baseUrl}/${file}`}
@@ -134,7 +139,7 @@ export default function Home() {
                   sizes="(min-width: 768px) 33vw, 100vw"
                   className="object-cover transition duration-700 ease-out group-hover:-translate-y-0.5 group-hover:scale-[1.01]"
                 />
-              </figure>
+              </Link>
             ))}
           </div>
         </div>
