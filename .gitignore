@@ -45,3 +45,9 @@ next-env.d.ts
 /public/images/portrait-02-sarah.jpg
 /public/images/portrait-03-amber back.jpg
 /public/images/Sarah_*.jpg
+
+# never commit working files / raw originals
+*.psd
+/public/portraits/MG_*.jpg
+/public/portraits/IMG_*.jpg
+/public/portraits/[0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]_*.jpg
