@@ -86,41 +86,41 @@ export default function WorkPage() {
               aria-label={`${c.title} — view series`}
               className="group block focus-visible:outline-none"
             >
-              <figure
-                className="relative aspect-4/3 overflow-hidden rounded-2xl bg-neutral-900 transform-gpu group-focus-visible:ring-2 group-focus-visible:ring-white/60 group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-black"
-              >
+              <figure className="relative aspect-4/3 overflow-hidden rounded-2xl bg-neutral-900 group-focus-visible:ring-2 group-focus-visible:ring-white/60 group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-black">
+                {/* Image layer — subtle, slow, cinematic scale */}
                 <Image
                   src={`${baseUrl}/${c.image}`}
                   alt={c.title}
                   fill
                   sizes="(min-width: 768px) 50vw, 100vw"
-                  className="object-cover transform-gpu transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.02]"
+                  style={{ willChange: "transform", backfaceVisibility: "hidden" }}
+                  className="object-cover transform-gpu transition-transform duration-[700ms] ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.01]"
                 />
 
-                {/* Bottom gradient: covers ~40% for legibility, deepens slightly on hover */}
+                {/* Gradient overlay — atmospheric base, gently deepens on hover */}
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 via-black/30 to-transparent transition-opacity duration-500 ease-out group-hover:opacity-90"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/60 via-black/25 to-transparent transition-opacity duration-500 ease-out"
                 />
                 <div
                   aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/20 to-transparent opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
                 />
 
-                {/* In-image overlay nav */}
+                {/* Typography layer — title and CTA animate independently */}
                 <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 p-5 md:p-6">
                   <h2
-                    className="text-xl font-medium uppercase tracking-[0.18em] text-white transform-gpu transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:text-2xl md:group-hover:-translate-y-1 md:group-hover:tracking-[0.22em]"
+                    style={{ willChange: "transform" }}
+                    className="text-xl font-medium uppercase tracking-[0.18em] text-white transform-gpu transition-all duration-[450ms] ease-[cubic-bezier(0.22,1,0.36,1)] md:text-2xl md:group-hover:-translate-y-[3px] md:group-hover:tracking-[0.2em]"
                   >
                     {c.title}
                   </h2>
-                  <span
-                    className="shrink-0 pb-[2px] text-[10px] uppercase tracking-[0.3em] text-white/70 transition-all duration-500 ease-out group-hover:text-white md:text-xs"
-                  >
+                  <span className="shrink-0 pb-[2px] text-[10px] uppercase tracking-[0.3em] text-white/55 transition-colors duration-500 ease-out group-hover:text-white/80 md:text-xs">
                     View series{" "}
                     <span
                       aria-hidden="true"
-                      className="inline-block transform-gpu transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:group-hover:translate-x-1"
+                      style={{ willChange: "transform" }}
+                      className="inline-block transform-gpu transition-transform duration-[450ms] ease-[cubic-bezier(0.22,1,0.36,1)] md:group-hover:translate-x-[3px]"
                     >
                       →
                     </span>
