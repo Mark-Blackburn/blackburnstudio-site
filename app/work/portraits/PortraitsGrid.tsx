@@ -4,6 +4,7 @@ import Image from "next/image";
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   type TouchEvent as ReactTouchEvent,
@@ -14,6 +15,11 @@ export type PortraitImage = {
   src: string;
   alt: string;
   blurDataURL: string;
+};
+
+export type MorphOrigin = {
+  rect: DOMRect;
+  borderRadius: string;
 };
 
 const CLOSE_THRESHOLD = 100;
@@ -27,6 +33,8 @@ const VELOCITY_THRESHOLD = 0.4; // px/ms
 const DISTANCE_RATIO = 0.2;
 const EASE_PREMIUM = "cubic-bezier(0.22, 1, 0.36, 1)";
 const EASE_SNAP = "cubic-bezier(0.22, 1.08, 0.36, 1)";
+const EASE_MORPH = "cubic-bezier(0.22, 1.08, 0.36, 1)";
+const MORPH_DURATION = 260;
 
 function ImageCard({
   image,
@@ -34,7 +42,7 @@ function ImageCard({
   className = "",
 }: {
   image: PortraitImage;
-  onOpen: (rect: DOMRect) => void;
+  onOpen: (origin: MorphOrigin) => void;
   className?: string;
 }) {
   const ref = useRef<HTMLButtonElement | null>(null);
@@ -43,8 +51,11 @@ function ImageCard({
       ref={ref}
       type="button"
       onClick={() => {
-        const rect = ref.current?.getBoundingClientRect();
-        if (rect) onOpen(rect);
+        const el = ref.current;
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        const borderRadius = window.getComputedStyle(el).borderRadius;
+        onOpen({ rect, borderRadius });
       }}
       aria-label={`Open ${image.alt}`}
       className={`group relative block aspect-4/5 w-full cursor-pointer overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60 ${className}`}
@@ -70,7 +81,7 @@ function Lightbox({
   setIndex,
   onClose,
   closing,
-  originRect,
+  origin,
   morphPhase,
 }: {
   images: PortraitImage[];
@@ -78,7 +89,7 @@ function Lightbox({
   setIndex: (i: number) => void;
   onClose: () => void;
   closing: boolean;
-  originRect: DOMRect | null;
+  origin: MorphOrigin | null;
   morphPhase: "opening" | "open" | "closing";
 }) {
   const total = images.length;
@@ -126,8 +137,10 @@ function Lightbox({
     return () => m.removeEventListener("change", handler);
   }, []);
 
-  // keyboard + body scroll lock (preserves scroll position)
-  useEffect(() => {
+  // keyboard + body scroll lock (preserves scroll position).
+  // useLayoutEffect avoids a one-frame visual jump when opening from a
+  // scrolled position — the lock applies before the browser paints.
+  useLayoutEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
       else if (e.key === "ArrowLeft") goTo(prevIndex);
@@ -302,10 +315,10 @@ function Lightbox({
       aria-label="Portrait image viewer"
       onClick={onClose}
       style={{
-        backgroundColor: `rgba(0,0,0,${(closing ? 0 : 0.95) - closeProgress})`,
+        backgroundColor: `rgba(0,0,0,${(closing || morphPhase === "closing" ? 0 : 0.95) - closeProgress})`,
         paddingTop: "env(safe-area-inset-top)",
         paddingBottom: "env(safe-area-inset-bottom)",
-        transition: `background-color 220ms ${EASE_PREMIUM}`,
+        transition: `background-color ${MORPH_DURATION}ms ${EASE_PREMIUM}`,
       }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
     >
@@ -390,8 +403,9 @@ function Lightbox({
             : animating
               ? `transform 260ms ${EASE_PREMIUM}, opacity 260ms ${EASE_PREMIUM}`
               : morphPhase === "open"
-                ? `opacity 180ms ${EASE_PREMIUM}`
+                ? `opacity 120ms ${EASE_PREMIUM} 80ms`
                 : undefined,
+          pointerEvents: morphPhase === "open" ? undefined : "none",
         }}
         className="relative z-10 h-[84vh] w-[92vw] max-w-[92vw] overflow-hidden touch-pan-y select-none"
       >
@@ -451,7 +465,7 @@ function Lightbox({
 
       <MorphOverlay
         image={images[index]}
-        originRect={originRect}
+        origin={origin}
         phase={morphPhase}
       />
     </div>
@@ -460,11 +474,11 @@ function Lightbox({
 
 function MorphOverlay({
   image,
-  originRect,
+  origin,
   phase,
 }: {
   image: PortraitImage;
-  originRect: DOMRect | null;
+  origin: MorphOrigin | null;
   phase: "opening" | "open" | "closing";
 }) {
   const [style, setStyle] = useState<React.CSSProperties | null>(null);
@@ -476,6 +490,8 @@ function MorphOverlay({
     }
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     const target = computeCenteredRect();
+    const originRect = origin?.rect ?? null;
+    const originRadius = origin?.borderRadius ?? "0px";
     const initial = originRect ?? target;
     const start: React.CSSProperties = {
       position: "fixed",
@@ -483,10 +499,11 @@ function MorphOverlay({
       left: (phase === "opening" ? initial.left : target.left) + "px",
       width: (phase === "opening" ? initial.width : target.width) + "px",
       height: (phase === "opening" ? initial.height : target.height) + "px",
-      transform: phase === "opening" ? "scale(0.98)" : "scale(1)",
+      transform:
+        (phase === "opening" ? "scale(0.98)" : "scale(1)") + " translateZ(0)",
       opacity: phase === "opening" ? (originRect ? 1 : 0) : 1,
       transition: "none",
-      borderRadius: phase === "opening" && originRect ? "1rem" : "0px",
+      borderRadius: phase === "opening" && originRect ? originRadius : "0px",
       overflow: "hidden",
       zIndex: 60,
       willChange: "transform, top, left, width, height, opacity",
@@ -512,7 +529,7 @@ function MorphOverlay({
               left: target.left,
               width: target.width,
               height: target.height,
-              transform: "scale(1)",
+              transform: "scale(1) translateZ(0)",
               opacity: 1,
               borderRadius: "0px",
             }
@@ -521,21 +538,22 @@ function MorphOverlay({
               left: (originRect ?? target).left,
               width: (originRect ?? target).width,
               height: (originRect ?? target).height,
-              transform: "scale(0.98)",
+              transform: "scale(0.98) translateZ(0)",
               opacity: originRect ? 1 : 0,
-              borderRadius: originRect ? "1rem" : "0px",
+              borderRadius: originRect ? originRadius : "0px",
             };
       setStyle({
         ...start,
         ...end,
-        transition: `top 260ms ${EASE_PREMIUM}, left 260ms ${EASE_PREMIUM}, width 260ms ${EASE_PREMIUM}, height 260ms ${EASE_PREMIUM}, transform 260ms ${EASE_PREMIUM}, opacity 220ms ${EASE_PREMIUM}, border-radius 260ms ${EASE_PREMIUM}`,
+        transition: `top ${MORPH_DURATION}ms ${EASE_MORPH}, left ${MORPH_DURATION}ms ${EASE_MORPH}, width ${MORPH_DURATION}ms ${EASE_MORPH}, height ${MORPH_DURATION}ms ${EASE_MORPH}, transform ${MORPH_DURATION}ms ${EASE_MORPH}, opacity ${MORPH_DURATION}ms ${EASE_MORPH}, border-radius ${MORPH_DURATION}ms ${EASE_MORPH}`,
       });
     });
     return () => cancelAnimationFrame(raf);
-  }, [phase, originRect]);
+  }, [phase, origin]);
 
   if (phase === "open" || !style) return null;
 
+  const hasOrigin = !!origin;
   return (
     <div style={style}>
       <Image
@@ -548,7 +566,7 @@ function MorphOverlay({
         draggable={false}
         priority
         className={
-          phase === "opening" || originRect
+          phase === "opening" || hasOrigin
             ? "object-cover select-none"
             : "object-contain select-none"
         }
@@ -573,16 +591,16 @@ function computeCenteredRect() {
 export default function PortraitsGrid({ images }: { images: PortraitImage[] }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const [closing, setClosing] = useState(false);
-  const [originRect, setOriginRect] = useState<DOMRect | null>(null);
+  const [origin, setOrigin] = useState<MorphOrigin | null>(null);
   const [morphPhase, setMorphPhase] =
     useState<"opening" | "open" | "closing">("open");
 
-  const open = useCallback((i: number, rect: DOMRect) => {
+  const open = useCallback((i: number, o: MorphOrigin) => {
     setClosing(false);
-    setOriginRect(rect);
+    setOrigin(o);
     setMorphPhase("opening");
     setOpenIndex(i);
-    window.setTimeout(() => setMorphPhase("open"), 280);
+    window.setTimeout(() => setMorphPhase("open"), MORPH_DURATION);
   }, []);
 
   const close = useCallback(() => {
@@ -591,9 +609,9 @@ export default function PortraitsGrid({ images }: { images: PortraitImage[] }) {
     window.setTimeout(() => {
       setOpenIndex(null);
       setClosing(false);
-      setOriginRect(null);
+      setOrigin(null);
       setMorphPhase("open");
-    }, 280);
+    }, MORPH_DURATION);
   }, []);
 
   return (
@@ -601,27 +619,27 @@ export default function PortraitsGrid({ images }: { images: PortraitImage[] }) {
       <div className="flex flex-col gap-8 md:gap-12">
         {/* Row 1: hero large + candid medium */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-8">
-          <ImageCard image={images[0]} onOpen={(r) => open(0, r)} className="md:col-span-2" />
-          <ImageCard image={images[1]} onOpen={(r) => open(1, r)} />
+          <ImageCard image={images[0]} onOpen={(o) => open(0, o)} className="md:col-span-2" />
+          <ImageCard image={images[1]} onOpen={(o) => open(1, o)} />
         </div>
 
         {/* Row 2: male + natural */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
-          <ImageCard image={images[2]} onOpen={(r) => open(2, r)} />
-          <ImageCard image={images[3]} onOpen={(r) => open(3, r)} />
+          <ImageCard image={images[2]} onOpen={(o) => open(2, o)} />
+          <ImageCard image={images[3]} onOpen={(o) => open(3, o)} />
         </div>
 
         {/* Row 3: connection + environment */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
-          <ImageCard image={images[4]} onOpen={(r) => open(4, r)} />
-          <ImageCard image={images[5]} onOpen={(r) => open(5, r)} />
+          <ImageCard image={images[4]} onOpen={(o) => open(4, o)} />
+          <ImageCard image={images[5]} onOpen={(o) => open(5, o)} />
         </div>
 
         {/* Row 4: moody, centred */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-4 md:gap-8">
           <ImageCard
             image={images[6]}
-            onOpen={(r) => open(6, r)}
+            onOpen={(o) => open(6, o)}
             className="md:col-start-2 md:col-span-2"
           />
         </div>
@@ -634,7 +652,7 @@ export default function PortraitsGrid({ images }: { images: PortraitImage[] }) {
           setIndex={setOpenIndex}
           onClose={close}
           closing={closing}
-          originRect={originRect}
+          origin={origin}
           morphPhase={morphPhase}
         />
       )}
