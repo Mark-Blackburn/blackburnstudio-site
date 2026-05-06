@@ -61,10 +61,12 @@ function Lightbox({
   index,
   setIndex,
   onClose,
+  closing,
 }: {
   index: number;
   setIndex: (i: number) => void;
   onClose: () => void;
+  closing: boolean;
 }) {
   const total = images.length;
   const prevIndex = (index - 1 + total) % total;
@@ -90,7 +92,7 @@ function Lightbox({
     return () => m.removeEventListener("change", handler);
   }, []);
 
-  // keyboard + scroll lock
+  // keyboard + body scroll lock (preserves scroll position)
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -98,11 +100,22 @@ function Lightbox({
       else if (e.key === "ArrowRight") goTo(nextIndex);
     };
     window.addEventListener("keydown", onKey);
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
+
+    const scrollY = window.scrollY;
+    const body = document.body;
+    const prevPosition = body.style.position;
+    const prevTop = body.style.top;
+    const prevWidth = body.style.width;
+    body.style.position = "fixed";
+    body.style.top = `-${scrollY}px`;
+    body.style.width = "100%";
+
     return () => {
       window.removeEventListener("keydown", onKey);
-      document.body.style.overflow = prev;
+      body.style.position = prevPosition;
+      body.style.top = prevTop;
+      body.style.width = prevWidth;
+      window.scrollTo(0, scrollY);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [prevIndex, nextIndex, onClose]);
@@ -200,14 +213,20 @@ function Lightbox({
       aria-modal="true"
       aria-label="Portrait image viewer"
       onClick={onClose}
-      style={{ backgroundColor: `rgba(0,0,0,${0.9 - closeProgress})` }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm motion-safe:animate-fade-in"
+      style={{
+        backgroundColor: `rgba(0,0,0,${(closing ? 0 : 0.95) - closeProgress})`,
+        paddingTop: "env(safe-area-inset-top)",
+        paddingBottom: "env(safe-area-inset-bottom)",
+        transition: "background-color 220ms ease-out",
+      }}
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
     >
       <button
         type="button"
         aria-label="Close image viewer"
         onClick={onClose}
-        className="absolute right-4 top-4 z-10 inline-flex h-10 w-10 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
+        style={{ top: "calc(env(safe-area-inset-top) + 1rem)" }}
+        className="absolute right-4 z-20 inline-flex h-10 w-10 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60"
       >
         <span aria-hidden="true" className="text-2xl leading-none">×</span>
       </button>
@@ -219,7 +238,7 @@ function Lightbox({
           e.stopPropagation();
           goTo(prevIndex);
         }}
-        className="absolute left-2 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:inline-flex md:left-6"
+        className="absolute left-2 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full text-white/40 opacity-0 transition duration-300 ease-out hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:inline-flex md:left-6 md:opacity-100"
       >
         <span aria-hidden="true" className="text-3xl leading-none">‹</span>
       </button>
@@ -231,17 +250,38 @@ function Lightbox({
           e.stopPropagation();
           goTo(nextIndex);
         }}
-        className="absolute right-2 top-1/2 z-10 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full text-white/70 transition hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:inline-flex md:right-6"
+        className="absolute right-2 top-1/2 z-20 hidden h-12 w-12 -translate-y-1/2 items-center justify-center rounded-full text-white/40 opacity-0 transition duration-300 ease-out hover:bg-white/10 hover:text-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-white/60 md:inline-flex md:right-6 md:opacity-100"
       >
         <span aria-hidden="true" className="text-3xl leading-none">›</span>
       </button>
 
       <p
         aria-live="polite"
-        className="pointer-events-none absolute bottom-6 left-1/2 z-10 -translate-x-1/2 text-xs font-medium uppercase tracking-[0.3em] text-white/60"
+        style={{ bottom: "calc(env(safe-area-inset-bottom) + 1.25rem)" }}
+        className="pointer-events-none absolute left-1/2 z-10 -translate-x-1/2 text-xs uppercase tracking-[0.3em] text-white/40"
       >
         {index + 1} / {total}
       </p>
+
+      {/* Mobile tap zones (left/right thirds = prev/next; centre untouched) */}
+      <button
+        type="button"
+        aria-label="Previous image"
+        onClick={(e) => {
+          e.stopPropagation();
+          goTo(prevIndex);
+        }}
+        className="absolute left-0 top-0 z-0 h-full w-1/3 cursor-default md:hidden"
+      />
+      <button
+        type="button"
+        aria-label="Next image"
+        onClick={(e) => {
+          e.stopPropagation();
+          goTo(nextIndex);
+        }}
+        className="absolute right-0 top-0 z-0 h-full w-1/3 cursor-default md:hidden"
+      />
 
       <div
         ref={viewportRef}
@@ -249,8 +289,16 @@ function Lightbox({
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
-        style={{ transform: `translateY(${dragY}px)` }}
-        className={`relative h-[84vh] w-[92vw] max-w-[92vw] overflow-hidden touch-pan-y select-none ${transitionClass}`}
+        style={{
+          transform: `translateY(${dragY}px) scale(${closing ? 0.98 : 1})`,
+          opacity: closing ? 0 : 1,
+          transition: closing
+            ? "transform 220ms ease-out, opacity 220ms ease-out"
+            : animating
+              ? "transform 260ms ease-out"
+              : undefined,
+        }}
+        className="relative z-10 h-[84vh] w-[92vw] max-w-[92vw] overflow-hidden touch-pan-y select-none motion-safe:animate-lightbox-in"
       >
         <div
           style={{ transform: `translate3d(${dragX}px, 0, 0)` }}
@@ -271,7 +319,7 @@ function Lightbox({
                   alt={img.alt}
                   fill
                   sizes="92vw"
-                  priority={offset === 0}
+                  priority
                   draggable={false}
                   className="object-contain"
                 />
@@ -286,9 +334,19 @@ function Lightbox({
 
 export default function PortraitsGrid() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [closing, setClosing] = useState(false);
 
-  const open = useCallback((i: number) => setOpenIndex(i), []);
-  const close = useCallback(() => setOpenIndex(null), []);
+  const open = useCallback((i: number) => {
+    setClosing(false);
+    setOpenIndex(i);
+  }, []);
+  const close = useCallback(() => {
+    setClosing(true);
+    window.setTimeout(() => {
+      setOpenIndex(null);
+      setClosing(false);
+    }, 220);
+  }, []);
 
   return (
     <>
@@ -326,6 +384,7 @@ export default function PortraitsGrid() {
           index={openIndex}
           setIndex={setOpenIndex}
           onClose={close}
+          closing={closing}
         />
       )}
     </>
