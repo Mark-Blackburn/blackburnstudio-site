@@ -83,31 +83,55 @@ export default function WorkPage() {
             <Link
               key={c.slug}
               href={`/work/${c.slug}`}
-              className="group block"
+              aria-label={`${c.title} — view series`}
+              className="group block focus-visible:outline-none"
             >
-              <figure className="relative aspect-4/3 overflow-hidden rounded-2xl bg-neutral-900">
+              <figure
+                className="relative aspect-4/3 overflow-hidden rounded-2xl bg-neutral-900 transform-gpu group-focus-visible:ring-2 group-focus-visible:ring-white/60 group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-black"
+              >
                 <Image
                   src={`${baseUrl}/${c.image}`}
                   alt={c.title}
                   fill
                   sizes="(min-width: 768px) 50vw, 100vw"
-                  className="object-cover transition duration-700 ease-out group-hover:scale-[1.01]"
+                  className="object-cover transform-gpu transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.02]"
                 />
-                <div className="pointer-events-none absolute inset-0 bg-black/0 transition-colors duration-500 group-hover:bg-black/10" />
-              </figure>
-              <div className="mt-5 flex items-start justify-between gap-6">
-                <div>
-                  <h2 className="text-2xl font-medium tracking-tight text-white md:text-3xl">
+
+                {/* Bottom gradient: covers ~40% for legibility, deepens slightly on hover */}
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/70 via-black/30 to-transparent transition-opacity duration-500 ease-out group-hover:opacity-90"
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-2/5 bg-gradient-to-t from-black/30 to-transparent opacity-0 transition-opacity duration-500 ease-out group-hover:opacity-100"
+                />
+
+                {/* In-image overlay nav */}
+                <div className="pointer-events-none absolute inset-x-0 bottom-0 flex items-end justify-between gap-6 p-5 md:p-6">
+                  <h2
+                    className="text-xl font-medium uppercase tracking-[0.18em] text-white transform-gpu transition-all duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:text-2xl md:group-hover:-translate-y-1 md:group-hover:tracking-[0.22em]"
+                  >
                     {c.title}
                   </h2>
-                  <p className="mt-2 max-w-md text-sm leading-relaxed text-neutral-400">
-                    {c.description}
-                  </p>
+                  <span
+                    className="shrink-0 pb-[2px] text-[10px] uppercase tracking-[0.3em] text-white/70 transition-all duration-500 ease-out group-hover:text-white md:text-xs"
+                  >
+                    View series{" "}
+                    <span
+                      aria-hidden="true"
+                      className="inline-block transform-gpu transition-transform duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] md:group-hover:translate-x-1"
+                    >
+                      →
+                    </span>
+                  </span>
                 </div>
-                <span className="mt-1 shrink-0 text-xs font-medium uppercase tracking-[0.3em] text-neutral-500 transition-colors group-hover:text-white">
-                  View series →
-                </span>
-              </div>
+              </figure>
+
+              {/* Supporting description below image — preserved */}
+              <p className="mt-5 max-w-md text-sm leading-relaxed text-neutral-400">
+                {c.description}
+              </p>
             </Link>
           ))}
         </div>
