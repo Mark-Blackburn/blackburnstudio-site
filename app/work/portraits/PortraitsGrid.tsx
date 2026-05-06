@@ -194,6 +194,9 @@ function Lightbox({
     return Math.sign(delta) * (freeLimit + easedExcess);
   };
 
+  const dampenStart = (delta: number) =>
+    Math.abs(delta) < 12 ? delta * 0.6 : delta;
+
   const handleTouchMove = (e: ReactTouchEvent) => {
     if (animatingRef.current) return;
     const t = e.touches[0];
@@ -212,7 +215,7 @@ function Lightbox({
 
     if (axisRef.current === "x") {
       const width = viewportRef.current?.offsetWidth ?? window.innerWidth;
-      setDragX(applyResistance(dx, width));
+      setDragX(applyResistance(dampenStart(dx), width));
     } else if (axisRef.current === "y") {
       // Reduce horizontal drift while vertical close gesture is active
       setDragX(dx * 0.15);
@@ -228,11 +231,14 @@ function Lightbox({
 
     if (axisRef.current === "x") {
       const velocity = dragX / elapsed; // px/ms (signed)
-      const fastLeft = velocity <= -VELOCITY_THRESHOLD;
-      const fastRight = velocity >= VELOCITY_THRESHOLD;
-      if (dragX <= -distanceThreshold || fastLeft) goTo(nextIndex);
-      else if (dragX >= distanceThreshold || fastRight) goTo(prevIndex);
-      else {
+      const directionIntent = Math.sign(velocity) === Math.sign(dragX);
+      const fastEnough =
+        Math.abs(velocity) >= VELOCITY_THRESHOLD && directionIntent;
+      const farEnough = Math.abs(dragX) >= distanceThreshold;
+      if (farEnough || fastEnough) {
+        if (dragX < 0) goTo(nextIndex);
+        else goTo(prevIndex);
+      } else {
         requestAnimationFrame(() => {
           setAnimating(true);
           setDragX(0);
@@ -241,7 +247,7 @@ function Lightbox({
       }
     } else if (axisRef.current === "y") {
       if (Math.abs(dragY) >= CLOSE_THRESHOLD) {
-        onClose();
+        window.setTimeout(() => onClose(), 50);
       } else {
         requestAnimationFrame(() => {
           setAnimating(true);
@@ -295,7 +301,7 @@ function Lightbox({
         backgroundColor: `rgba(0,0,0,${(closing ? 0 : 0.95) - closeProgress})`,
         paddingTop: "env(safe-area-inset-top)",
         paddingBottom: "env(safe-area-inset-bottom)",
-        transition: "background-color 220ms ease-out",
+        transition: `background-color 220ms ${EASE_PREMIUM}`,
       }}
       className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
     >
@@ -418,7 +424,8 @@ function Lightbox({
                   alt={img.alt}
                   fill
                   sizes="92vw"
-                  priority
+                  priority={isActive}
+                  loading={isActive ? undefined : "eager"}
                   draggable={false}
                   className="object-contain"
                 />
