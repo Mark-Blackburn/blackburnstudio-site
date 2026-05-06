@@ -67,6 +67,7 @@ function ImageCard({
         sizes="(min-width: 768px) 50vw, 92vw"
         placeholder="blur"
         blurDataURL={image.blurDataURL}
+        decoding="async"
         className="object-cover transition duration-700 ease-out md:group-hover:scale-[1.01]"
       />
     </button>
@@ -232,10 +233,12 @@ function Lightbox({
 
     if (axisRef.current === "x") {
       const width = viewportRef.current?.offsetWidth ?? window.innerWidth;
+      // Strict horizontal lock: ignore vertical motion entirely once locked to x.
       setDragX(applyResistance(dampenStart(dx), width));
+      if (dragY !== 0) setDragY(0);
     } else if (axisRef.current === "y") {
-      // Reduce horizontal drift while vertical close gesture is active
-      setDragX(dx * 0.15);
+      // Pure vertical close gesture: no horizontal drift.
+      if (dragX !== 0) setDragX(0);
       setDragY(dy);
     }
   };
@@ -263,7 +266,9 @@ function Lightbox({
         window.setTimeout(() => setAnimating(false), 260);
       }
     } else if (axisRef.current === "y") {
-      if (Math.abs(dragY) >= CLOSE_THRESHOLD) {
+      const velocityY = dragY / elapsed; // px/ms (signed)
+      const fastVerticalClose = Math.abs(velocityY) >= 0.5;
+      if (Math.abs(dragY) >= CLOSE_THRESHOLD || fastVerticalClose) {
         window.setTimeout(() => onClose(), 50);
       } else {
         requestAnimationFrame(() => {
@@ -289,6 +294,11 @@ function Lightbox({
 
   // backdrop opacity reduces during vertical close drag
   const closeProgress = Math.min(Math.abs(dragY) / 300, 0.6);
+  // backdrop blur ramps up while open, eases off during vertical close drag
+  const backdropBlurPx =
+    morphPhase === "open" && !closing
+      ? Math.max(0, 8 - (closeProgress / 0.6) * 8)
+      : 0;
   // tactile feedback: scale + opacity falloff during vertical close drag
   const verticalCloseProgress = Math.min(Math.abs(dragY) / 140, 1);
   const verticalScale = 1 - verticalCloseProgress * 0.08;
@@ -318,9 +328,11 @@ function Lightbox({
         backgroundColor: `rgba(0,0,0,${(closing || morphPhase === "closing" ? 0 : 0.95) - closeProgress})`,
         paddingTop: "env(safe-area-inset-top)",
         paddingBottom: "env(safe-area-inset-bottom)",
-        transition: `background-color ${MORPH_DURATION}ms ${EASE_PREMIUM}`,
+        backdropFilter: `blur(${backdropBlurPx}px)`,
+        WebkitBackdropFilter: `blur(${backdropBlurPx}px)`,
+        transition: `background-color ${MORPH_DURATION}ms ${EASE_PREMIUM}, backdrop-filter ${MORPH_DURATION}ms ${EASE_PREMIUM}`,
       }}
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
     >
       <button
         type="button"
@@ -407,7 +419,7 @@ function Lightbox({
                 : undefined,
           pointerEvents: morphPhase === "open" ? undefined : "none",
         }}
-        className="relative z-10 h-[84vh] w-[92vw] max-w-[92vw] overflow-hidden touch-pan-y select-none"
+        className="relative z-10 h-[84vh] w-[92vw] max-w-[92vw] overflow-hidden bg-black touch-pan-y select-none"
       >
         <div
           style={{
@@ -443,7 +455,7 @@ function Lightbox({
                 }}
                 className="absolute inset-0 flex h-full w-full items-center justify-center"
               >
-              <div className="relative h-full w-full">
+              <div className="relative h-full w-full overflow-hidden bg-black">
                 <Image
                   src={img.src}
                   alt={img.alt}
@@ -451,8 +463,8 @@ function Lightbox({
                   sizes="(min-width: 768px) 80vw, 92vw"
                   priority={isActive}
                   loading="eager"
-                  placeholder="blur"
-                  blurDataURL={img.blurDataURL}
+                  placeholder="empty"
+                  decoding="async"
                   draggable={false}
                   className="object-contain select-none"
                 />
@@ -489,26 +501,30 @@ function MorphOverlay({
       return;
     }
     const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const round = (v: number) => Math.round(v);
     const target = computeCenteredRect();
     const originRect = origin?.rect ?? null;
     const originRadius = origin?.borderRadius ?? "0px";
     const initial = originRect ?? target;
     const start: React.CSSProperties = {
       position: "fixed",
-      top: (phase === "opening" ? initial.top : target.top) + "px",
-      left: (phase === "opening" ? initial.left : target.left) + "px",
-      width: (phase === "opening" ? initial.width : target.width) + "px",
-      height: (phase === "opening" ? initial.height : target.height) + "px",
+      top: round(phase === "opening" ? initial.top : target.top) + "px",
+      left: round(phase === "opening" ? initial.left : target.left) + "px",
+      width: round(phase === "opening" ? initial.width : target.width) + "px",
+      height: round(phase === "opening" ? initial.height : target.height) + "px",
       transform:
         (phase === "opening" ? "scale(0.98)" : "scale(1)") + " translateZ(0)",
       opacity: phase === "opening" ? (originRect ? 1 : 0) : 1,
       transition: "none",
       borderRadius: phase === "opening" && originRect ? originRadius : "0px",
       overflow: "hidden",
+      backgroundColor: "#000",
       zIndex: 60,
       willChange: "transform, top, left, width, height, opacity",
       pointerEvents: "none",
     };
+    // Write initial style synchronously so the browser commits it before
+    // the rAF that triggers the animated end state — prevents a 1-frame flash.
     setStyle(start);
     if (reduce) {
       // Skip morph: jump to fade
@@ -525,19 +541,19 @@ function MorphOverlay({
       const end =
         phase === "opening"
           ? {
-              top: target.top,
-              left: target.left,
-              width: target.width,
-              height: target.height,
+              top: round(target.top),
+              left: round(target.left),
+              width: round(target.width),
+              height: round(target.height),
               transform: "scale(1) translateZ(0)",
               opacity: 1,
               borderRadius: "0px",
             }
           : {
-              top: (originRect ?? target).top,
-              left: (originRect ?? target).left,
-              width: (originRect ?? target).width,
-              height: (originRect ?? target).height,
+              top: round((originRect ?? target).top),
+              left: round((originRect ?? target).left),
+              width: round((originRect ?? target).width),
+              height: round((originRect ?? target).height),
               transform: "scale(0.98) translateZ(0)",
               opacity: originRect ? 1 : 0,
               borderRadius: originRect ? originRadius : "0px",
@@ -563,6 +579,7 @@ function MorphOverlay({
         sizes="(min-width: 768px) 80vw, 92vw"
         placeholder="blur"
         blurDataURL={image.blurDataURL}
+        decoding="async"
         draggable={false}
         priority
         className={
