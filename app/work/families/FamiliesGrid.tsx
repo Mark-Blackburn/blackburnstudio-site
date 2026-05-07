@@ -131,8 +131,10 @@ export default function FamiliesGrid({ images }: { images: GalleryImage[] }) {
           />
         </div>
 
-        {/* 12 — playful closing, centred and narrower */}
-        <div className="grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8">
+        {/* 12 — playful closing, centred and narrower.
+            Small additional top spacing acts as a gentle editorial exhale
+            before the final image. Subtle, not a structural break. */}
+        <div className="mt-2 grid grid-cols-1 gap-6 md:mt-4 md:grid-cols-12 md:gap-8">
           <div className="md:col-span-6 md:col-start-4">
             <GalleryImageCard
               image={images[11]}
