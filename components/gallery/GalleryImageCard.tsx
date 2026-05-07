@@ -13,8 +13,17 @@ type GalleryImageCardProps = {
    * Tailwind aspect-ratio class for the card frame.
    * Defaults to `aspect-4/5` to preserve the existing Portraits language.
    * Pass e.g. `aspect-3/2` for landscape cards in mixed-orientation series.
+   * Ignored when `intrinsicAspect` is true.
    */
   aspectClassName?: string;
+  /**
+   * When true, the card frame uses the image's intrinsic width/height ratio
+   * (from build-time metadata) instead of a fixed aspect class. Preserves
+   * original photographic composition with no cropping. Layout-stable: the
+   * ratio is applied inline before the image loads so there is no shift.
+   * Falls back to `aspectClassName` if width/height are not available.
+   */
+  intrinsicAspect?: boolean;
 };
 
 export function GalleryImageCard({
@@ -22,8 +31,14 @@ export function GalleryImageCard({
   onOpen,
   className = "",
   aspectClassName = "aspect-4/5",
+  intrinsicAspect = false,
 }: GalleryImageCardProps) {
   const ref = useRef<HTMLButtonElement | null>(null);
+  const useIntrinsic =
+    intrinsicAspect && !!image.width && !!image.height;
+  const intrinsicStyle = useIntrinsic
+    ? { aspectRatio: `${image.width} / ${image.height}` }
+    : undefined;
   return (
     <button
       ref={ref}
@@ -36,7 +51,8 @@ export function GalleryImageCard({
         onOpen({ rect, borderRadius });
       }}
       aria-label={`Open ${image.alt}`}
-      className={`group relative block ${aspectClassName} w-full cursor-pointer overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60 ${className}`}
+      style={intrinsicStyle}
+      className={`group relative block ${useIntrinsic ? "" : aspectClassName} w-full cursor-pointer overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60 ${className}`}
     >
       <Image
         src={image.src}
