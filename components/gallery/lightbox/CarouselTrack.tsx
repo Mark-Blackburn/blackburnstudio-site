@@ -78,7 +78,7 @@ export function CarouselTrack({
           : animating
             ? `transform 260ms ${EASE_PREMIUM}, opacity 260ms ${EASE_PREMIUM}`
             : morphPhase === "open"
-              ? `opacity 120ms ${EASE_PREMIUM} 80ms`
+              ? `opacity 160ms ${EASE_PREMIUM} 0ms`
               : undefined,
         pointerEvents: morphPhase === "open" ? undefined : "none",
       }}

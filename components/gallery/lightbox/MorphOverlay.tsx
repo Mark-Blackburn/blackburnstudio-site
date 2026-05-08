@@ -6,11 +6,35 @@ import { useEffect, useState } from "react";
 import { EASE_MORPH, EASE_PREMIUM, MORPH_DURATION } from "@/components/gallery/lightbox/constants";
 import type { GalleryImage, MorphOrigin, MorphPhase } from "@/components/gallery/types";
 
-function computeCenteredRect() {
+// Compute the rect that an image of `imgW × imgH` will occupy inside the
+// 92vw × 84vh carousel viewport when rendered with object-contain. Morphing
+// to this rect (instead of the outer 92vw × 84vh box) means the overlay's
+// cover-filled image already matches the carousel's contain-letterboxed image
+// at handoff — eliminating the perceived "shrinks into place" artifact.
+function computeContainRect(imgW?: number, imgH?: number) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
-  const w = vw * 0.92;
-  const h = vh * 0.84;
+  const boxW = vw * 0.92;
+  const boxH = vh * 0.84;
+  if (!imgW || !imgH) {
+    return {
+      top: (vh - boxH) / 2,
+      left: (vw - boxW) / 2,
+      width: boxW,
+      height: boxH,
+    };
+  }
+  const imgAr = imgW / imgH;
+  const boxAr = boxW / boxH;
+  let w: number;
+  let h: number;
+  if (imgAr > boxAr) {
+    w = boxW;
+    h = boxW / imgAr;
+  } else {
+    h = boxH;
+    w = boxH * imgAr;
+  }
   return {
     top: (vh - h) / 2,
     left: (vw - w) / 2,
@@ -29,17 +53,21 @@ export function MorphOverlay({
   phase: MorphPhase;
 }) {
   const [style, setStyle] = useState<React.CSSProperties | null>(null);
+  // Hold the overlay rendered for a brief cross-fade window after "open" so the
+  // carousel takes over without a visible handoff seam.
+  const [holdAfterOpen, setHoldAfterOpen] = useState(false);
 
   useEffect(() => {
     if (phase === "open") {
-      setStyle(null);
+      // Don't unmount immediately — let the carousel fade in beneath us.
+      if (!holdAfterOpen) return;
       return;
     }
     const reduce = window.matchMedia(
       "(prefers-reduced-motion: reduce)",
     ).matches;
     const round = (v: number) => Math.round(v);
-    const target = computeCenteredRect();
+    const target = computeContainRect(image.width, image.height);
     const originRect = origin?.rect ?? null;
     const originRadius = origin?.borderRadius ?? "0px";
     const initial = originRect ?? target;
@@ -51,8 +79,7 @@ export function MorphOverlay({
         round(phase === "opening" ? initial.width : target.width) + "px",
       height:
         round(phase === "opening" ? initial.height : target.height) + "px",
-      transform:
-        (phase === "opening" ? "scale(0.98)" : "scale(1)") + " translateZ(0)",
+      transform: "translateZ(0)",
       opacity: phase === "opening" ? (originRect ? 1 : 0) : 1,
       transition: "none",
       borderRadius:
@@ -63,11 +90,9 @@ export function MorphOverlay({
       willChange: "transform, top, left, width, height, opacity",
       pointerEvents: "none",
     };
-    // Write initial style synchronously so the browser commits it before
-    // the rAF that triggers the animated end state — prevents a 1-frame flash.
     setStyle(start);
+
     if (reduce) {
-      // Skip morph: jump to fade
       requestAnimationFrame(() => {
         setStyle({
           ...start,
@@ -77,39 +102,88 @@ export function MorphOverlay({
       });
       return;
     }
-    const raf = requestAnimationFrame(() => {
-      const end =
-        phase === "opening"
-          ? {
-              top: round(target.top),
-              left: round(target.left),
-              width: round(target.width),
-              height: round(target.height),
-              transform: "scale(1) translateZ(0)",
-              opacity: 1,
-              borderRadius: "0px",
-            }
-          : {
-              top: round((originRect ?? target).top),
-              left: round((originRect ?? target).left),
-              width: round((originRect ?? target).width),
-              height: round((originRect ?? target).height),
-              transform: "scale(0.98) translateZ(0)",
-              opacity: originRect ? 1 : 0,
-              borderRadius: originRect ? originRadius : "0px",
-            };
-      setStyle({
-        ...start,
-        ...end,
-        transition: `top ${MORPH_DURATION}ms ${EASE_MORPH}, left ${MORPH_DURATION}ms ${EASE_MORPH}, width ${MORPH_DURATION}ms ${EASE_MORPH}, height ${MORPH_DURATION}ms ${EASE_MORPH}, transform ${MORPH_DURATION}ms ${EASE_MORPH}, opacity ${MORPH_DURATION}ms ${EASE_MORPH}, border-radius ${MORPH_DURATION}ms ${EASE_MORPH}`,
+
+    let cancelled = false;
+    let raf = 0;
+
+    // Pre-decode the target image so intrinsic sizing is resolved and the
+    // bitmap is ready to paint before the morph begins. Eliminates the
+    // late-decode "pop" on slower CPUs / Safari.
+    const preload = new window.Image();
+    preload.decoding = "async";
+    preload.src = image.src;
+    const ready = preload.decode ? preload.decode().catch(() => undefined) : Promise.resolve();
+
+    ready.then(() => {
+      if (cancelled) return;
+      // Two rAFs: first commits the start style, second triggers the animated
+      // end state. Guarantees the browser has painted the start frame before
+      // the transition begins — no first-frame flash.
+      raf = requestAnimationFrame(() => {
+        raf = requestAnimationFrame(() => {
+          if (cancelled) return;
+          const end =
+            phase === "opening"
+              ? {
+                  top: round(target.top),
+                  left: round(target.left),
+                  width: round(target.width),
+                  height: round(target.height),
+                  opacity: 1,
+                  borderRadius: "0px",
+                }
+              : {
+                  top: round((originRect ?? target).top),
+                  left: round((originRect ?? target).left),
+                  width: round((originRect ?? target).width),
+                  height: round((originRect ?? target).height),
+                  opacity: originRect ? 1 : 0,
+                  borderRadius: originRect ? originRadius : "0px",
+                };
+          setStyle({
+            ...start,
+            ...end,
+            transition: `top ${MORPH_DURATION}ms ${EASE_MORPH}, left ${MORPH_DURATION}ms ${EASE_MORPH}, width ${MORPH_DURATION}ms ${EASE_MORPH}, height ${MORPH_DURATION}ms ${EASE_MORPH}, opacity ${MORPH_DURATION}ms ${EASE_MORPH}, border-radius ${MORPH_DURATION}ms ${EASE_MORPH}`,
+          });
+        });
       });
     });
-    return () => cancelAnimationFrame(raf);
-  }, [phase, origin]);
 
-  if (phase === "open" || !style) return null;
+    return () => {
+      cancelled = true;
+      if (raf) cancelAnimationFrame(raf);
+    };
+  }, [phase, origin, image.src, image.width, image.height, holdAfterOpen]);
 
-  const hasOrigin = !!origin;
+  // When the parent transitions to "open", keep rendering for a short
+  // cross-fade window so the carousel emerges seamlessly underneath.
+  useEffect(() => {
+    if (phase !== "open") {
+      setHoldAfterOpen(false);
+      return;
+    }
+    setHoldAfterOpen(true);
+    // Fade overlay out over the same window the carousel uses to fade in.
+    const fadeStart = requestAnimationFrame(() => {
+      setStyle((prev) =>
+        prev
+          ? {
+              ...prev,
+              transition: `opacity 160ms ${EASE_PREMIUM}`,
+              opacity: 0,
+            }
+          : prev,
+      );
+    });
+    const t = window.setTimeout(() => setHoldAfterOpen(false), 200);
+    return () => {
+      cancelAnimationFrame(fadeStart);
+      window.clearTimeout(t);
+    };
+  }, [phase]);
+
+  if ((phase === "open" && !holdAfterOpen) || !style) return null;
+
   return (
     <div style={style}>
       <Image
@@ -122,11 +196,7 @@ export function MorphOverlay({
         decoding="async"
         draggable={false}
         priority
-        className={
-          phase === "opening" || hasOrigin
-            ? "object-cover select-none"
-            : "object-contain select-none"
-        }
+        className="object-cover select-none"
       />
     </div>
   );
