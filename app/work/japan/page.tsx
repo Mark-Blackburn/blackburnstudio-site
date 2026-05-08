@@ -117,9 +117,6 @@ export default async function JapanPage() {
               <h1 className="mt-3 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl">
                 Japan
               </h1>
-              <p className="mt-3 text-sm uppercase tracking-[0.25em] text-neutral-500 md:text-base">
-                Atmosphere &amp; Memory
-              </p>
             </div>
             <p className="max-w-md text-sm leading-relaxed text-neutral-400 md:text-base">
               A photographic study of atmosphere, texture and quiet memory —
