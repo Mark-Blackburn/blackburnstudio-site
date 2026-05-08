@@ -38,7 +38,8 @@ export default function CouplesGrid({ images }: { images: GalleryImage[] }) {
 
   // Curated editorial rhythm — sequence preserved exactly.
   // 1 L  — quiet curiosity, full-width opener
-  // 2 P  | 3 L — shared presence (asymmetrical pair)
+  // 2 P  — intimate observational pause, narrowed centred portrait
+  // 3 L  — quiet presence, medium-width centred landscape (breathes alone)
   // 4 L  — emotional warmth / romantic punctuation, full-width
   // 5 L  — grounded mature ending, narrowed and centred
   return (
@@ -51,18 +52,26 @@ export default function CouplesGrid({ images }: { images: GalleryImage[] }) {
           intrinsicAspect
         />
 
-        {/* 2 + 3 — quiet asymmetrical pairing */}
-        <div className="grid grid-cols-1 items-start gap-6 md:grid-cols-2 md:gap-8">
-          <GalleryImageCard
-            image={images[1]}
-            onOpen={(o) => open(1, o)}
-            intrinsicAspect
-          />
-          <GalleryImageCard
-            image={images[2]}
-            onOpen={(o) => open(2, o)}
-            intrinsicAspect
-          />
+        {/* 2 — intimate observational pause, narrower centred portrait */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8">
+          <div className="md:col-span-6 md:col-start-4">
+            <GalleryImageCard
+              image={images[1]}
+              onOpen={(o) => open(1, o)}
+              intrinsicAspect
+            />
+          </div>
+        </div>
+
+        {/* 3 — quiet presence, medium-width centred landscape, breathes alone */}
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8">
+          <div className="md:col-span-8 md:col-start-3">
+            <GalleryImageCard
+              image={images[2]}
+              onOpen={(o) => open(2, o)}
+              intrinsicAspect
+            />
+          </div>
         </div>
 
         {/* 4 — emotional punctuation, full-width */}
