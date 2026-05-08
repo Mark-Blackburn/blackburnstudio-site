@@ -66,12 +66,10 @@ export default function Home() {
         <div className="pointer-events-none absolute bottom-6 left-1/2 hidden h-6 w-px -translate-x-1/2 bg-white/25 md:block" />
       </section>
 
-      <div className="h-8 md:h-12" />
-
       {/* Work */}
       <section id="work">
-        {/* Portraits */}
-        <div className="mx-auto max-w-6xl px-6 pt-16 pb-20 md:px-8 md:pt-24 md:pb-28">
+        {/* Portraits — tighter top spacing creates a connected exhale from the hero */}
+        <div className="mx-auto max-w-6xl px-6 pt-10 pb-20 md:px-8 md:pt-16 md:pb-28">
           <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:gap-12">
             <div>
               <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
@@ -124,23 +122,39 @@ export default function Home() {
             </p>
           </div>
 
-          <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-3 md:gap-5">
-            {japan.map((file) => (
-              <Link
-                key={file}
-                href="/work"
-                aria-label="View selected work"
-                className="group relative block aspect-4/5 overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
-              >
-                <Image
-                  src={`${baseUrl}/${file}`}
-                  alt="Japan landscape by Blackburn Studio"
-                  fill
-                  sizes="(min-width: 768px) 33vw, 100vw"
-                  className="object-cover transition duration-700 ease-out group-hover:-translate-y-0.5 group-hover:scale-[1.01]"
-                />
-              </Link>
-            ))}
+          {/* Asymmetric editorial weighting: one dominant frame, two quieter supports. */}
+          <div className="mt-10 grid grid-cols-1 gap-8 md:grid-cols-12 md:gap-5">
+            <Link
+              href="/work"
+              aria-label="View selected work"
+              className="group relative block aspect-4/5 overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60 md:col-span-7"
+            >
+              <Image
+                src={`${baseUrl}/${japan[0]}`}
+                alt="Japan landscape by Blackburn Studio"
+                fill
+                sizes="(min-width: 768px) 58vw, 100vw"
+                className="object-cover transition duration-700 ease-out group-hover:-translate-y-0.5 group-hover:scale-[1.01]"
+              />
+            </Link>
+            <div className="flex flex-col gap-8 md:col-span-5 md:gap-5">
+              {japan.slice(1).map((file) => (
+                <Link
+                  key={file}
+                  href="/work"
+                  aria-label="View selected work"
+                  className="group relative block aspect-[4/3] overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
+                >
+                  <Image
+                    src={`${baseUrl}/${file}`}
+                    alt="Japan landscape by Blackburn Studio"
+                    fill
+                    sizes="(min-width: 768px) 42vw, 100vw"
+                    className="object-cover transition duration-700 ease-out group-hover:-translate-y-0.5 group-hover:scale-[1.01]"
+                  />
+                </Link>
+              ))}
+            </div>
           </div>
         </div>
       </section>
@@ -190,6 +204,19 @@ export default function Home() {
           </a>
         </div>
       </section>
+
+      {/* Closing exhale — a narrow atmospheric crop that lets the page breathe out before the footer. */}
+      <div className="relative mt-20 h-40 w-full overflow-hidden md:mt-28 md:h-56">
+        <Image
+          src={`${baseUrl}/${japan[2]}`}
+          alt=""
+          aria-hidden="true"
+          fill
+          sizes="100vw"
+          className="object-cover object-center opacity-60"
+        />
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-black via-black/30 to-black" />
+      </div>
 
       <footer className="mx-auto w-full max-w-6xl px-6 py-10 md:px-8">
         <div className="flex flex-col items-center justify-between gap-4 text-xs text-neutral-500 md:flex-row">
