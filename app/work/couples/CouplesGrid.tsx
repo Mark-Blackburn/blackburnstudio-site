@@ -66,7 +66,7 @@ export default function CouplesGrid({ images }: { images: GalleryImage[] }) {
         {/* 3 — quiet presence, slightly narrower centred landscape so it reads
             as a quieter supporting portrait, not competing with the dog image */}
         <div className="grid grid-cols-1 gap-6 md:grid-cols-12 md:gap-8">
-          <div className="md:col-span-7 md:col-start-4">
+          <div className="md:col-span-8 md:col-start-3">
             <GalleryImageCard
               image={images[2]}
               onOpen={(o) => open(2, o)}
