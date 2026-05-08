@@ -183,7 +183,9 @@ export default async function Home() {
               className="object-cover transition duration-700 ease-out group-hover:-translate-y-0.5 group-hover:scale-[1.01]"
             />
           </Link>
-          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 sm:gap-6 md:gap-8">
+          {/* Mobile: paired supporting diptych beneath the lead.
+              Desktop (md+): inherits the editorial drift refinements. */}
+          <div className="grid grid-cols-2 gap-4 sm:gap-6 md:gap-8">
             {japanSupports.map((img, i) => (
               <Link
                 key={img.id}
@@ -191,10 +193,11 @@ export default async function Home() {
                 aria-label="View selected work"
                 className={
                   "group relative block overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60 " +
-                  // Quiet editorial drift on the right-hand image: slightly
-                  // narrower, anchored to the inner edge, and nudged downward
-                  // so the two supports share no aligned edge or baseline.
-                  (i === 1 ? "sm:w-[82%] sm:justify-self-end sm:mt-6 md:mt-10" : "")
+                  // Quiet editorial drift on the right-hand image, desktop only:
+                  // slightly narrower, anchored to the inner edge, and nudged
+                  // downward so the two supports share no aligned edge or baseline.
+                  // Mobile keeps a clean paired diptych — no drift.
+                  (i === 1 ? "md:w-[82%] md:justify-self-end md:mt-10" : "")
                 }
                 style={
                   img.width && img.height
@@ -208,7 +211,7 @@ export default async function Home() {
                   fill
                   placeholder="blur"
                   blurDataURL={img.blurDataURL}
-                  sizes="(min-width: 640px) 32rem, 100vw"
+                  sizes="(min-width: 640px) 32rem, 50vw"
                   className="object-cover transition duration-700 ease-out group-hover:-translate-y-0.5 group-hover:scale-[1.01]"
                 />
               </Link>
