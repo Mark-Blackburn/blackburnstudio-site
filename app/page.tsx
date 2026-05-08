@@ -95,10 +95,19 @@ export default async function Home() {
                 Portraits
               </h2>
             </div>
-            <p className="max-w-sm text-sm leading-relaxed text-neutral-400 md:ml-auto md:text-base">
-              Quiet, considered portraiture. Natural light, real expression,
-              and a sense of presence in every frame.
-            </p>
+            <div className="max-w-sm md:ml-auto">
+              <p className="text-sm leading-relaxed text-neutral-400 md:text-base">
+                Quiet, considered portraiture. Natural light, real expression,
+                and a sense of presence in every frame.
+              </p>
+              <Link
+                href="/work"
+                className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-neutral-500 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none"
+              >
+                View selected work
+                <span aria-hidden="true" className="transition-transform duration-300 ease-out group-hover:translate-x-0.5">→</span>
+              </Link>
+            </div>
           </div>
 
           <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-3 md:gap-5">
@@ -158,10 +167,19 @@ export default async function Home() {
               Japan
             </h2>
           </div>
-          <p className="max-w-sm text-sm leading-relaxed text-neutral-400 md:ml-auto md:text-base">
-            A curated landscape series — stillness, scale, and the soft
-            geometry of a country observed slowly.
-          </p>
+          <div className="max-w-sm md:ml-auto">
+            <p className="text-sm leading-relaxed text-neutral-400 md:text-base">
+              A curated landscape series — stillness, scale, and the soft
+              geometry of a country observed slowly.
+            </p>
+            <Link
+              href="/work"
+              className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-neutral-500 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none"
+            >
+              View selected work
+              <span aria-hidden="true" className="transition-transform duration-300 ease-out group-hover:translate-x-0.5">→</span>
+            </Link>
+          </div>
         </div>
 
         {/* Establishing landscape on top, two portrait supports beneath.
