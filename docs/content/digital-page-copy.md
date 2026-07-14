@@ -8,9 +8,8 @@ Status: Draft for owner review
 - Metadata description: Blackburn Studio creates clear websites, improves operational workflows and delivers practical digital platforms for businesses and organisations.
 - Open Graph title: Practical digital improvement for websites, workflows and platforms
 - Open Graph description: Blackburn Studio helps businesses and organisations improve websites, workflows and operational systems with clear, maintainable delivery.
-- Proposed Open Graph image concept: Dark, restrained hero composition featuring one strong website or process visual with subtle editorial typography; no confidential operational details, no dense UI collage.
 
-Editorial note: Keep metadata concise and human. Re-check title and description lengths during implementation. Prepare one curated OG image with safe visual content only.
+Editorial note: Keep metadata concise and human. Re-check title and description lengths during implementation.
 
 ## 1. Hero
 
@@ -18,13 +17,15 @@ Digital
 
 # Better websites and digital systems, shaped around how you work
 
-Whether you arrive with a clear brief or an unclear problem, Blackburn Studio starts by understanding what you need to improve. From there, the right technology and approach are chosen to suit the work.
+Some projects begin with a clear brief and outcome. Others begin with a process that no longer supports where you want to get to. Blackburn Studio helps you understand the need, simplify the problem and build the right response.
 
 Primary CTA: [Start a conversation](/contact)
 
 Secondary CTA: [See selected work](#selected-digital-work)
 
-Editorial note: Keep hero visually calm and confident. Avoid technical jargon in the first screen. On mobile, keep the H1 to two lines where possible.
+Services: [Websites](#websites), [Workflow improvement](#workflow-improvement), and [Platforms and systems](#platforms-systems).
+
+Editorial note: Service navigation is now an inline hero service sentence. It should remain understated, editorial, and visually secondary to the hero CTAs. Do not reintroduce a separate Services bar/strip treatment.
 
 ## 2. Websites
 
@@ -32,28 +33,22 @@ Websites
 
 ## Clear websites that support real business and organisational goals
 
-For many clients, the website is the most practical place to begin. That might mean creating a new site, modernising an existing one, or improving structure and content so people can quickly understand what you do and what to do next.
+For many clients, the website is the right place to begin. Blackburn Studio creates new sites and modernises existing ones, bringing together structure, content, photography and practical platform choices.
 
-Website work can include information architecture, content structure, visual communication and photography, service and portfolio presentation, and practical platform choices that stay understandable over time. The goal is not technical complexity. It is a site that is clear, maintainable and useful in day-to-day operations.
+The result is a site that is easier to understand, maintain and improve. Website work can also reveal broader opportunities around content, customer experience and ongoing digital support.
 
-Where relevant, website projects also uncover broader opportunities around process, content operations and ongoing improvement.
+Supporting tags:
 
-Supporting points:
+- New websites
+- Website modernisation
+- Information structure
+- Photography
+- Portfolio presentation
+- Ongoing improvement
 
-- new websites
-- modernisation of existing websites
-- information and content structure
-- photography and visual content
-- portfolio and service presentation
-- maintainable platform choices
-- broader opportunities identified during delivery
-- ongoing improvement
+For Create from Concepts, Blackburn Studio combined a substantial WordPress rebuild with improved information structure, gallery presentation and original team photography. The site is live and the project remains ongoing.
 
-For Create from Concepts (commercial client project), Blackburn Studio combined a substantial WordPress rebuild with improved information structure, gallery presentation and original team photography. The project is live and continues to evolve.
-
-CTA: [Start a conversation](/contact)
-
-Editorial note: Lead this section with one strong visual from Create from Concepts. Keep proof reference to one sentence and avoid outcome claims.
+Owner-confirmed public URL: https://createfromconcepts.com.au/
 
 ## 3. Workflow and process improvement
 
@@ -61,26 +56,22 @@ Workflow and process improvement
 
 ## Improve how work moves before deciding what to build
 
-Not every project starts with a clearly defined technical brief. Sometimes the real issue is repeated entry, paper forms, spreadsheet workarounds, long email chains, unclear status, or information held by one person.
+Paper forms, spreadsheet workarounds, repeated entry and long email chains often point to a process problem before they point to a technology problem.
 
-Blackburn Studio works through the current process, identifies what is getting in the way, and simplifies where possible before introducing automation or system change. In some cases, the right recommendation is a smaller process change rather than a new tool.
+Blackburn Studio maps how the work happens, removes unnecessary friction and introduces the smallest useful change - whether that is a clearer process, automation or a new system.
 
-The focus is practical: clearer ownership, less friction, better visibility, and an approach that can be supported over time.
+Workflow tags:
 
-Common problems this addresses:
+- Manual entry
+- Paper forms
+- Spreadsheets
+- Email approvals
+- Status visibility
+- Reporting
 
-- paper forms and manual handling
-- spreadsheet-heavy administration
-- repeated data entry
-- email-chain approvals and reminders
-- unclear ownership or status
-- reporting assembled by hand
+AFL Masters Vic Country workflow work is a volunteer community project. It included moving fragmented administration into structured Microsoft 365, SharePoint, Forms and Power Automate workflows, creating clearer visibility and shared access.
 
-AFL Masters Vic Country workflow work (volunteer community project) included moving fragmented administration into structured Microsoft 365, SharePoint, Forms and Power Automate workflows, creating clearer visibility and shared access.
-
-CTA: [Start a conversation](/contact)
-
-Editorial note: Pair this section with an anonymised process visual, not a product screenshot. Keep language practical and avoid implying every workflow needs software.
+Editorial note: Do not add public links to workflow highlights because this work relates to internal operations.
 
 ## 4. Platforms, portals and business systems
 
@@ -88,55 +79,51 @@ Platforms, portals and business systems
 
 ## When the need goes beyond a standard website
 
-Some organisations need more than a marketing site. They may need a shared platform, role-based access, multi-site structure, integrations, administration tooling, or data that stays current and reliable.
+When a standard website is not enough, Blackburn Studio can design shared platforms, portals and operational tools that bring content, data and administration together.
 
-Blackburn Studio can scope and deliver these deeper implementations where the underlying need is clear, including shared content structures, live data integration, operational resilience and ongoing support. The same principle applies: understand the context first, then build the right response.
+Integrations, resilience and ongoing support are considered from the start, so the result remains useful beyond its initial launch.
 
-This capability is suited to organisations that need practical systems support without unnecessary complexity.
+Platforms tags:
 
-Capability focus:
+- Shared website platforms
+- Member portals
+- Central content
+- Live data
+- Integrations
+- Administration tools
 
-- shared platforms
-- client or member portals
-- multi-site websites
-- central content management
-- live-data and third-party integrations
-- administration tools
-- resilience and support
+AFL Masters Vic Country is a volunteer community project. Blackburn Studio designed and delivered a shared public platform supporting the main league site and 17 clubs, with centrally managed content and integrated live competition information.
 
-For AFL Masters Vic Country (volunteer community project), Blackburn Studio designed and delivered a shared public platform supporting the main league site and 17 clubs, with centrally managed content and integrated live competition information.
+Scale context:
 
-CTA: [Start a conversation](/contact)
+- main league site
+- 17 clubs
 
-Editorial note: Use one curated platform visual or approved diagram. Keep the 17-club reference as scale context only, not as a performance claim.
+Owner-confirmed public URL: https://viccountrymasters.com/
 
-## 5. How Blackburn Studio works
+## 5. Development lifecycle
 
-## A proportionate approach, shaped to the project
+Development lifecycle
 
-You do not need to arrive with a completed technical specification. Discovery is scaled to the scope and uncertainty of the work. The outcome may be a website, a process change, a shared platform, a staged roadmap, or a recommendation not to change technology.
+## From goal to delivery
 
 1. **Understand**
-Map the context, goals and constraints so decisions are grounded in how the organisation actually operates.
+Learn the goals, people, constraints and current way of working.
 
 2. **Find the real problem**
-Identify what is genuinely causing friction, delay or confusion rather than treating every symptom as a tooling issue.
+Separate the underlying friction from its visible symptoms.
 
 3. **Simplify**
-Remove unnecessary steps and duplication before introducing new systems or automation.
+Remove unnecessary steps before introducing technology.
 
 4. **Choose the right approach**
-Set a practical direction that matches the need, from focused improvements to deeper implementation.
+Decide what should change, what should remain and how to proceed.
 
 5. **Build or improve**
-Deliver the agreed work with clear scope, maintainable choices and regular communication.
+Deliver clear, maintainable work in agreed stages.
 
 6. **Support and evolve**
-Continue refining what is in place so the work remains useful as needs change.
-
-Editorial note: Present this as a calm six-step sequence with concise copy. Keep each step to a single line on mobile where practical.
-
-<div id="selected-digital-work"></div>
+Refine the result as needs and opportunities change.
 
 ## 6. Selected Digital work
 
@@ -150,27 +137,31 @@ These projects show how Blackburn Studio works across small-business websites, o
 
 Commercial client project
 
-An existing WordPress site needed substantial modernisation to better represent the business and improve portfolio presentation. Blackburn Studio rebuilt structure and presentation, delivered a work gallery and team photography, and identified broader opportunities while the project remained live and ongoing.
+An existing WordPress site needed substantial modernisation and stronger portfolio presentation. Blackburn Studio rebuilt the structure, improved the gallery experience and delivered original team photography. The site is live and the project remains ongoing.
 
-Website modernisation; Information structure; Photography; Ongoing digital improvement.
+Website modernisation; Information structure; Photography; Ongoing improvement.
+
+Interaction note: The full Create from Concepts project card is clickable and links to https://createfromconcepts.com.au/ with external-link handling.
 
 ### AFL Masters Vic Country website platform
 
 Volunteer community project
 
-A simple SharePoint-pages direction was not suitable for the intended public club-site use. Blackburn Studio conceived and delivered a shared public platform that supports the main league website and 17 clubs, with centrally managed content and integrated live competition information.
+A simple SharePoint-pages direction was not suitable for public club websites. Blackburn Studio delivered a shared public platform for the main league site and 17 clubs, with central content and live competition information.
 
-Multi-site websites; Platform development; Integrations; Business systems; Ongoing support.
+Shared website platforms; Platform development; Integrations; Business systems.
+
+Interaction note: The full AFL Masters Vic Country website platform card is clickable and links to https://viccountrymasters.com/ with external-link handling.
 
 ### AFL Masters Vic Country workflows and automation
 
 Volunteer community project
 
-Administration relied on personal inboxes, spreadsheets, paper forms and manually assembled reporting. Blackburn Studio helped move this into structured Microsoft 365, SharePoint, Forms and Power Automate workflows, with clearer compliance visibility, shared information access and more structured reporting and handover.
+Administration relied on inboxes, spreadsheets, paper forms and manual reporting. Blackburn Studio helped move this work into structured Microsoft 365, SharePoint, Forms and Power Automate workflows.
 
 Workflow improvement; Paper-to-digital; Microsoft 365; Automation; Reporting.
 
-Editorial note: Keep cards non-linked at launch. Preserve visible engagement labels and use consistent card rhythm. Do not add a View project CTA. Detailed project pages do not exist at launch, and this section should remain concise. Visual direction: Create from Concepts uses public website screenshots and team photography; Vic Country platform uses public-site montage or approved platform or architecture diagram; Vic Country workflows uses an anonymised before-and-after process diagram or anonymised process map, with optional recreated interface using sample data.
+Editorial note: The AFL Masters Vic Country workflows and automation card remains intentionally non-clickable because it represents private/internal operating systems. Do not add public or private workflow URLs.
 
 ## 7. Deeper capability
 
@@ -180,63 +171,34 @@ Deeper capability
 
 ### Structure and content
 
-Information architecture, content design, and visual communication that make services, processes and decisions easier to understand.
+Information architecture, content design, and visual communication that make services and decisions easier to understand.
 
 ### Workflows and operations
 
-Microsoft 365, SharePoint, Forms, automation, reporting and dashboard capability that supports clearer administration and repeatable operations.
+Microsoft 365, SharePoint, automation and reporting that support clearer, repeatable administration.
 
 ### Platforms and integration
 
-Portals, shared platforms, live-data integration, administration tooling, and cloud-hosted support for organisations that need more than a standard site.
+Portals, shared platforms, live-data integrations and administration tools for needs beyond a standard website.
 
-Editorial note: Keep this section compact and grouped. Avoid long technical lists and avoid turning each capability into a mini service page.
+## 8. About transition
 
-## 8. About and credibility
+`/digital` no longer carries a full About section.
 
-About
+Transition line:
 
-## Experienced, direct and practical delivery
+For more about Mark Blackburn and the studio approach, visit [About](/about).
 
-Mark Blackburn combines senior engineering and technical leadership experience with direct, practical delivery. He works from the underlying business or organisational need through to a clear, maintainable implementation.
-
-He works with small businesses and community organisations, and brings visual communication and photography capability where it helps clarify the outcome.
-
-Based in Gisborne and working with businesses and organisations across Victoria and beyond.
-
-CTA: [About Mark Blackburn](/about)
-
-Editorial note: Keep this section personal and grounded. Do not present it as a corporate profile or imply a large delivery team.
+Editorial note: `/about` is the primary route for studio background and credibility.
 
 ## 9. Closing CTA
 
-## Start with what is not working
+## Start with the outcome you want
 
-If something in your website, process or information flow is getting in the way, start there. You do not need to prescribe the technical answer first. Describe what you are trying to improve, and we can work through the right next step.
+Tell me what you want your website, process or information flow to support, and what is getting in the way. We can work back from there to identify what needs to change, what should be simplified, and what is worth building.
 
 Primary CTA: [Start a conversation](/contact)
 
 Email: hello@theblackburn.studio
 
-Editorial note: Keep this close as a simple invitation with one clear action. Ensure the `/contact` destination is the only primary CTA target.
-
-# Owner review checklist
-
-- [ ] Hero clearly explains websites plus practical improvement
-- [ ] Websites section feels like the accessible entry point
-- [ ] Workflow section reads as a core capability, not an add-on
-- [ ] Platforms section is clear without over-technical language
-- [ ] Overall tone is restrained, credible and human
-- [ ] Location wording is appropriate for Gisborne, Victoria and broader delivery context
-- [ ] Technical detail level is right for decision-makers
-- [ ] Commercial and volunteer-community labels are clear and consistent
-- [ ] Project facts are accurate and evidence-aligned
-- [ ] CTA wording and destinations are correct
-- [ ] Metadata is fit for launch use
-- [ ] Visual direction is clear for each section
-- [ ] Final screenshot selections are identified
-- [ ] Workflow diagram assets are available or planned
-- [ ] Third-party branding use is confirmed where needed
-- [ ] Privacy and confidentiality controls are respected
-- [ ] Mobile reading length feels manageable
-- [ ] Copy is ready to move into implementation drafting
+Editorial note: `/digital` launches with concise proof highlights. `/digital/work` or `/digital/projects` may be considered later, and individual project pages should wait for stronger screenshots, diagrams, testimonials, or case-study evidence. Screenshots and asset selection remain deferred to a later pass.
