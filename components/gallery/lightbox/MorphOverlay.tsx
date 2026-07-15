@@ -90,21 +90,30 @@ export function MorphOverlay({
       willChange: "transform, top, left, width, height, opacity",
       pointerEvents: "none",
     };
-    setStyle(start);
+    let cancelled = false;
+    let raf = 0;
+    let startRaf = 0;
+    let reduceRaf = 0;
+    startRaf = requestAnimationFrame(() => {
+      if (!cancelled) {
+        setStyle(start);
+      }
+    });
 
     if (reduce) {
-      requestAnimationFrame(() => {
+      reduceRaf = requestAnimationFrame(() => {
         setStyle({
           ...start,
           opacity: phase === "opening" ? 1 : 0,
           transition: `opacity 180ms ${EASE_PREMIUM}`,
         });
       });
-      return;
+      return () => {
+        cancelled = true;
+        if (startRaf) cancelAnimationFrame(startRaf);
+        if (reduceRaf) cancelAnimationFrame(reduceRaf);
+      };
     }
-
-    let cancelled = false;
-    let raf = 0;
 
     // Pre-decode the target image so intrinsic sizing is resolved and the
     // bitmap is ready to paint before the morph begins. Eliminates the
@@ -151,6 +160,7 @@ export function MorphOverlay({
 
     return () => {
       cancelled = true;
+      if (startRaf) cancelAnimationFrame(startRaf);
       if (raf) cancelAnimationFrame(raf);
     };
   }, [phase, origin, image.src, image.width, image.height, holdAfterOpen]);
@@ -159,10 +169,16 @@ export function MorphOverlay({
   // cross-fade window so the carousel emerges seamlessly underneath.
   useEffect(() => {
     if (phase !== "open") {
-      setHoldAfterOpen(false);
-      return;
+      const resetRaf = requestAnimationFrame(() => {
+        setHoldAfterOpen(false);
+      });
+      return () => {
+        cancelAnimationFrame(resetRaf);
+      };
     }
-    setHoldAfterOpen(true);
+    const openRaf = requestAnimationFrame(() => {
+      setHoldAfterOpen(true);
+    });
     // Fade overlay out over the same window the carousel uses to fade in.
     const fadeStart = requestAnimationFrame(() => {
       setStyle((prev) =>
@@ -177,12 +193,14 @@ export function MorphOverlay({
     });
     const t = window.setTimeout(() => setHoldAfterOpen(false), 200);
     return () => {
+      cancelAnimationFrame(openRaf);
       cancelAnimationFrame(fadeStart);
       window.clearTimeout(t);
     };
   }, [phase]);
 
-  if ((phase === "open" && !holdAfterOpen) || !style) return null;
+  const styleVisible = style?.opacity !== 0;
+  if ((phase === "open" && !holdAfterOpen && !styleVisible) || !style) return null;
 
   return (
     <div style={style}>

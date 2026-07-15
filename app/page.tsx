@@ -1,6 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import SiteFooter from "@/components/site/SiteFooter";
+import SiteHeader from "@/components/site/SiteHeader";
 import { getImagesWithBlur, type ImageSource } from "@/lib/getImagesWithBlur";
 
 const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/images";
@@ -19,7 +21,7 @@ export default async function Home() {
   const japanImages = await getImagesWithBlur("images", japanSources);
   const [japanLead, ...japanSupports] = japanImages;
   return (
-    <div className="bg-black text-neutral-300">
+    <div className="bg-studio-base text-studio-muted">
       {/* Hero */}
       <section className="relative h-[85vh] w-full overflow-hidden">
         <img
@@ -30,16 +32,7 @@ export default async function Home() {
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/70 via-black/40 to-black/80 md:from-black/60 md:via-black/30 md:to-black/70" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-24 bg-gradient-to-t from-black via-black/40 to-transparent md:h-32" />
 
-        <header className="relative z-30 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 md:px-8">
-          <span className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-300">
-            Blackburn Studio
-          </span>
-          <nav className="hidden gap-8 text-sm text-neutral-400 md:flex">
-            <a href="/work" className="transition-colors hover:text-white">Work</a>
-            <a href="#about" className="transition-colors hover:text-white">About</a>
-            <a href="#contact" className="transition-colors hover:text-white">Contact</a>
-          </nav>
-        </header>
+        <SiteHeader overlay />
 
         {/* `[@media(max-height:760px)]:` refinements target shorter mobile
             heights only (iPhone SE / 12 Pro class). Larger phones, tablets,
@@ -91,18 +84,18 @@ export default async function Home() {
               <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
                 Primary
               </p>
-              <h2 className="mt-3 text-3xl font-medium tracking-tight text-white md:text-4xl">
+              <h2 className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
                 Portraits
               </h2>
             </div>
             <div className="max-w-sm md:ml-auto">
-              <p className="text-sm leading-relaxed text-neutral-400 md:text-base">
+              <p className="text-sm leading-relaxed text-studio-dim md:text-base">
                 Quiet, considered portraiture. Natural light, real expression,
                 and a sense of presence in every frame.
               </p>
               <Link
                 href="/work"
-                className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-neutral-500 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none"
+                className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-studio-dim transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
               >
                 View selected work
                 <span aria-hidden="true" className="transition-transform duration-300 ease-out group-hover:translate-x-0.5">→</span>
@@ -116,7 +109,7 @@ export default async function Home() {
                 key={file}
                 href="/work"
                 aria-label="View selected work"
-                className="group relative block aspect-4/5 overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
+                className="group relative block aspect-4/5 overflow-hidden rounded-2xl bg-studio-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
               >
                 <Image
                   src={`${baseUrl}/${file}`}
@@ -142,10 +135,10 @@ export default async function Home() {
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
             About
           </p>
-          <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-white md:text-4xl">
+          <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
             Clean, natural, human-focused photography.
           </h2>
-          <p className="mt-8 text-sm leading-loose text-neutral-400 md:text-base">
+          <p className="mt-8 text-sm leading-loose text-studio-dim md:text-base">
             Blackburn Studio is built around a simple idea: photographs should
             feel honest. We work quietly and slowly, prioritising real moments
             over performance, and natural light over spectacle. The result is
@@ -163,18 +156,18 @@ export default async function Home() {
             <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
               Series
             </p>
-            <h2 className="mt-3 text-3xl font-medium tracking-tight text-white md:text-4xl">
+            <h2 className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
               Japan
             </h2>
           </div>
           <div className="max-w-sm md:ml-auto">
-            <p className="text-sm leading-relaxed text-neutral-400 md:text-base">
+            <p className="text-sm leading-relaxed text-studio-dim md:text-base">
               A curated landscape series — stillness, scale, and the soft
               geometry of a country observed slowly.
             </p>
             <Link
               href="/work"
-              className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-neutral-500 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none"
+              className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-studio-dim transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
             >
               View selected work
               <span aria-hidden="true" className="transition-transform duration-300 ease-out group-hover:translate-x-0.5">→</span>
@@ -189,7 +182,7 @@ export default async function Home() {
           <Link
             href="/work"
             aria-label="View selected work"
-            className="group relative block overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
+            className="group relative block overflow-hidden rounded-2xl bg-studio-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
             style={
               japanLead.width && japanLead.height
                 ? { aspectRatio: `${japanLead.width} / ${japanLead.height}` }
@@ -215,7 +208,7 @@ export default async function Home() {
                 href="/work"
                 aria-label="View selected work"
                 className={
-                  "group relative block overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60 " +
+                  "group relative block overflow-hidden rounded-2xl bg-studio-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60 " +
                   // Quiet editorial drift on the right-hand image, desktop only:
                   // slightly narrower, anchored to the inner edge, and nudged
                   // downward so the two supports share no aligned edge or baseline.
@@ -252,31 +245,23 @@ export default async function Home() {
           <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
             Contact
           </p>
-          <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-white md:text-5xl">
+          <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-5xl">
             Let&rsquo;s work together.
           </h2>
-          <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-neutral-400 md:text-base">
+          <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-studio-dim md:text-base">
             Commissions, collaborations, and considered conversations all
             welcome.
           </p>
           <a
             href="mailto:hello@theblackburn.studio"
-            className="mt-10 inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-2 text-sm font-medium text-neutral-200 transition duration-500 ease-out hover:scale-[1.02] hover:border-white/40 hover:text-white"
+            className="mt-10 inline-flex items-center justify-center rounded-full border border-studio-border px-5 py-2 text-sm font-medium text-studio-muted transition duration-500 ease-out hover:scale-[1.02] hover:border-white/35 hover:text-studio-text"
           >
             hello@theblackburn.studio
           </a>
         </div>
       </section>
 
-      <footer className="mx-auto w-full max-w-6xl px-6 py-10 md:px-8">
-        <div className="flex flex-col items-center justify-between gap-4 text-xs text-neutral-500 md:flex-row">
-          <span className="uppercase tracking-[0.3em]">Blackburn Studio</span>
-          <span>
-            &copy; {new Date().getFullYear()} Blackburn Studio. All rights
-            reserved.
-          </span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

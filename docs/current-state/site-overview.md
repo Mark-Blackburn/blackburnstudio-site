@@ -1,6 +1,6 @@
 # Blackburn Studio Site Overview (Current State)
 
-Last reviewed: 2026-06-27
+Last reviewed: 2026-07-13
 
 ## Scope and method
 
@@ -10,26 +10,35 @@ Primary source files:
 
 - [app/layout.tsx](../../app/layout.tsx)
 - [app/page.tsx](../../app/page.tsx)
+- [app/digital/page.tsx](../../app/digital/page.tsx)
+- [app/about/page.tsx](../../app/about/page.tsx)
+- [app/contact/page.tsx](../../app/contact/page.tsx)
 - [app/work/page.tsx](../../app/work/page.tsx)
 - [app/work/portraits/page.tsx](../../app/work/portraits/page.tsx)
 - [app/work/couples/page.tsx](../../app/work/couples/page.tsx)
 - [app/work/families/page.tsx](../../app/work/families/page.tsx)
 - [app/work/japan/page.tsx](../../app/work/japan/page.tsx)
+- [components/site/SiteHeader.tsx](../../components/site/SiteHeader.tsx)
+- [components/site/SiteFooter.tsx](../../components/site/SiteFooter.tsx)
 - [package.json](../../package.json)
 
 ## Current purpose of the website
 
-The site currently presents Blackburn Studio as a photography practice, centred on portrait work and supported by selected family, couples and Japan series pages.
+The site currently presents Blackburn Studio as a dual-discipline practice with Photography and Digital pathways.
 
 Verified evidence:
 
 - Global metadata title and description in [app/layout.tsx](../../app/layout.tsx).
 - Home hero messaging and section structure in [app/page.tsx](../../app/page.tsx).
+- Digital service and project-highlight structure in [app/digital/page.tsx](../../app/digital/page.tsx).
 - Work category structure in [app/work/page.tsx](../../app/work/page.tsx).
+- Dedicated About and Contact routes in [app/about/page.tsx](../../app/about/page.tsx) and [app/contact/page.tsx](../../app/contact/page.tsx).
 
 ## Current Blackburn Studio positioning
 
-The positioning language is explicitly photography-led and human-centred, with recurring wording such as:
+The positioning language is practical and human-centred across both disciplines.
+
+Photography-led language remains prominent on home and work routes, with recurring wording such as:
 
 - "Honest, cinematic photography"
 - "human edge"
@@ -37,7 +46,9 @@ The positioning language is explicitly photography-led and human-centred, with r
 - "quiet, considered"
 - "real moments"
 
-These statements appear in [app/layout.tsx](../../app/layout.tsx), [app/page.tsx](../../app/page.tsx), and category pages under [app/work](../../app/work).
+Digital service language is now present on `/digital`, including websites, workflow/process improvement, and platforms/portals framing.
+
+These statements appear in [app/layout.tsx](../../app/layout.tsx), [app/page.tsx](../../app/page.tsx), [app/digital/page.tsx](../../app/digital/page.tsx), and routes under [app/work](../../app/work).
 
 ## Apparent target audience
 
@@ -46,6 +57,7 @@ Verified from page copy and calls to action, the apparent audience is:
 - Prospective portrait, family and couples clients seeking commissioned photography.
 - Potential collaborators and commissioners (home contact copy references "Commissions, collaborations").
 - Visitors interested in curated artistic work (Japan series positioning).
+- Small businesses and organisations needing website improvement, workflow simplification, or practical digital platform support (`/digital`).
 
 Requires verification:
 
@@ -66,6 +78,9 @@ Requires verification:
 Verified App Router pages in repository:
 
 - `/` from [app/page.tsx](../../app/page.tsx)
+- `/digital` from [app/digital/page.tsx](../../app/digital/page.tsx)
+- `/about` from [app/about/page.tsx](../../app/about/page.tsx)
+- `/contact` from [app/contact/page.tsx](../../app/contact/page.tsx)
 - `/work` from [app/work/page.tsx](../../app/work/page.tsx)
 - `/work/portraits` from [app/work/portraits/page.tsx](../../app/work/portraits/page.tsx)
 - `/work/families` from [app/work/families/page.tsx](../../app/work/families/page.tsx)
@@ -76,22 +91,14 @@ No API routes are present under [app](../../app).
 
 ## Primary navigation
 
-### Home navigation
+Navigation is now centralised in [components/site/SiteHeader.tsx](../../components/site/SiteHeader.tsx) and shared across home, digital, about, contact, and work routes.
 
-In [app/page.tsx](../../app/page.tsx), home header navigation links to:
+Primary links:
 
-- `/work`
-- `#about`
-- `#contact`
-
-### Work and category navigation
-
-In [app/work/page.tsx](../../app/work/page.tsx) and each category page under [app/work](../../app/work):
-
-- Brand link to `/`
-- `Work` link to `/work`
-- `About` link to `/#about`
-- `Contact` link to `/#contact`
+- `/work` (Photography)
+- `/digital` (Digital)
+- `/about`
+- `/contact`
 
 ## Home page structure
 
@@ -102,7 +109,21 @@ Implemented sections in [app/page.tsx](../../app/page.tsx):
 3. About section with brand philosophy paragraph.
 4. Japan feature section with lead and supporting image cards.
 5. Contact section with mailto CTA.
-6. Footer with brand name and copyright.
+6. Shared footer with route links and email.
+
+## Digital page structure
+
+Implemented sections in [app/digital/page.tsx](../../app/digital/page.tsx):
+
+1. Hero with dual CTA (`/contact`, `#selected-digital-work`).
+2. Websites capability section.
+3. Workflow and process improvement section.
+4. Platforms, portals and business systems section.
+5. How Blackburn Studio works (six-stage process).
+6. Selected Digital work highlights.
+7. Deeper capability section.
+8. About and credibility section linking to `/about`.
+9. Closing contact invitation linking to `/contact` and mailto.
 
 ## Work section structure
 
@@ -150,7 +171,7 @@ Primary CTAs observed:
 
 Verified public method:
 
-- Email link: `mailto:hello@theblackburn.studio` in [app/page.tsx](../../app/page.tsx)
+- Email link: `mailto:hello@theblackburn.studio` in [app/page.tsx](../../app/page.tsx), [app/digital/page.tsx](../../app/digital/page.tsx), and [app/contact/page.tsx](../../app/contact/page.tsx)
 
 Not observed in repository:
 
@@ -168,14 +189,13 @@ Verified strengths based on implementation:
 - Local image assets and static export deployment model support predictable publishing.
 - Straightforward navigation and route structure.
 
-## Limitations relevant to adding Digital services
+## Limitations relevant to ongoing launch evolution
 
 Verified limitations in current implementation:
 
-- Public information architecture is entirely photography-oriented, with no Digital service route, navigation entry, or content model.
-- Header/footer/nav are repeated in multiple page files rather than centralised components, increasing change effort.
-- Content is code-defined rather than CMS-driven, so service expansion currently requires code edits.
-- Metadata coverage is uneven across pages (some pages define title only).
+- Content is code-defined rather than CMS-driven, so service expansion still requires code edits.
+- Metadata coverage remains uneven across pages (some routes define title only and do not provide route-level Open Graph/Twitter objects).
+- Detailed Digital case-study routes remain deferred (project highlights are intentionally non-linked cards at launch).
 
 Requires verification:
 

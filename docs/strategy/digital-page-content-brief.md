@@ -1,6 +1,31 @@
 # Digital Page Content Brief
 
-Status: Proposed
+Status: Proposed with launch implementation baseline
+
+Last reviewed: 2026-07-13
+
+## Implementation status note
+
+The launch route `/digital` has now been implemented in [app/digital/page.tsx](../../app/digital/page.tsx) using a text-first structure aligned to this brief.
+
+Implemented decisions:
+
+- Dedicated `/digital` route created.
+- Dedicated `/about` and `/contact` routes created and used by Digital CTA pathways.
+- Hero includes:
+  - primary CTA to `/contact`
+  - secondary CTA to `#selected-digital-work`
+- Three selected work highlights are present and intentionally non-linked at launch.
+- Vic Country highlights are explicitly labelled "Volunteer community project".
+- Create from Concepts highlight is explicitly labelled "Commercial client project".
+- Supported scale reference appears as "main league site and 17 clubs" and is not framed as business-performance proof.
+- No testimonial, commission-result claim, or quantified outcome claims were added.
+
+Still pending from this strategy brief:
+
+- Final visual asset curation pass for Digital highlight imagery/diagrams (if approved for publication).
+- Full route-level OG/Twitter metadata completeness.
+- Any decision to introduce detailed project routes (`/digital/projects/[slug]`) remains deferred.
 
 ## Purpose
 

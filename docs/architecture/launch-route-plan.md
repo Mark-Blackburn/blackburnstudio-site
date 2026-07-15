@@ -1,27 +1,27 @@
 # Launch Route Plan
 
-Status: Proposed
+Status: Implemented for launch baseline
 
-Last reviewed: 2026-06-28
+Last reviewed: 2026-07-13
 
 ## Objective
 
-Define the initial public route set for launch and the sequencing assumptions needed to implement it safely.
+Define the initial public route set for launch and record implementation status.
 
 ## Route-by-route migration plan
 
-| Route | Current state | Proposed role | Content change required | Likely component change | Metadata change required | Redirect required | Launch dependency | Risk | Validation required |
+| Route | Current state | Launch role | Content change required | Component change | Metadata change required | Redirect required | Status | Risk | Validation required |
 |---|---|---|---|---|---|---|---|---|---|
-| `/` | Existing homepage | Studio-led launch entry with pathways to Photography and Digital | Yes, revise structure and section emphasis | Homepage layout and CTA block updates | Yes, revise title/description to reflect dual-discipline launch | No | Final homepage brief and approved pathway hierarchy | Overloaded homepage messaging | Confirm CTAs route to `/work`, `/digital`, `/about`, `/contact` |
-| `/work` | Existing Photography hub | Retained Photography landing route | Yes, light framing updates only | Minor navigation and contextual-link adjustments | Optional refinement only | No | Top-level nav mapping and Photography prominence | Scope creep into route restructure | Confirm `/work` remains Photography hub |
-| `/work/portraits` | Existing Photography route | Retained Photography collection route | No material change expected | Minimal or none | Optional review only | No | Preserve existing gallery content | Unintended copy or layout drift | Confirm route unchanged and reachable from `/work` |
-| `/work/families` | Existing Photography route | Retained Photography collection route | No material change expected | Minimal or none | Optional review only | No | Preserve existing gallery content | Unintended copy or layout drift | Confirm route unchanged and reachable from `/work` |
-| `/work/couples` | Existing Photography route | Retained Photography collection route | No material change expected | Minimal or none | Optional review only | No | Preserve existing gallery content | Unintended copy or layout drift | Confirm route unchanged and reachable from `/work` |
-| `/work/japan` | Existing Photography route | Retained Photography collection route | No material change expected | Minimal or none | Optional review only | No | Preserve existing gallery content | Unintended copy or layout drift | Confirm route unchanged and reachable from `/work` |
-| `/digital` | Not currently present | New Digital landing route | Yes, new page content required | New route/page component set | Yes, new route metadata required | No | Approved Digital service hierarchy and evidence-safe claims | Overclaiming unsupported Digital proof | Confirm Websites lead and deeper capabilities remain secondary |
-| `/about` | Not currently present as dedicated route | New dedicated About route | Yes, new page content required | New route/page component | Yes, new route metadata required | No | Approved practitioner and studio narrative boundaries | Biography wording imbalance | Confirm route exists and primary nav points here |
-| `/contact` | Not currently present as dedicated route | New dedicated Contact route | Yes, new page content required | New route/page component | Yes, new route metadata required | No | Contact pathway and enquiry framing decisions | Friction in enquiry flow | Confirm route exists and primary nav points here |
-| `/digital/projects/[slug]` | Not currently present | Deferred Digital project/case-study detail route family | Not for launch | Not for launch | Not for launch | No | Approved case-study selection plus publication permissions | Premature route expansion without evidence | Confirm route remains deferred unless approvals are complete |
+| `/` | Existing homepage retained | Studio-led entry with Photography and Digital pathways | No structural rewrite in this implementation batch | Integrated shared site header/footer | No route-level metadata change | No | Implemented | Overloaded homepage messaging | Confirm global nav routes to `/work`, `/digital`, `/about`, `/contact` |
+| `/work` | Existing Photography hub retained | Photography landing route | No | Integrated shared site header/footer | No | No | Implemented | Scope creep into route restructure | Confirm `/work` remains Photography hub |
+| `/work/portraits` | Existing Photography route retained | Photography collection route | No | Integrated shared site header/footer | No | No | Implemented | Unintended copy or layout drift | Confirm route unchanged and reachable from `/work` |
+| `/work/families` | Existing Photography route retained | Photography collection route | No | Integrated shared site header/footer | No | No | Implemented | Unintended copy or layout drift | Confirm route unchanged and reachable from `/work` |
+| `/work/couples` | Existing Photography route retained | Photography collection route | No | Integrated shared site header/footer | No | No | Implemented | Unintended copy or layout drift | Confirm route unchanged and reachable from `/work` |
+| `/work/japan` | Existing Photography route retained | Photography collection route | No | Integrated shared site header/footer | No | No | Implemented | Unintended copy or layout drift | Confirm route unchanged and reachable from `/work` |
+| `/digital` | New route implemented | Digital landing route | Yes | New route/page component plus shared header/footer | Yes | No | Implemented | Overclaiming unsupported Digital proof | Confirm evidence-safe copy and CTA/link behavior |
+| `/about` | New route implemented | Dedicated About route | Yes | New route/page component plus shared header/footer | Yes | No | Implemented | Biography wording imbalance | Confirm route exists and top-level nav points here |
+| `/contact` | New route implemented | Dedicated Contact route | Yes | New route/page component plus shared header/footer | Yes | No | Implemented | Friction in enquiry flow | Confirm route exists and top-level nav points here |
+| `/digital/projects/[slug]` | Not present | Deferred Digital project/case-study detail route family | Not for launch | Not for launch | Not for launch | No | Deferred by design | Premature route expansion without evidence | Confirm route remains deferred |
 
 ## Route constraints
 
@@ -29,27 +29,26 @@ Define the initial public route set for launch and the sequencing assumptions ne
 - No existing Photography route is renamed.
 - `/work` remains the Photography hub.
 - `/about` and `/contact` are dedicated launch routes.
-- Homepage anchors may be temporarily supported but are not final primary navigation targets.
+- Primary navigation now targets route URLs (`/work`, `/digital`, `/about`, `/contact`).
 - No launch redirects are required.
 - `/digital/projects/[slug]` remains deferred unless approved case-study content is ready.
 
-## Sequencing assumptions
+## Implementation summary
 
-1. Finalise launch IA and nav labels.
-2. Finalise launch copy outlines for `/`, `/digital`, `/about`, `/contact`.
-3. Implement route shells and metadata.
-4. Integrate existing photography routes without URL changes.
-5. Validate internal linking and navigation across desktop/mobile.
-6. Run metadata and static export checks.
+1. Added shared site chrome components: `SiteHeader` and `SiteFooter`.
+2. Added new routes: `/digital`, `/about`, `/contact`.
+3. Migrated existing home and work routes to shared chrome.
+4. Preserved existing photography route URLs and gallery behavior.
+5. Preserved static export compatibility.
 
 ## Validation checklist (pre-release)
 
-- All launch routes build successfully in static export.
-- Top-level navigation appears consistently across launch routes.
+- All launch routes build successfully in static export (`npm run build` passed).
+- Top-level navigation appears consistently across launch routes via shared header.
 - Photography routes remain indexable and reachable via nav.
-- Digital route does not over-claim unsupported capabilities.
+- Digital route intentionally uses text-first project highlights with no fabricated metrics/testimonials.
 - Contact pathway is consistent on homepage, Digital, and Contact pages.
-- OG/Twitter metadata remains complete on new routes.
+- Route-level metadata completeness remains partial and requires follow-up for full OG/Twitter coverage.
 
 ## Risks to monitor
 

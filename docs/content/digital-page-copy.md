@@ -141,7 +141,9 @@ An existing WordPress site needed substantial modernisation and stronger portfol
 
 Website modernisation; Information structure; Photography; Ongoing improvement.
 
-Interaction note: The full Create from Concepts project card is clickable and links to https://createfromconcepts.com.au/ with external-link handling.
+Interaction note: The full Create from Concepts project card is clickable and links to https://createfromconcepts.com.au/ with external-link handling. Card affordance label: `Public site ↗`.
+
+Editorial note: The first selected project visual is the Create from Concepts homepage hero screenshot, showing the main heading and cabinetry hero image. File path: `public/images/digital/create-from-concepts-home.jpg`.
 
 ### AFL Masters Vic Country website platform
 
@@ -151,7 +153,11 @@ A simple SharePoint-pages direction was not suitable for public club websites. B
 
 Shared website platforms; Platform development; Integrations; Business systems.
 
-Interaction note: The full AFL Masters Vic Country website platform card is clickable and links to https://viccountrymasters.com/ with external-link handling.
+Interaction note: The full AFL Masters Vic Country website platform card is clickable and links to https://viccountrymasters.com/ with external-link handling. Card affordance label: `Public site ↗`.
+
+Editorial note: The first selected platform visual is the Vic Country "Find your local club" screenshot. File path: `public/images/digital/vic-country-club-finder.jpg`.
+
+Editorial note: The league news screenshot was intentionally not used because memorial/news content is not appropriate for this platform proof.
 
 ### AFL Masters Vic Country workflows and automation
 
@@ -161,7 +167,11 @@ Administration relied on inboxes, spreadsheets, paper forms and manual reporting
 
 Workflow improvement; Paper-to-digital; Microsoft 365; Automation; Reporting.
 
-Editorial note: The AFL Masters Vic Country workflows and automation card remains intentionally non-clickable because it represents private/internal operating systems. Do not add public or private workflow URLs.
+Editorial note: The AFL Masters Vic Country workflows and automation card remains intentionally non-clickable because it represents private/internal operating systems. Card status label: `Internal workflow`. Do not add public or private workflow URLs.
+
+Editorial note: The workflow card uses an anonymised before-to-after process diagram (inline React/Tailwind component — no separate image file). Diagram uses a warm parchment (#f0ebe0) background with dark charcoal text for contrast. Three stages: Before (personal inboxes, spreadsheets, paper forms, manual reporting), Structured workflow (match-day forms, shared records, automated reminders, reporting flow), Clearer visibility (compliance status, club information, board reporting, volunteer handover). No real operational data, screenshots, dashboards or identifiable information is used. Raw screenshots from internal review were not published and remain internal reference only. The diagram is accessible via a visually-hidden figcaption.
+
+Editorial note: `public/images/digital/create-from-concepts-work.jpg` remains an optional future secondary asset. Team-section screenshots are deferred for a fuller case study or combined website/photography example. Fixtures and club-list screenshots remain possible future supporting assets. Workflow visuals are still deferred and should be anonymised or recreated with sample data.
 
 ## 7. Deeper capability
 

@@ -1,6 +1,6 @@
 # Blackburn Studio Technical Architecture (Current State)
 
-Last reviewed: 2026-06-27
+Last reviewed: 2026-07-13
 
 ## Scope
 
@@ -15,6 +15,8 @@ Primary sources:
 - [eslint.config.mjs](../../eslint.config.mjs)
 - [postcss.config.mjs](../../postcss.config.mjs)
 - [app](../../app)
+- [components/site](../../components/site)
+- [components/studio](../../components/studio)
 - [components/gallery](../../components/gallery)
 - [lib/getImagesWithBlur.ts](../../lib/getImagesWithBlur.ts)
 - [public](../../public)
@@ -54,6 +56,9 @@ Top-level functional areas:
 
 - Root layout: [app/layout.tsx](../../app/layout.tsx)
 - Home page: [app/page.tsx](../../app/page.tsx)
+- Digital page: [app/digital/page.tsx](../../app/digital/page.tsx)
+- About page: [app/about/page.tsx](../../app/about/page.tsx)
+- Contact page: [app/contact/page.tsx](../../app/contact/page.tsx)
 - Work index: [app/work/page.tsx](../../app/work/page.tsx)
 - Category routes: files under [app/work](../../app/work)
 
@@ -62,6 +67,9 @@ Top-level functional areas:
 - Next.js App Router using file-system routes.
 - Public pages are static routes only:
   - `/`
+  - `/digital`
+  - `/about`
+  - `/contact`
   - `/work`
   - `/work/portraits`
   - `/work/families`
@@ -73,9 +81,32 @@ Top-level functional areas:
 
 - Single root layout in [app/layout.tsx](../../app/layout.tsx).
 - No nested route layouts detected.
-- Category pages repeat common chrome in page files rather than consuming a shared header/footer component.
+- Common chrome is shared through [components/site/SiteHeader.tsx](../../components/site/SiteHeader.tsx) and [components/site/SiteFooter.tsx](../../components/site/SiteFooter.tsx), consumed by home, digital, about, contact, and work routes.
 
 ## Major shared components
+
+Site chrome components under [components/site](../../components/site):
+
+- [components/site/SiteHeader.tsx](../../components/site/SiteHeader.tsx)
+- [components/site/SiteFooter.tsx](../../components/site/SiteFooter.tsx)
+
+Features:
+
+- Shared primary navigation for Photography, Digital, About, Contact
+- Active-route highlighting based on pathname
+- Mobile menu toggle for small screens
+
+Shared studio UI primitives under [components/studio](../../components/studio):
+
+- [components/studio/StudioButton.tsx](../../components/studio/StudioButton.tsx)
+- [components/studio/StudioTag.tsx](../../components/studio/StudioTag.tsx)
+- [components/studio/SectionEyebrow.tsx](../../components/studio/SectionEyebrow.tsx)
+
+Features:
+
+- Consistent CTA treatments via `StudioButton` (`primary` and `secondary` variants)
+- Consistent metadata chip treatment via `StudioTag`
+- Consistent section label styling via `SectionEyebrow`
 
 Gallery subsystem under [components/gallery](../../components/gallery):
 
@@ -177,9 +208,16 @@ Known risk:
 
 Defined custom tokens in [app/globals.css](../../app/globals.css):
 
-- `--background: #0a0a0a`
-- `--foreground: #f4f4f5`
-- Theme mapping through `@theme inline` for foreground/background and font variables.
+- `--background: #0d0c0a`
+- `--foreground: #ede7dc`
+- `--studio-base: #0d0c0a`
+- `--studio-surface: #13110f`
+- `--studio-surface-soft: #191712`
+- `--studio-text: #ede7dc`
+- `--studio-muted: #c4bcae`
+- `--studio-dim: #a89f90`
+- `--studio-border: rgba(237, 231, 220, 0.15)`
+- Theme mapping through `@theme inline` for studio color tokens, foreground/background, and font variables.
 
 ## Typography and font loading
 
@@ -189,8 +227,9 @@ Defined custom tokens in [app/globals.css](../../app/globals.css):
 ## Metadata and SEO
 
 - Global metadata defined in [app/layout.tsx](../../app/layout.tsx): title, description, icons, manifest.
-- Route-level metadata present on work routes (title for all categories; description only on `/work` and `/work/japan`).
-- No Open Graph or Twitter metadata objects found.
+- Route-level metadata present on launch routes and work routes.
+- `/digital` defines route-level Open Graph title/description only in [app/digital/page.tsx](../../app/digital/page.tsx).
+- No route currently defines a complete route-level Open Graph and Twitter metadata object set.
 - No explicit canonical URLs found.
 
 ## Sitemap, robots and manifest configuration
@@ -201,7 +240,7 @@ Defined custom tokens in [app/globals.css](../../app/globals.css):
 
 ## Contact implementation
 
-- Single mailto link: `hello@theblackburn.studio` in [app/page.tsx](../../app/page.tsx).
+- Mailto link `hello@theblackburn.studio` on [app/page.tsx](../../app/page.tsx), [app/digital/page.tsx](../../app/digital/page.tsx), [app/contact/page.tsx](../../app/contact/page.tsx), and [components/site/SiteFooter.tsx](../../components/site/SiteFooter.tsx).
 - No backend mail endpoint or form handler.
 
 ## Analytics and telemetry
@@ -294,7 +333,6 @@ Known gap:
 
 ## Known technical debt
 
-- Repeated header/footer/navigation markup across multiple pages.
 - No automated test coverage.
 - No robots/sitemap implementation.
 - Metadata implementation is uneven across routes.
@@ -313,11 +351,24 @@ Known gap:
 ```mermaid
 flowchart TD
   A[app/layout.tsx] --> B[app/page.tsx]
+  A --> B1[app/digital/page.tsx]
+  A --> B2[app/about/page.tsx]
+  A --> B3[app/contact/page.tsx]
   A --> C[app/work/page.tsx]
   C --> D[app/work/portraits/page.tsx]
   C --> E[app/work/families/page.tsx]
   C --> F[app/work/couples/page.tsx]
   C --> G[app/work/japan/page.tsx]
+
+  B --> S[components/site]
+  B1 --> S
+  B2 --> S
+  B3 --> S
+  C --> S
+  D --> S
+  E --> S
+  F --> S
+  G --> S
 
   D --> H[PortraitsGrid]
   E --> I[FamiliesGrid]
@@ -342,13 +393,21 @@ flowchart TD
 ```mermaid
 flowchart TD
   Root[/app/layout.tsx\nRoot layout/] --> Home[/]
+  Root --> Digital[/digital]
+  Root --> About[/about]
+  Root --> Contact[/contact]
   Root --> Work[/work]
   Root --> Portraits[/work/portraits]
   Root --> Families[/work/families]
   Root --> Couples[/work/couples]
   Root --> Japan[/work/japan]
 
+  Home -->|nav| Digital
+  Home -->|nav| About
+  Home -->|nav| Contact
   Home -->|nav| Work
+  Digital -->|cta| Contact
+  Digital -->|cta| About
   Work --> Portraits
   Work --> Families
   Work --> Couples
