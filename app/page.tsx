@@ -39,18 +39,18 @@ export default async function Home() {
             heights only (iPhone SE / 12 Pro class). Larger phones, tablets,
             and desktop are untouched. */}
         <div className="relative z-30 mx-auto flex h-[calc(85vh-72px)] w-full max-w-6xl flex-col justify-end px-6 pb-16 [@media(max-height:760px)]:pb-8 md:px-8 md:pb-20">
-          <h1 className="rise-in mt-24 max-w-[90%] text-4xl font-medium leading-[1.1] tracking-tight text-white sm:text-5xl [@media(max-height:760px)]:mt-10 [@media(max-height:760px)]:text-3xl [@media(max-height:760px)]:leading-[1.15] md:mt-0 md:max-w-xl md:text-6xl">
-            Photography and digital solutions
-            <br />
-            <span className="text-neutral-400">with a human edge.</span>
+          <h1 className="rise-in mt-24 max-w-[90%] text-4xl font-medium leading-[1.1] tracking-tight text-white sm:text-5xl [@media(max-height:760px)]:mt-10 [@media(max-height:760px)]:max-w-[19rem] [@media(max-height:760px)]:text-3xl [@media(max-height:760px)]:leading-[1.15] md:mt-0 md:max-w-xl md:text-6xl">
+            Photography, websites and digital systems for people, businesses
+            and community groups.
           </h1>
           <p
             className="rise-in mt-6 max-w-xl text-sm leading-relaxed text-neutral-400 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:max-w-[19rem] [@media(max-height:760px)]:text-[13px] [@media(max-height:760px)]:leading-snug md:text-base"
             style={{ animationDelay: "120ms" }}
           >
-            Blackburn Studio creates honest, cinematic photography and practical
-            websites, workflows and digital systems for people, businesses and
-            community organisations.
+            Blackburn Studio creates natural portraits and family images,
+            business photography, clear websites and practical digital
+            workflows for people who need things to look good and work
+            properly.
           </p>
           <div
             className="rise-in mt-8 flex w-full flex-col gap-3 [@media(max-height:760px)]:mt-4 [@media(max-height:760px)]:gap-2 md:mt-10 md:w-auto md:flex-row md:gap-4"
@@ -79,19 +79,20 @@ export default async function Home() {
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-8 md:px-8 md:pt-20 md:pb-12">
         <SectionEyebrow>Studio</SectionEyebrow>
         <h2 className="mt-4 max-w-[24ch] text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
-          One studio, two connected disciplines.
+          Photography and digital work from one studio.
         </h2>
         <p className="mt-6 max-w-[72ch] text-sm leading-relaxed text-studio-dim md:text-base">
-          Blackburn Studio brings together image-making and practical digital delivery: visual
-          work that helps people show who they are, and digital work that helps organisations work
-          more clearly.
+          Some projects need strong images. Some need a website that explains
+          the work clearly. Others need a better way to manage information.
+          Blackburn Studio can help with each, without making it bigger than it
+          needs to be.
         </p>
         <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
           <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
             <h3 className="text-2xl font-medium tracking-tight text-studio-text">Photography</h3>
             <p className="mt-4 text-sm leading-relaxed text-studio-dim md:text-base">
-              Portraits, families, couples and quiet visual stories, created with a natural,
-              cinematic style.
+              Portraits, families, couples, business and project photography
+              with a natural, honest style.
             </p>
             <StudioButton href="/work" variant="secondary" className="mt-6">
               View photography
@@ -101,8 +102,8 @@ export default async function Home() {
           <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
             <h3 className="text-2xl font-medium tracking-tight text-studio-text">Digital</h3>
             <p className="mt-4 text-sm leading-relaxed text-studio-dim md:text-base">
-              Websites, workflow improvement and practical digital platforms shaped around real
-              business and community needs.
+              Websites, workflow improvements and small digital systems for
+              businesses, clubs and community organisations.
             </p>
             <StudioButton href="/digital" variant="secondary" className="mt-6">
               Explore digital
@@ -126,8 +127,8 @@ export default async function Home() {
             </div>
             <div className="max-w-sm md:ml-auto">
               <p className="text-sm leading-relaxed text-studio-dim md:text-base">
-                Quiet, considered portraiture. Natural light, real expression,
-                and a sense of presence in every frame.
+                Natural portrait photography focused on expression, light and
+                presence.
               </p>
               <Link
                 href="/work"
@@ -170,12 +171,13 @@ export default async function Home() {
         <div className="mx-auto max-w-2xl text-center">
           <SectionEyebrow>About</SectionEyebrow>
           <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
-            Human-focused work, whether visual or digital.
+            Photography and digital work, handled carefully.
           </h2>
           <p className="mt-8 text-sm leading-loose text-studio-dim md:text-base">
-            Blackburn Studio is built around simple ideas: work should feel honest, useful and
-            carefully considered. That applies to photography, websites and the digital systems
-            that support real people doing real work.
+            Blackburn Studio is built around simple ideas: understand what is
+            needed, keep things clear and make something useful. That applies
+            to photography, websites and the digital systems that support
+            day-to-day work.
           </p>
         </div>
       </section>
@@ -278,8 +280,8 @@ export default async function Home() {
             Let&rsquo;s work together.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-studio-dim md:text-base">
-            Photography commissions, digital projects, collaborations and considered conversations
-            are welcome.
+            Photography commissions, website and workflow projects, and
+            straightforward enquiries are all welcome.
           </p>
           <StudioButton
             href="mailto:hello@theblackburn.studio"

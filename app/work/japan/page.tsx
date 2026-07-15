@@ -7,7 +7,7 @@ import { SectionEyebrow, StudioButton } from "@/components/studio";
 export const metadata = {
   title: "Japan — Atmosphere & Memory — Blackburn Studio",
   description:
-    "A photographic study of atmosphere, texture and quiet memory in Japan.",
+    "A personal landscape study of place, texture and memory in Japan.",
 };
 
 // Sequence preserved exactly — order is data-driven, independent of filenames.
@@ -100,8 +100,8 @@ export default async function JapanPage() {
               </h1>
             </div>
             <p className="max-w-md text-sm leading-relaxed text-studio-dim md:text-base">
-              A photographic study of atmosphere, texture and quiet memory —
-              observed slowly, sequenced for emotional cadence.
+              A photographic study of place, texture and memory, observed
+              slowly and sequenced with care.
             </p>
           </div>
 

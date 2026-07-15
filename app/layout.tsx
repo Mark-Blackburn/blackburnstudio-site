@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Blackburn Studio — Honest, cinematic photography",
+  title: "Blackburn Studio — Photography and Digital",
   description:
-    "Blackburn Studio focuses on portrait photography with a natural, human approach — supported by a curated collection of landscape work from Japan.",
+    "Blackburn Studio creates photography, websites and digital workflows for people, businesses and community groups.",
   icons: {
     icon: [
       { url: "/favicon.ico", sizes: "any" },

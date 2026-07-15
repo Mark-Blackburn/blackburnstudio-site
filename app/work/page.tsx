@@ -11,28 +11,28 @@ const categories = [
     slug: "portraits",
     title: "Portraits",
     description:
-      "Considered portraits with a focus on presence, expression and carefully shaped light.",
+      "Portraits focused on expression, presence and natural light.",
     image: "work-portraits.jpg",
   },
   {
     slug: "families",
     title: "Families",
     description:
-      "Relaxed family sessions built around connection, warmth and real moments.",
+      "Family sessions focused on connection, warmth and everyday moments.",
     image: "work-families.jpg",
   },
   {
     slug: "couples",
     title: "Couples",
     description:
-      "Quiet, personal images of couples — gently directed, naturally expressive.",
+      "Couples photography with gentle direction and natural interaction.",
     image: "work-couples.jpg",
   },
   {
     slug: "japan",
     title: "Japan",
     description:
-      "A personal landscape series from Japan — stillness, texture, scale and place.",
+      "A personal landscape series from Japan, focused on place, detail and atmosphere.",
     image: "work-japan.jpg",
   },
 ];
@@ -40,7 +40,7 @@ const categories = [
 export const metadata = {
   title: "Selected Work — Blackburn Studio",
   description:
-    "A curated collection of portrait, family, couple and personal landscape work.",
+    "A collection of portrait, family, couples and landscape photography from Blackburn Studio.",
 };
 
 export default function WorkPage() {
@@ -54,9 +54,8 @@ export default function WorkPage() {
           Selected Work
         </h1>
         <p className="mt-6 max-w-2xl text-sm leading-relaxed text-studio-dim md:text-base">
-          A curated collection of portrait, family, couple and personal
-          landscape work — focused on real expression, considered light and
-          quiet human moments.
+          Portraits, family sessions, couples and travel work.
+          Natural images with a quiet, honest feel.
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <StudioButton href="/contact" variant="primary">

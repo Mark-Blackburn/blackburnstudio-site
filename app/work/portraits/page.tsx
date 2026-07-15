@@ -6,6 +6,8 @@ import { SectionEyebrow, StudioButton } from "@/components/studio";
 
 export const metadata = {
   title: "Portraits — Blackburn Studio",
+  description:
+    "Portrait photography focused on expression, natural light and presence.",
 };
 
 export default async function PortraitsPage() {
@@ -24,8 +26,8 @@ export default async function PortraitsPage() {
               </h1>
             </div>
             <p className="max-w-md text-sm leading-relaxed text-studio-dim md:text-base">
-              Quiet, considered portraiture. Natural light, real expression,
-              and a sense of presence in every frame.
+              Portrait photography focused on expression, natural light and
+              presence.
             </p>
           </div>
 

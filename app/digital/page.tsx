@@ -9,11 +9,11 @@ import { SectionEyebrow, StudioButton, StudioTag } from "@/components/studio";
 export const metadata: Metadata = {
   title: "Website design, workflow improvement and digital platforms | Blackburn Studio",
   description:
-    "Blackburn Studio creates clear websites, improves operational workflows and delivers practical digital platforms for businesses and organisations.",
+    "Blackburn Studio helps small businesses and community organisations build clearer websites, improve workflows and set up useful digital systems.",
   openGraph: {
     title: "Practical digital improvement for websites, workflows and platforms",
     description:
-      "Blackburn Studio helps businesses and organisations improve websites, workflows and operational systems with clear, maintainable delivery.",
+      "Blackburn Studio builds clearer websites and practical digital systems that support visibility, communication and everyday operations.",
   },
 };
 
@@ -56,12 +56,13 @@ export default function DigitalPage() {
             id="digital-hero-heading"
             className="mt-5 max-w-[22ch] text-4xl font-medium leading-[1.05] tracking-tight text-studio-text md:text-6xl"
           >
-            Better websites and digital systems, shaped around how you work
+            Websites that promote your work. Systems that make it easier to
+            manage.
           </h1>
           <p className="mt-7 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Some projects begin with a clear brief and outcome. Others begin with a process that no
-            longer supports where you want to get to. Blackburn Studio helps you understand the
-            need, simplify the problem and build the right response.
+            Blackburn Studio helps small businesses and community organisations
+            build clearer websites, improve everyday processes and set up
+            useful tools for managing information, content and follow-up.
           </p>
           <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
             <StudioButton href="/contact" variant="primary">
@@ -104,14 +105,14 @@ export default function DigitalPage() {
           </h2>
           <div className="mt-7 max-w-[68ch] space-y-6 text-[1.02rem] leading-8 text-studio-muted md:text-[1.1rem] md:leading-[1.85]">
             <p>
-              For many clients, the website is the right place to begin. Blackburn Studio creates
-              new sites and modernises existing ones, bringing together structure, content,
+              For many clients, the website is the right place to start. Blackburn Studio builds
+              new sites and improves existing ones, bringing together structure, content,
               photography and practical platform choices.
             </p>
             <p>
-              The result is a site that is easier to understand, maintain and improve. Website work
-              can also reveal broader opportunities around content, customer experience and ongoing
-              digital support.
+              The result is a site that is easier to use, maintain and improve. Website work can
+              also reveal broader opportunities in content, customer experience and ongoing digital
+              support.
             </p>
           </div>
           <ul className="mt-10 flex max-w-[68ch] flex-wrap gap-x-4 gap-y-4">
@@ -145,9 +146,9 @@ export default function DigitalPage() {
               point to a process problem before they point to a technology problem.
             </p>
             <p>
-              Blackburn Studio maps how the work happens, removes unnecessary friction and
-              introduces the smallest useful change - whether that is a clearer process, automation
-              or a new system.
+              Blackburn Studio maps how work happens, removes unnecessary friction and introduces
+              the smallest useful change - whether that is a clearer process, automation or a new
+              system.
             </p>
           </div>
           <ul className="mt-10 flex max-w-[68ch] flex-wrap gap-x-4 gap-y-4">
@@ -181,8 +182,8 @@ export default function DigitalPage() {
               portals and operational tools that bring content, data and administration together.
             </p>
             <p>
-              Integrations, resilience and ongoing support are considered from the start, so the
-              result remains useful beyond its initial launch.
+              Integrations, resilience and ongoing support are planned from the start, so the
+              result remains useful after launch.
             </p>
           </div>
           <ul className="mt-10 flex max-w-[68ch] flex-wrap gap-x-4 gap-y-4">
@@ -241,7 +242,7 @@ export default function DigitalPage() {
           <p className="mt-6 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             These projects show how Blackburn Studio works across small-business websites,
             operational improvement and shared digital platforms. Each began with a different need
-            and required a different response.
+            and called for a different response.
           </p>
 
           <div className="mt-12 space-y-10">
@@ -485,7 +486,7 @@ export default function DigitalPage() {
           <p className="mt-6 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             Tell me what you want your website, process or information flow to support, and what is
             getting in the way. We can work back from there to identify what needs to change, what
-            should be simplified, and what is worth building.
+            can be simplified, and what is worth building.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
             <StudioButton href="/contact" variant="primary">

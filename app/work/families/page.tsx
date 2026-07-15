@@ -6,6 +6,8 @@ import { SectionEyebrow, StudioButton } from "@/components/studio";
 
 export const metadata = {
   title: "Families — Blackburn Studio",
+  description:
+    "Family photography focused on connection, warmth and everyday moments.",
 };
 
 // Sequence preserved exactly — curated for emotional pacing and editorial rhythm.
@@ -40,8 +42,8 @@ export default async function FamiliesPage() {
               </h1>
             </div>
             <p className="max-w-md text-sm leading-relaxed text-studio-dim md:text-base">
-              Relaxed family photography focused on connection, warmth,
-              expression and real moments.
+              Family photography focused on connection, warmth and everyday
+              moments.
             </p>
           </div>
 

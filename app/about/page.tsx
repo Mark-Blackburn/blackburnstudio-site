@@ -7,7 +7,7 @@ import { SectionEyebrow, StudioButton } from "@/components/studio";
 export const metadata: Metadata = {
   title: "About — Blackburn Studio",
   description:
-    "Blackburn Studio is a photography and digital practice led by Mark Blackburn, focused on clear, practical delivery for businesses and organisations.",
+    "Blackburn Studio is run by Mark Blackburn and combines photography with practical website and workflow delivery.",
 };
 
 export default function AboutPage() {
@@ -23,44 +23,80 @@ export default function AboutPage() {
           </h1>
           <div className="mt-8 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             <p>
-              Blackburn Studio combines photography and practical digital delivery for organisations
-              that need clearer websites, better workflows, and systems that are maintainable over
-              time.
-            </p>
-            <p>
-              Mark Blackburn combines senior engineering and technical leadership experience with
-              direct implementation. Work is delivered personally rather than through a large agency
-              structure.
+              Blackburn Studio is run by Mark Blackburn. The work ranges from portraits and family
+              photography through to websites, workflow improvements and small business systems. The
+              common thread is simple: understand what is needed, keep things clear and make
+              something useful.
             </p>
           </div>
         </section>
 
-        <section className="mt-16 grid gap-8 md:mt-20 md:grid-cols-2" aria-labelledby="offer-heading">
-          <div>
+        <section className="mt-16 grid gap-10 md:mt-20 md:grid-cols-2" aria-labelledby="offer-heading">
+          <div className="rounded-2xl border border-studio-border/60 bg-studio-surface/65 p-6 md:p-7">
             <h2 id="offer-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
-              What Blackburn Studio does
+              What I work on
             </h2>
-            <ul className="mt-6 space-y-3 text-base leading-relaxed text-studio-muted">
-              <li>Photography and visual communication</li>
-              <li>Websites and digital presentation</li>
-              <li>Workflow and process improvement</li>
-              <li>Platforms and operational systems</li>
+            <ul className="mt-7 space-y-3.5">
+              <li className="rounded-xl bg-studio-base/35 px-4 py-3.5">
+                <p className="text-base font-medium text-studio-text">Photography</p>
+                <p className="mt-1 text-sm leading-relaxed text-studio-dim">
+                  Portraits, families, business photography and project images.
+                </p>
+              </li>
+              <li className="rounded-xl bg-studio-base/35 px-4 py-3.5">
+                <p className="text-base font-medium text-studio-text">Websites</p>
+                <p className="mt-1 text-sm leading-relaxed text-studio-dim">
+                  Clear sites that explain the work and make it easy to enquire.
+                </p>
+              </li>
+              <li className="rounded-xl bg-studio-base/35 px-4 py-3.5">
+                <p className="text-base font-medium text-studio-text">Workflow improvement</p>
+                <p className="mt-1 text-sm leading-relaxed text-studio-dim">
+                  Tidying up forms, information flow and repeated admin.
+                </p>
+              </li>
+              <li className="rounded-xl bg-studio-base/35 px-4 py-3.5">
+                <p className="text-base font-medium text-studio-text">Digital systems</p>
+                <p className="mt-1 text-sm leading-relaxed text-studio-dim">
+                  Practical tools for clubs, small businesses and community groups.
+                </p>
+              </li>
             </ul>
           </div>
-          <div>
-            <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">How Mark works</h2>
-            <ul className="mt-6 space-y-3 text-base leading-relaxed text-studio-muted">
-              <li>Understand the need and context first</li>
-              <li>Simplify where possible before adding technology</li>
-              <li>Choose the right approach for the scope</li>
-              <li>Deliver clear, maintainable work in practical stages</li>
+          <div className="rounded-2xl border border-studio-border/60 bg-studio-surface/65 p-6 md:p-7">
+            <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">How I work</h2>
+            <ul className="mt-7 space-y-3.5">
+              <li className="rounded-xl bg-studio-base/35 px-4 py-3.5">
+                <p className="text-base font-medium text-studio-text">Start with the need</p>
+                <p className="mt-1 text-sm leading-relaxed text-studio-dim">
+                  Understand the problem before choosing the tool.
+                </p>
+              </li>
+              <li className="rounded-xl bg-studio-base/35 px-4 py-3.5">
+                <p className="text-base font-medium text-studio-text">Keep it simple</p>
+                <p className="mt-1 text-sm leading-relaxed text-studio-dim">
+                  Avoid adding technology where a simpler fix will do.
+                </p>
+              </li>
+              <li className="rounded-xl bg-studio-base/35 px-4 py-3.5">
+                <p className="text-base font-medium text-studio-text">Match the scope</p>
+                <p className="mt-1 text-sm leading-relaxed text-studio-dim">
+                  Choose the right level of design, build and support.
+                </p>
+              </li>
+              <li className="rounded-xl bg-studio-base/35 px-4 py-3.5">
+                <p className="text-base font-medium text-studio-text">Build in stages</p>
+                <p className="mt-1 text-sm leading-relaxed text-studio-dim">
+                  Deliver clear, maintainable work without overcomplicating it.
+                </p>
+              </li>
             </ul>
           </div>
         </section>
 
         <section className="mt-16 max-w-[76ch] md:mt-20" aria-labelledby="background-heading">
           <h2 id="background-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
-            Background and credibility
+            Mark’s background
           </h2>
           <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             <p>
@@ -69,7 +105,7 @@ export default function AboutPage() {
             </p>
             <p>
               He works with small businesses, trades, sporting organisations, and volunteer
-              community organisations that need clearer delivery without unnecessary complexity.
+              community organisations that need clearer delivery without extra complexity.
             </p>
             <p>
               The studio also brings photography and visual communication capability where it helps
@@ -84,8 +120,8 @@ export default function AboutPage() {
             Start a conversation
           </h2>
           <p className="mt-5 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            If you want your website, process or platform to better support where your organisation
-            needs to get to, let&apos;s discuss the right next step.
+            Tell me what you are working on. If it sounds like a good fit, we can work out the
+            right next step.
           </p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:gap-6">
             <StudioButton href="/contact" variant="primary">

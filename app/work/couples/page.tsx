@@ -6,6 +6,8 @@ import { SectionEyebrow, StudioButton } from "@/components/studio";
 
 export const metadata = {
   title: "Couples — Blackburn Studio",
+  description:
+    "Couples photography with gentle direction and natural interaction.",
 };
 
 // Sequence preserved exactly — curated for emotional pacing and editorial rhythm.
@@ -33,8 +35,8 @@ export default async function CouplesPage() {
               </h1>
             </div>
             <p className="max-w-md text-sm leading-relaxed text-studio-dim md:text-base">
-              Quiet relationship portraits focused on connection, presence and
-              natural interaction.
+              Couples photography focused on connection and natural
+              interaction.
             </p>
           </div>
 
