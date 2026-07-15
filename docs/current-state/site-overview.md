@@ -1,6 +1,22 @@
 # Blackburn Studio Site Overview (Current State)
 
-Last reviewed: 2026-07-13
+Last reviewed: 2026-07-15
+
+## 2026-07-15 implementation update
+
+Home and photography routes were aligned with the shared studio UI primitives while preserving image-first presentation and existing route structure.
+
+Verified changes:
+
+- Home and work routes now use shared `SectionEyebrow` for section labels where appropriate.
+- Primary CTA surfaces on home/work now use `StudioButton` while preserving quiet photography-first hierarchy.
+- Work category pages now use shared `StudioButton` for the existing "Back to work" action.
+- Shared `SiteHeader` and `SiteFooter` remain consistently applied across all launch routes.
+- Home hero CTA links now prefer dedicated routes (`/work`, `/contact`) rather than in-page anchors.
+
+Explicit exception retained:
+
+- Home hero background still uses raw `<img>` in [app/page.tsx](../../app/page.tsx) to preserve current base URL behavior (`NEXT_PUBLIC_IMAGE_BASE_URL`) under static export. The existing `@next/next/no-img-element` warning remains intentionally deferred for a lower-risk follow-up.
 
 ## Scope and method
 

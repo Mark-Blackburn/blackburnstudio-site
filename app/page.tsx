@@ -3,6 +3,7 @@ import Link from "next/link";
 
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
+import { SectionEyebrow, StudioButton } from "@/components/studio";
 import { getImagesWithBlur, type ImageSource } from "@/lib/getImagesWithBlur";
 
 const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/images";
@@ -39,7 +40,7 @@ export default async function Home() {
             and desktop are untouched. */}
         <div className="relative z-30 mx-auto flex h-[calc(85vh-72px)] w-full max-w-6xl flex-col justify-end px-6 pb-16 [@media(max-height:760px)]:pb-8 md:px-8 md:pb-20">
           <h1 className="rise-in mt-24 max-w-[90%] text-4xl font-medium leading-[1.1] tracking-tight text-white sm:text-5xl [@media(max-height:760px)]:mt-10 [@media(max-height:760px)]:text-3xl [@media(max-height:760px)]:leading-[1.15] md:mt-0 md:max-w-xl md:text-6xl">
-            Honest, cinematic photography
+            Photography and digital solutions
             <br />
             <span className="text-neutral-400">with a human edge.</span>
           </h1>
@@ -47,30 +48,67 @@ export default async function Home() {
             className="rise-in mt-6 max-w-xl text-sm leading-relaxed text-neutral-400 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:max-w-[19rem] [@media(max-height:760px)]:text-[13px] [@media(max-height:760px)]:leading-snug md:text-base"
             style={{ animationDelay: "120ms" }}
           >
-            Blackburn Studio focuses on portrait photography with a natural,
-            human approach — supported by a curated collection of landscape
-            work from Japan.
+            Blackburn Studio creates honest, cinematic photography and practical
+            websites, workflows and digital systems for people, businesses and
+            community organisations.
           </p>
           <div
             className="rise-in mt-8 flex w-full flex-col gap-3 [@media(max-height:760px)]:mt-4 [@media(max-height:760px)]:gap-2 md:mt-10 md:w-auto md:flex-row md:gap-4"
             style={{ animationDelay: "240ms" }}
           >
-            <a
-              href="#work"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition hover:bg-neutral-200 [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
+            <StudioButton
+              href="/work"
+              variant="primary"
+              className="w-full rounded-full [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
             >
-              View work
-            </a>
-            <a
-              href="#contact"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/20 px-5 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
+              View photography
+            </StudioButton>
+            <StudioButton
+              href="/digital"
+              variant="secondary"
+              className="w-full rounded-full border-white/20 text-white/80 hover:border-white/40 hover:text-white [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
             >
-              Enquire
-            </a>
+              Explore digital
+            </StudioButton>
           </div>
         </div>
 
         <div className="pointer-events-none absolute bottom-6 left-1/2 hidden h-6 w-px -translate-x-1/2 bg-white/25 md:block" />
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 pt-16 pb-8 md:px-8 md:pt-20 md:pb-12">
+        <SectionEyebrow>Studio</SectionEyebrow>
+        <h2 className="mt-4 max-w-[24ch] text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
+          One studio, two connected disciplines.
+        </h2>
+        <p className="mt-6 max-w-[72ch] text-sm leading-relaxed text-studio-dim md:text-base">
+          Blackburn Studio brings together image-making and practical digital delivery: visual
+          work that helps people show who they are, and digital work that helps organisations work
+          more clearly.
+        </p>
+        <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
+          <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
+            <h3 className="text-2xl font-medium tracking-tight text-studio-text">Photography</h3>
+            <p className="mt-4 text-sm leading-relaxed text-studio-dim md:text-base">
+              Portraits, families, couples and quiet visual stories, created with a natural,
+              cinematic style.
+            </p>
+            <StudioButton href="/work" variant="secondary" className="mt-6">
+              View photography
+            </StudioButton>
+          </section>
+
+          <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
+            <h3 className="text-2xl font-medium tracking-tight text-studio-text">Digital</h3>
+            <p className="mt-4 text-sm leading-relaxed text-studio-dim md:text-base">
+              Websites, workflow improvement and practical digital platforms shaped around real
+              business and community needs.
+            </p>
+            <StudioButton href="/digital" variant="secondary" className="mt-6">
+              Explore digital
+            </StudioButton>
+          </section>
+        </div>
       </section>
 
       {/* Work */}
@@ -81,9 +119,7 @@ export default async function Home() {
         <div className="mx-auto max-w-6xl px-6 pt-10 pb-20 [@media(max-height:760px)]:pt-16 md:px-8 md:pt-16 md:pb-28">
           <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:gap-12">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-                Primary
-              </p>
+              <SectionEyebrow>Primary</SectionEyebrow>
               <h2 className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
                 Portraits
               </h2>
@@ -132,17 +168,14 @@ export default async function Home() {
         className="mx-auto max-w-6xl px-6 pt-16 pb-20 md:px-8 md:pt-24 md:pb-28"
       >
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-            About
-          </p>
+          <SectionEyebrow>About</SectionEyebrow>
           <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
-            Clean, natural, human-focused photography.
+            Human-focused work, whether visual or digital.
           </h2>
           <p className="mt-8 text-sm leading-loose text-studio-dim md:text-base">
-            Blackburn Studio is built around a simple idea: photographs should
-            feel honest. We work quietly and slowly, prioritising real moments
-            over performance, and natural light over spectacle. The result is
-            imagery that holds up — calm, considered, and unmistakably human.
+            Blackburn Studio is built around simple ideas: work should feel honest, useful and
+            carefully considered. That applies to photography, websites and the digital systems
+            that support real people doing real work.
           </p>
         </div>
       </section>
@@ -153,9 +186,7 @@ export default async function Home() {
       <section className="mx-auto max-w-4xl px-6 pt-16 pb-28 md:px-8 md:pt-24 md:pb-40">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:gap-12">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-              Series
-            </p>
+            <SectionEyebrow>Series</SectionEyebrow>
             <h2 className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
               Japan
             </h2>
@@ -242,22 +273,21 @@ export default async function Home() {
         className="mx-auto max-w-6xl px-6 pt-24 pb-28 md:px-8"
       >
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-            Contact
-          </p>
+          <SectionEyebrow>Contact</SectionEyebrow>
           <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-5xl">
             Let&rsquo;s work together.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-studio-dim md:text-base">
-            Commissions, collaborations, and considered conversations all
-            welcome.
+            Photography commissions, digital projects, collaborations and considered conversations
+            are welcome.
           </p>
-          <a
+          <StudioButton
             href="mailto:hello@theblackburn.studio"
-            className="mt-10 inline-flex items-center justify-center rounded-full border border-studio-border px-5 py-2 text-sm font-medium text-studio-muted transition duration-500 ease-out hover:scale-[1.02] hover:border-white/35 hover:text-studio-text"
+            variant="secondary"
+            className="mt-10 rounded-full transition duration-500 ease-out hover:scale-[1.02]"
           >
             hello@theblackburn.studio
-          </a>
+          </StudioButton>
         </div>
       </section>
 

@@ -1,6 +1,20 @@
 # Blackburn Studio Content Inventory (Current State)
 
-Last reviewed: 2026-07-13
+Last reviewed: 2026-07-15
+
+## 2026-07-15 implementation delta
+
+This inventory remains valid, with the following verified updates for home and photography routes:
+
+- Home route (`/`) now uses shared `StudioButton` for hero/contact actions and `SectionEyebrow` for section labels.
+- Home hero navigation actions now prefer dedicated routes (`/work`, `/contact`) rather than in-page anchors.
+- Work index (`/work`) now uses shared `SectionEyebrow` and includes shared-CTA actions (`/contact`, `/digital`) without changing category structure.
+- Work category routes (`/work/portraits`, `/work/families`, `/work/couples`, `/work/japan`) now use shared `SectionEyebrow` and shared `StudioButton` for the existing back-navigation action.
+- Gallery/lightbox components and image ordering remain unchanged.
+
+Known deferred item:
+
+- Existing homepage raw `<img>` warning in [app/page.tsx](../../app/page.tsx) remains open by design to avoid introducing risk around `NEXT_PUBLIC_IMAGE_BASE_URL` behavior in static export mode.
 
 ## Scope
 

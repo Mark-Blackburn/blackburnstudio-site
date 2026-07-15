@@ -1,6 +1,21 @@
 # Blackburn Studio Technical Architecture (Current State)
 
-Last reviewed: 2026-07-13
+Last reviewed: 2026-07-15
+
+## 2026-07-15 implementation delta
+
+Home and photography routes were updated to consume the shared studio primitive layer more consistently, without changing route structure or gallery internals.
+
+Verified architectural updates:
+
+- `SectionEyebrow` is now used across home/work route section labels where appropriate.
+- `StudioButton` is now used for key CTA/back actions on home and work routes.
+- Shared `SiteHeader` and `SiteFooter` continue to provide consistent route-level chrome across `/`, `/work`, `/work/*`, `/digital`, `/about`, and `/contact`.
+- Gallery and lightbox internals were not refactored as part of this pass.
+
+Deferred technical item:
+
+- Existing `@next/next/no-img-element` warning on home hero image ([app/page.tsx](../../app/page.tsx)) remains unresolved in this pass. Reason: preserving current static export behavior with `NEXT_PUBLIC_IMAGE_BASE_URL` takes priority over a low-confidence migration to `next/image` on this element.
 
 ## Scope
 

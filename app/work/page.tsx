@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
+import { SectionEyebrow, StudioButton } from "@/components/studio";
 
 const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/images";
 
@@ -48,9 +49,7 @@ export default function WorkPage() {
       <SiteHeader />
 
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-12 md:px-8 md:pt-24 md:pb-16">
-        <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-          Work
-        </p>
+        <SectionEyebrow>Work</SectionEyebrow>
         <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.1] tracking-tight text-studio-text md:text-5xl">
           Selected Work
         </h1>
@@ -59,6 +58,14 @@ export default function WorkPage() {
           landscape work — focused on real expression, considered light and
           quiet human moments.
         </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <StudioButton href="/contact" variant="primary">
+            Start a conversation
+          </StudioButton>
+          <StudioButton href="/digital" variant="secondary">
+            Digital services
+          </StudioButton>
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-28 md:px-8">
