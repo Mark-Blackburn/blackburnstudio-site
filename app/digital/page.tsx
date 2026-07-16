@@ -271,15 +271,15 @@ export default function DigitalPage() {
               aria-label="Visit Create from Concepts website"
               className="group relative block cursor-pointer rounded-3xl border border-studio-border bg-studio-surface p-8 transition hover:border-white/30 hover:bg-studio-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base md:p-10"
             >
-              <span className="pointer-events-none absolute top-6 right-6 inline-flex items-center gap-1 whitespace-nowrap text-[0.68rem] uppercase tracking-[0.2em] text-neutral-500 transition group-hover:text-neutral-300 group-focus-visible:text-neutral-300">
-                Public site
-                <span aria-hidden="true">↗</span>
-              </span>
               <p className="text-xs font-medium uppercase tracking-[0.25em] text-neutral-500">
                 Commercial client project
               </p>
+              <span className="pointer-events-none mt-2 inline-flex items-center gap-1 whitespace-nowrap text-[0.68rem] uppercase tracking-[0.2em] text-neutral-500 transition group-hover:text-neutral-300 group-focus-visible:text-neutral-300 md:absolute md:top-6 md:right-6 md:mt-0">
+                Public site
+                <span aria-hidden="true">↗</span>
+              </span>
               <div className="mt-3">
-                <h3 className="pr-40 text-3xl font-medium tracking-tight text-studio-text md:text-[2rem]">
+                <h3 className="text-3xl font-medium tracking-tight text-studio-text md:pr-40 md:text-[2rem]">
                   Create from Concepts
                 </h3>
               </div>
@@ -314,15 +314,15 @@ export default function DigitalPage() {
                 aria-label="Visit AFL Masters Vic Country website"
                 className="group relative flex h-full min-w-0 cursor-pointer flex-col rounded-3xl border border-studio-border bg-studio-surface p-7 transition hover:border-white/30 hover:bg-studio-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base md:p-8"
               >
-                <span className="pointer-events-none absolute top-6 right-6 inline-flex items-center gap-1 whitespace-nowrap text-[0.65rem] uppercase tracking-[0.2em] text-neutral-500 transition group-hover:text-neutral-300 group-focus-visible:text-neutral-300">
-                  Public site
-                  <span aria-hidden="true">↗</span>
-                </span>
                 <p className="text-xs font-medium uppercase tracking-[0.25em] text-neutral-500">
                   Volunteer community project
                 </p>
+                <span className="pointer-events-none mt-2 inline-flex items-center gap-1 whitespace-nowrap text-[0.65rem] uppercase tracking-[0.2em] text-neutral-500 transition group-hover:text-neutral-300 group-focus-visible:text-neutral-300 md:absolute md:top-6 md:right-6 md:mt-0">
+                  Public site
+                  <span aria-hidden="true">↗</span>
+                </span>
                 <div className="mt-3">
-                  <h3 className="pr-40 text-2xl font-medium tracking-tight text-studio-text">
+                  <h3 className="text-2xl font-medium tracking-tight text-studio-text md:pr-40">
                     AFL Masters Vic Country website platform
                   </h3>
                 </div>
@@ -350,13 +350,13 @@ export default function DigitalPage() {
               </a>
 
               <article className="relative flex h-full min-w-0 flex-col rounded-3xl border border-studio-border bg-studio-surface p-7 md:p-8">
-                <span className="absolute top-6 right-6 inline-flex items-center whitespace-nowrap text-[0.65rem] uppercase tracking-[0.2em] text-neutral-500">
-                  Internal workflow
-                </span>
                 <p className="text-xs font-medium uppercase tracking-[0.25em] text-neutral-500">
                   Volunteer community project
                 </p>
-                <h3 className="mt-3 pr-40 text-2xl font-medium tracking-tight text-studio-text">
+                <span className="mt-2 inline-flex items-center whitespace-nowrap text-[0.65rem] uppercase tracking-[0.2em] text-neutral-500 md:absolute md:top-6 md:right-6 md:mt-0">
+                  Internal workflow
+                </span>
+                <h3 className="mt-3 text-2xl font-medium tracking-tight text-studio-text md:pr-40">
                   AFL Masters Vic Country workflows and automation
                 </h3>
                 <p className="mt-5 text-[0.95rem] leading-relaxed text-studio-muted md:text-base lg:min-h-[7.5rem]">
