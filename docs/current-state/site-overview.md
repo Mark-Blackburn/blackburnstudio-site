@@ -12,7 +12,7 @@ Verified changes:
 - Primary CTA surfaces on home/work now use `StudioButton` while preserving quiet photography-first hierarchy.
 - Work category pages now use shared `StudioButton` for the existing "Back to work" action.
 - Shared `SiteHeader` and `SiteFooter` remain consistently applied across all launch routes.
-- Home hero CTA links now prefer dedicated routes (`/work`, `/contact`) rather than in-page anchors.
+- Home hero CTA links now use dedicated routes (`/work`, `/digital`).
 
 Explicit exception retained:
 
@@ -54,15 +54,9 @@ Verified evidence:
 
 The positioning language is practical and human-centred across both disciplines.
 
-Photography-led language remains prominent on home and work routes, with recurring wording such as:
+Home messaging and structure explicitly combine photography, websites, and useful digital systems, including an early Photography/Digital split section.
 
-- "Honest, cinematic photography"
-- "human edge"
-- "natural, human approach"
-- "quiet, considered"
-- "real moments"
-
-Digital service language is now present on `/digital`, including websites, workflow/process improvement, and platforms/portals framing.
+Digital service language is present on `/digital`, including websites, workflow/process improvement, and platforms/portals framing.
 
 These statements appear in [app/layout.tsx](../../app/layout.tsx), [app/page.tsx](../../app/page.tsx), [app/digital/page.tsx](../../app/digital/page.tsx), and routes under [app/work](../../app/work).
 
@@ -71,7 +65,7 @@ These statements appear in [app/layout.tsx](../../app/layout.tsx), [app/page.tsx
 Verified from page copy and calls to action, the apparent audience is:
 
 - Prospective portrait, family and couples clients seeking commissioned photography.
-- Potential collaborators and commissioners (home contact copy references "Commissions, collaborations").
+- Potential collaborators and commissioners via the dedicated contact path and email CTA surfaces.
 - Visitors interested in curated artistic work (Japan series positioning).
 - Small businesses and organisations needing website improvement, workflow simplification, or practical digital platform support (`/digital`).
 
@@ -176,8 +170,8 @@ Sources: [app/work/page.tsx](../../app/work/page.tsx) and category route files u
 
 Primary CTAs observed:
 
-- "View work" (`#work`) on home hero in [app/page.tsx](../../app/page.tsx)
-- "Enquire" (`#contact`) on home hero in [app/page.tsx](../../app/page.tsx)
+- "View photography" (`/work`) on home hero in [app/page.tsx](../../app/page.tsx)
+- "Explore digital" (`/digital`) on home hero in [app/page.tsx](../../app/page.tsx)
 - "View selected work" links to `/work` in home sections in [app/page.tsx](../../app/page.tsx)
 - "View series" links to each category in [app/work/page.tsx](../../app/work/page.tsx)
 - "Back to work" on all category pages under [app/work](../../app/work)
@@ -199,7 +193,7 @@ Not observed in repository:
 
 Verified strengths based on implementation:
 
-- Clear and consistent photography-focused positioning across routes.
+- Clear and consistent dual-discipline positioning across routes.
 - Cohesive visual language (dark backdrop, restrained copy, consistent typography).
 - Reusable gallery and lightbox system shared across categories.
 - Local image assets and static export deployment model support predictable publishing.
@@ -221,17 +215,18 @@ Requires verification:
 
 Verified repository findings:
 
-- No references to "Mark Blackburn", "Blackburn Coaching", or "coaching" were found in current source files.
+- The current public site intentionally references Mark Blackburn on About and related studio-context pages.
+- No public route is positioned as Mark Blackburn Coaching, and coaching remains outside the Blackburn Studio site scope.
 
 Requires verification:
 
-- Any strategic, legal, or commercial relationship between Blackburn Studio and Mark Blackburn Coaching is not represented in this repository.
+- Any strategic, legal, or commercial relationship beyond this public-site scope is not represented in this repository.
 
 ## Facts, assumptions, and known gaps
 
 ### Facts verified in repository
 
-- The website is currently photography-led in copy, structure, and route taxonomy.
+- The website is currently positioned as a dual-discipline studio spanning photography and digital services.
 - Public routes are limited to home and work/category pages listed above.
 - Contact method is an email mailto link.
 - Site-wide metadata, favicon, and web manifest are implemented.

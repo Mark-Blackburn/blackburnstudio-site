@@ -11,7 +11,7 @@ on:
 
 jobs:
   build_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name == 'pull_request' && github.event.action != 'closed'
     runs-on: ubuntu-latest
     name: Build Job
     steps:
@@ -32,11 +32,13 @@ jobs:
       - name: Build
         run: npm run build
 
+      - name: Lint
+        run: npm run lint
+
   deploy_job:
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ZEALOUS_PEBBLE_08F954100 != ''
     runs-on: ubuntu-latest
     name: Deploy Job
-    needs: build_job
     steps:
       - uses: actions/checkout@v4
         with:
