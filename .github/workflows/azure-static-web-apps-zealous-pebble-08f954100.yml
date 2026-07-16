@@ -10,30 +10,38 @@ on:
       - main
 
 jobs:
-  build_and_deploy_job:
+  build_job:
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
-    name: Build and Deploy Job
-    permissions:
-      id-token: write
-      contents: read
+    name: Build Job
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: true
           lfs: false
 
-      - name: Install OIDC Client from Core Package
-        run: npm install @actions/core@1.6.0 @actions/http-client
-
-      - name: Get Id Token
-        uses: actions/github-script@v6
-        id: idtoken
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
-          script: |
-            const coredemo = require('@actions/core')
-            return await coredemo.getIDToken()
-          result-encoding: string
+          node-version: 20
+          cache: npm
+
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Build
+        run: npm run build
+
+  deploy_job:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ZEALOUS_PEBBLE_08F954100 != ''
+    runs-on: ubuntu-latest
+    name: Deploy Job
+    needs: build_job
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: true
+          lfs: false
 
       - name: Build And Deploy
         id: builddeploy
@@ -46,11 +54,9 @@ jobs:
           api_location: ""
           output_location: "out"
           app_build_command: "npm run build"
-          is_static_export: true
-          github_id_token: ${{ steps.idtoken.outputs.result }}
 
   close_pull_request_job:
-    if: github.event_name == 'pull_request' && github.event.action == 'closed'
+    if: github.event_name == 'pull_request' && github.event.action == 'closed' && secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_ZEALOUS_PEBBLE_08F954100 != ''
     runs-on: ubuntu-latest
     name: Close Pull Request Job
     steps:
