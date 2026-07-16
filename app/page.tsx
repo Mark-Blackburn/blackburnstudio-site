@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
 
+import SiteFooter from "@/components/site/SiteFooter";
+import SiteHeader from "@/components/site/SiteHeader";
+import { SectionEyebrow, StudioButton } from "@/components/studio";
 import { getImagesWithBlur, type ImageSource } from "@/lib/getImagesWithBlur";
 
 const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/images";
@@ -19,7 +22,7 @@ export default async function Home() {
   const japanImages = await getImagesWithBlur("images", japanSources);
   const [japanLead, ...japanSupports] = japanImages;
   return (
-    <div className="bg-black text-neutral-300">
+    <div className="bg-studio-base text-studio-muted">
       {/* Hero */}
       <section className="relative h-[85vh] w-full overflow-hidden">
         <img
@@ -30,54 +33,86 @@ export default async function Home() {
         <div className="absolute inset-0 z-10 bg-gradient-to-b from-black/70 via-black/40 to-black/80 md:from-black/60 md:via-black/30 md:to-black/70" />
         <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-24 bg-gradient-to-t from-black via-black/40 to-transparent md:h-32" />
 
-        <header className="relative z-30 mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 md:px-8">
-          <span className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-300">
-            Blackburn Studio
-          </span>
-          <nav className="hidden gap-8 text-sm text-neutral-400 md:flex">
-            <a href="/work" className="transition-colors hover:text-white">Work</a>
-            <a href="#about" className="transition-colors hover:text-white">About</a>
-            <a href="#contact" className="transition-colors hover:text-white">Contact</a>
-          </nav>
-        </header>
+        <SiteHeader overlay />
 
         {/* `[@media(max-height:760px)]:` refinements target shorter mobile
             heights only (iPhone SE / 12 Pro class). Larger phones, tablets,
             and desktop are untouched. */}
         <div className="relative z-30 mx-auto flex h-[calc(85vh-72px)] w-full max-w-6xl flex-col justify-end px-6 pb-16 [@media(max-height:760px)]:pb-8 md:px-8 md:pb-20">
           <h1 className="rise-in mt-24 max-w-[90%] text-4xl font-medium leading-[1.1] tracking-tight text-white sm:text-5xl [@media(max-height:760px)]:mt-10 [@media(max-height:760px)]:text-3xl [@media(max-height:760px)]:leading-[1.15] md:mt-0 md:max-w-xl md:text-6xl">
-            Honest, cinematic photography
-            <br />
-            <span className="text-neutral-400">with a human edge.</span>
+            Photography, websites and useful digital systems.
           </h1>
           <p
-            className="rise-in mt-6 max-w-xl text-sm leading-relaxed text-neutral-400 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:max-w-[19rem] [@media(max-height:760px)]:text-[13px] [@media(max-height:760px)]:leading-snug md:text-base"
+            className="rise-in mt-6 max-w-xl text-[15px] leading-relaxed text-neutral-300 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:max-w-[19rem] [@media(max-height:760px)]:text-[13px] [@media(max-height:760px)]:leading-snug md:text-base"
             style={{ animationDelay: "120ms" }}
           >
-            Blackburn Studio focuses on portrait photography with a natural,
-            human approach — supported by a curated collection of landscape
-            work from Japan.
+            Blackburn Studio creates natural portraits and family images,
+            business photography, clear websites and practical digital
+            workflows for people who need things to look good and work
+            properly.
           </p>
           <div
             className="rise-in mt-8 flex w-full flex-col gap-3 [@media(max-height:760px)]:mt-4 [@media(max-height:760px)]:gap-2 md:mt-10 md:w-auto md:flex-row md:gap-4"
             style={{ animationDelay: "240ms" }}
           >
-            <a
-              href="#work"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-medium text-black transition hover:bg-neutral-200 [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
+            <StudioButton
+              href="/work"
+              variant="primary"
+              className="w-full rounded-full [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
             >
-              View work
-            </a>
-            <a
-              href="#contact"
-              className="inline-flex min-h-12 w-full items-center justify-center rounded-full border border-white/20 px-5 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
+              View photography
+            </StudioButton>
+            <StudioButton
+              href="/digital"
+              variant="secondary"
+              className="w-full rounded-full border-white/20 text-white/80 hover:border-white/40 hover:text-white [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
             >
-              Enquire
-            </a>
+              Explore digital
+            </StudioButton>
           </div>
         </div>
 
         <div className="pointer-events-none absolute bottom-6 left-1/2 hidden h-6 w-px -translate-x-1/2 bg-white/25 md:block" />
+      </section>
+
+      <section className="mx-auto max-w-6xl px-6 pt-16 pb-8 md:px-8 md:pt-20 md:pb-12">
+        <SectionEyebrow>Studio</SectionEyebrow>
+        <h2 className="mt-4 max-w-[24ch] text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
+          Photography and digital work from one studio.
+        </h2>
+        <p className="mt-6 max-w-[72ch] text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
+          Some projects need strong images. Some need a website that explains
+          the work clearly. Others need a better way to manage information.
+          Blackburn Studio can help with each, without making it bigger than it
+          needs to be.
+        </p>
+        <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
+          <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
+            <h3 className="text-2xl font-medium tracking-tight text-studio-text">Photography</h3>
+            <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
+              Portraits, families, couples, business and project photography
+              with a natural, honest style.
+            </p>
+            <StudioButton href="/work" variant="secondary" className="mt-6">
+              View photography
+            </StudioButton>
+          </section>
+
+          <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
+            <h3 className="text-2xl font-medium tracking-tight text-studio-text">Digital</h3>
+            <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
+              Websites, workflow improvements and small digital systems for
+              businesses, clubs and community organisations.
+            </p>
+            <p className="mt-3 text-[0.98rem] leading-relaxed text-studio-muted">
+              Recent work includes business websites, club platforms and
+              workflow automation.
+            </p>
+            <StudioButton href="/digital" variant="secondary" className="mt-6">
+              Explore digital
+            </StudioButton>
+          </section>
+        </div>
       </section>
 
       {/* Work */}
@@ -88,21 +123,18 @@ export default async function Home() {
         <div className="mx-auto max-w-6xl px-6 pt-10 pb-20 [@media(max-height:760px)]:pt-16 md:px-8 md:pt-16 md:pb-28">
           <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:gap-12">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-                Primary
-              </p>
-              <h2 className="mt-3 text-3xl font-medium tracking-tight text-white md:text-4xl">
+              <SectionEyebrow>Primary</SectionEyebrow>
+              <h2 className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
                 Portraits
               </h2>
             </div>
             <div className="max-w-sm md:ml-auto">
-              <p className="text-sm leading-relaxed text-neutral-400 md:text-base">
-                Quiet, considered portraiture. Natural light, real expression,
-                and a sense of presence in every frame.
+              <p className="text-sm leading-relaxed text-studio-dim md:text-base">
+                Portraits with considered light, expression and a relaxed feel.
               </p>
               <Link
                 href="/work"
-                className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-neutral-500 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none"
+                className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-studio-dim transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
               >
                 View selected work
                 <span aria-hidden="true" className="transition-transform duration-300 ease-out group-hover:translate-x-0.5">→</span>
@@ -116,7 +148,7 @@ export default async function Home() {
                 key={file}
                 href="/work"
                 aria-label="View selected work"
-                className="group relative block aspect-4/5 overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
+                className="group relative block aspect-4/5 overflow-hidden rounded-2xl bg-studio-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
               >
                 <Image
                   src={`${baseUrl}/${file}`}
@@ -139,17 +171,15 @@ export default async function Home() {
         className="mx-auto max-w-6xl px-6 pt-16 pb-20 md:px-8 md:pt-24 md:pb-28"
       >
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-            About
-          </p>
-          <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-white md:text-4xl">
-            Clean, natural, human-focused photography.
+          <SectionEyebrow>About</SectionEyebrow>
+          <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
+            Photography and digital work, handled carefully.
           </h2>
-          <p className="mt-8 text-sm leading-loose text-neutral-400 md:text-base">
-            Blackburn Studio is built around a simple idea: photographs should
-            feel honest. We work quietly and slowly, prioritising real moments
-            over performance, and natural light over spectacle. The result is
-            imagery that holds up — calm, considered, and unmistakably human.
+          <p className="mt-8 text-sm leading-loose text-studio-dim md:text-base">
+            Blackburn Studio is built around simple ideas: understand what is
+            needed, keep things clear and make something useful. That applies
+            to photography, websites and the digital systems that support
+            day-to-day work.
           </p>
         </div>
       </section>
@@ -160,21 +190,19 @@ export default async function Home() {
       <section className="mx-auto max-w-4xl px-6 pt-16 pb-28 md:px-8 md:pt-24 md:pb-40">
         <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:gap-12">
           <div>
-            <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-              Series
-            </p>
-            <h2 className="mt-3 text-3xl font-medium tracking-tight text-white md:text-4xl">
+            <SectionEyebrow>Series</SectionEyebrow>
+            <h2 className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
               Japan
             </h2>
           </div>
           <div className="max-w-sm md:ml-auto">
-            <p className="text-sm leading-relaxed text-neutral-400 md:text-base">
+            <p className="text-sm leading-relaxed text-studio-dim md:text-base">
               A curated landscape series — stillness, scale, and the soft
               geometry of a country observed slowly.
             </p>
             <Link
               href="/work"
-              className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-neutral-500 transition-colors hover:text-white focus-visible:text-white focus-visible:outline-none"
+              className="mt-4 inline-flex items-center gap-1.5 text-[13px] text-studio-dim transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
             >
               View selected work
               <span aria-hidden="true" className="transition-transform duration-300 ease-out group-hover:translate-x-0.5">→</span>
@@ -189,7 +217,7 @@ export default async function Home() {
           <Link
             href="/work"
             aria-label="View selected work"
-            className="group relative block overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
+            className="group relative block overflow-hidden rounded-2xl bg-studio-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60"
             style={
               japanLead.width && japanLead.height
                 ? { aspectRatio: `${japanLead.width} / ${japanLead.height}` }
@@ -215,7 +243,7 @@ export default async function Home() {
                 href="/work"
                 aria-label="View selected work"
                 className={
-                  "group relative block overflow-hidden rounded-2xl bg-neutral-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60 " +
+                  "group relative block overflow-hidden rounded-2xl bg-studio-surface focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-white/60 " +
                   // Quiet editorial drift on the right-hand image, desktop only:
                   // slightly narrower, anchored to the inner edge, and nudged
                   // downward so the two supports share no aligned edge or baseline.
@@ -249,34 +277,25 @@ export default async function Home() {
         className="mx-auto max-w-6xl px-6 pt-24 pb-28 md:px-8"
       >
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-            Contact
-          </p>
-          <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-white md:text-5xl">
+          <SectionEyebrow>Contact</SectionEyebrow>
+          <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-5xl">
             Let&rsquo;s work together.
           </h2>
-          <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-neutral-400 md:text-base">
-            Commissions, collaborations, and considered conversations all
-            welcome.
+          <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-studio-dim md:text-base">
+            Photography commissions, website and workflow projects, and
+            straightforward enquiries are all welcome.
           </p>
-          <a
+          <StudioButton
             href="mailto:hello@theblackburn.studio"
-            className="mt-10 inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-2 text-sm font-medium text-neutral-200 transition duration-500 ease-out hover:scale-[1.02] hover:border-white/40 hover:text-white"
+            variant="secondary"
+            className="mt-10 rounded-full transition duration-500 ease-out hover:scale-[1.02]"
           >
             hello@theblackburn.studio
-          </a>
+          </StudioButton>
         </div>
       </section>
 
-      <footer className="mx-auto w-full max-w-6xl px-6 py-10 md:px-8">
-        <div className="flex flex-col items-center justify-between gap-4 text-xs text-neutral-500 md:flex-row">
-          <span className="uppercase tracking-[0.3em]">Blackburn Studio</span>
-          <span>
-            &copy; {new Date().getFullYear()} Blackburn Studio. All rights
-            reserved.
-          </span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

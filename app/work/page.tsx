@@ -1,5 +1,8 @@
 import Image from "next/image";
 import Link from "next/link";
+import SiteFooter from "@/components/site/SiteFooter";
+import SiteHeader from "@/components/site/SiteHeader";
+import { SectionEyebrow, StudioButton } from "@/components/studio";
 
 const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/images";
 
@@ -8,28 +11,28 @@ const categories = [
     slug: "portraits",
     title: "Portraits",
     description:
-      "Considered portraits with a focus on presence, expression and carefully shaped light.",
+      "Portraits with expression, a relaxed feel and considered light.",
     image: "work-portraits.jpg",
   },
   {
     slug: "families",
     title: "Families",
     description:
-      "Relaxed family sessions built around connection, warmth and real moments.",
+      "Family sessions focused on connection, warmth and everyday moments.",
     image: "work-families.jpg",
   },
   {
     slug: "couples",
     title: "Couples",
     description:
-      "Quiet, personal images of couples — gently directed, naturally expressive.",
+      "Couples photography with gentle direction and natural interaction.",
     image: "work-couples.jpg",
   },
   {
     slug: "japan",
     title: "Japan",
     description:
-      "A personal landscape series from Japan — stillness, texture, scale and place.",
+      "A personal landscape series from Japan, focused on place, detail and atmosphere.",
     image: "work-japan.jpg",
   },
 ];
@@ -37,44 +40,31 @@ const categories = [
 export const metadata = {
   title: "Selected Work — Blackburn Studio",
   description:
-    "A curated collection of portrait, family, couple and personal landscape work.",
+    "A collection of portrait, family, couples and landscape photography from Blackburn Studio.",
 };
 
 export default function WorkPage() {
   return (
-    <div className="bg-black text-neutral-300">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 md:px-8">
-        <Link
-          href="/"
-          className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-300 transition-colors hover:text-white"
-        >
-          Blackburn Studio
-        </Link>
-        <nav className="hidden gap-8 text-sm text-neutral-400 md:flex">
-          <Link href="/work" className="text-white">
-            Work
-          </Link>
-          <Link href="/#about" className="transition-colors hover:text-white">
-            About
-          </Link>
-          <Link href="/#contact" className="transition-colors hover:text-white">
-            Contact
-          </Link>
-        </nav>
-      </header>
+    <div className="bg-studio-base text-studio-muted">
+      <SiteHeader />
 
       <section className="mx-auto max-w-6xl px-6 pt-16 pb-12 md:px-8 md:pt-24 md:pb-16">
-        <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-          Work
-        </p>
-        <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.1] tracking-tight text-white md:text-5xl">
+        <SectionEyebrow>Work</SectionEyebrow>
+        <h1 className="mt-4 max-w-3xl text-4xl font-medium leading-[1.1] tracking-tight text-studio-text md:text-5xl">
           Selected Work
         </h1>
-        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-neutral-400 md:text-base">
-          A curated collection of portrait, family, couple and personal
-          landscape work — focused on real expression, considered light and
-          quiet human moments.
+        <p className="mt-6 max-w-2xl text-sm leading-relaxed text-studio-dim md:text-base">
+          Portraits, family sessions, couples and travel work.
+          Natural images with a quiet, honest feel.
         </p>
+        <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
+          <StudioButton href="/contact" variant="primary">
+            Start a conversation
+          </StudioButton>
+          <StudioButton href="/digital" variant="secondary">
+            Explore digital
+          </StudioButton>
+        </div>
       </section>
 
       <section className="mx-auto max-w-6xl px-6 pb-28 md:px-8">
@@ -86,7 +76,7 @@ export default function WorkPage() {
               aria-label={`${c.title} — view series`}
               className="group block focus-visible:outline-none"
             >
-              <figure className="relative aspect-4/3 overflow-hidden rounded-2xl bg-neutral-900 group-focus-visible:ring-2 group-focus-visible:ring-white/60 group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-black">
+              <figure className="relative aspect-4/3 overflow-hidden rounded-2xl bg-studio-surface group-focus-visible:ring-2 group-focus-visible:ring-white/60 group-focus-visible:ring-offset-4 group-focus-visible:ring-offset-studio-base">
                 {/* Image layer — subtle, slow, cinematic scale */}
                 <Image
                   src={`${baseUrl}/${c.image}`}
@@ -129,7 +119,7 @@ export default function WorkPage() {
               </figure>
 
               {/* Supporting description below image — preserved */}
-              <p className="mt-5 max-w-md text-sm leading-relaxed text-neutral-400">
+              <p className="mt-5 max-w-md text-sm leading-relaxed text-studio-dim">
                 {c.description}
               </p>
             </Link>
@@ -137,15 +127,7 @@ export default function WorkPage() {
         </div>
       </section>
 
-      <footer className="mx-auto w-full max-w-6xl px-6 py-10 md:px-8">
-        <div className="flex flex-col items-center justify-between gap-4 text-xs text-neutral-500 md:flex-row">
-          <span className="uppercase tracking-[0.3em]">Blackburn Studio</span>
-          <span>
-            &copy; {new Date().getFullYear()} Blackburn Studio. All rights
-            reserved.
-          </span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }

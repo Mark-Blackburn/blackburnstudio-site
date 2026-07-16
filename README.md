@@ -20,6 +20,47 @@ You can start editing the page by modifying `app/page.tsx`. The page auto-update
 
 This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
+## Screenshot Utility
+
+This repository includes a reusable full-page screenshot crawler powered by Playwright Chromium.
+
+Prerequisites:
+
+- Install dependencies with `npm install`
+- Ensure Chromium is installed for Playwright with `npx playwright install chromium`
+- Start the site locally (for local captures) with `npm run dev`
+
+Run against localhost:
+
+```bash
+npm run screenshot:site:local
+```
+
+Run against any site:
+
+```bash
+npm run screenshot:site -- --baseUrl=http://localhost:3000
+npm run screenshot:site -- --baseUrl=https://example.com --outputDir=artifacts/screenshots
+```
+
+What it does:
+
+- Starts from the provided base URL
+- Discovers internal same-origin links
+- Visits each discovered page
+- Captures a full-page screenshot per route
+- Writes a manifest JSON with crawl and capture results
+
+Default output:
+
+- Screenshots and manifest are written under `screenshots/site`
+- The `screenshots` folder is ignored in git by default
+
+Script location:
+
+- `scripts/screenshot-site.mjs`
+- Run `npm run screenshot:site -- --help` for all options
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:

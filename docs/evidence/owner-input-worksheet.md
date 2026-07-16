@@ -1,0 +1,375 @@
+# Owner Input Worksheet
+
+Use this worksheet to provide only factual information not yet verifiable from repository evidence.
+
+## CP-01 Blackburn Studio photography website
+
+- [ ] Engagement type confirmed
+  - Short answer:
+- [ ] Paid or non-paid context confirmed
+  - Short answer:
+- [ ] Original request confirmed
+  - Short answer:
+- [ ] Original problem confirmed
+  - Short answer:
+- [ ] Additional problems or improvements identified during work
+  - Short answer:
+- [ ] Mark Blackburn specific contribution confirmed
+  - Short answer:
+- [ ] Contributions from other people confirmed
+  - Short answer:
+- [ ] Delivery status and approximate dates confirmed
+  - Short answer:
+- [ ] Qualitative outcomes confirmed (with source)
+  - Short answer:
+- [ ] Measurable outcomes confirmed (with metric source)
+  - Short answer:
+- [ ] Permission to name client confirmed
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Permission to publish screenshots confirmed
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Confidentiality concerns recorded
+  - Short answer:
+- [ ] Preferred public angle
+  - Short answer:
+- [ ] Represents work Blackburn Studio wants more of
+  - [ ] Yes
+  - [ ] No
+  - [ ] Unsure
+
+## CP-02 Mark Blackburn Coaching public website
+
+- [ ] Engagement type confirmed
+  - [ ] Commercial client project
+  - [ ] Internal business project
+  - [ ] Personal studio project
+  - [ ] Volunteer community project
+  - [ ] Mixed or requires clarification
+- [ ] Paid status confirmed
+  - Short answer:
+- [ ] Original request confirmed
+  - Short answer:
+- [ ] Original problem confirmed
+  - Short answer:
+- [ ] Additional problems or improvements identified
+  - Short answer:
+- [ ] Mark Blackburn specific contribution confirmed
+  - Short answer:
+- [ ] Contributions from other people confirmed
+  - Short answer:
+- [ ] Delivery status and approximate dates confirmed
+  - Short answer:
+- [ ] Repository or source location provided
+  - Short answer:
+- [ ] Client feedback provided (if available)
+  - Short answer:
+- [ ] Qualitative outcomes provided (if available)
+  - Short answer:
+- [ ] Measurable outcomes and source provided (if available)
+  - Short answer:
+- [ ] Permission to name client
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Permission to publish screenshots
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Confidentiality concerns recorded
+  - Short answer:
+- [ ] Preferred public angle
+  - Short answer:
+- [ ] Represents desired future work
+  - [ ] Yes
+  - [ ] No
+  - [ ] Unsure
+
+## CP-03 Mark Blackburn Coaching client portal
+
+- [ ] Engagement type confirmed
+  - [ ] Commercial client project
+  - [ ] Internal business project
+  - [ ] Personal studio project
+  - [ ] Volunteer community project
+  - [ ] Mixed or requires clarification
+- [ ] Paid status confirmed
+  - Short answer:
+- [ ] Original request confirmed
+  - Short answer:
+- [ ] Original problem confirmed
+  - Short answer:
+- [ ] Additional problems or improvements identified
+  - Short answer:
+- [ ] Mark Blackburn specific contribution confirmed
+  - Short answer:
+- [ ] Contributions from other people confirmed
+  - Short answer:
+- [ ] Delivery status and approximate dates confirmed
+  - Short answer:
+- [ ] Repository or source location provided
+  - Short answer:
+- [ ] Client feedback provided (if available)
+  - Short answer:
+- [ ] Qualitative outcomes provided (if available)
+  - Short answer:
+- [ ] Measurable outcomes and source provided (if available)
+  - Short answer:
+- [ ] Permission to name client
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Permission to publish screenshots
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Permission to describe operational processes
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Confidentiality concerns recorded
+  - Short answer:
+- [ ] Preferred public angle
+  - Short answer:
+- [ ] Represents desired future work
+  - [ ] Yes
+  - [ ] No
+  - [ ] Unsure
+
+## CP-04 Create from Concepts website
+
+- [x] Engagement type confirmed
+  - [x] Commercial client project
+  - [ ] Internal business project
+  - [ ] Personal studio project
+  - [ ] Volunteer community project
+  - [ ] Mixed or requires clarification
+- [x] Paid status confirmed
+  - Short answer: Paid commercial engagement; first progress payment received.
+- [x] Original request confirmed
+  - Short answer: Update the existing WordPress website and create team photography.
+- [x] Original problem confirmed
+  - Short answer: Existing website required update; broader initial problem framing beyond that remains implicit rather than separately documented.
+- [x] Additional problems or improvements identified
+  - Short answer: Broader digital presence, stronger portfolio/work gallery, customer-project photography, and lead-generation support were identified during the work.
+- [x] Mark Blackburn specific contribution confirmed
+  - Short answer: Discovery and broader-needs identification, information architecture, WordPress teardown and rebuild, website implementation, gallery, team photography, broader digital-presence planning, and planning for future customer-project photography.
+- [x] Contributions from other people confirmed
+  - Short answer: Troy provided business knowledge, project context, feedback, approvals, existing/historic material, and coordination/access for future customer-kitchen photography.
+- [x] Delivery status and approximate dates confirmed
+  - Short answer: Started May 2026. Live but ongoing. Final completion date not yet known.
+- [ ] Repository or source location provided
+  - Short answer: Technical repository/source still to be provided if independent source verification is required.
+- [x] Client feedback provided (if available)
+  - Short answer: Troy has reportedly received commissions based on the website.
+- [x] Qualitative outcomes provided (if available)
+  - Short answer: Qualitative commission feedback reported by Mark Blackburn; traceable source still required before publication.
+- [ ] Measurable outcomes and source provided (if available)
+  - Short answer: No supported measurable outcome currently available.
+- [x] Permission to name client
+  - [x] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [x] Permission to publish screenshots
+  - [x] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [x] Confidentiality concerns recorded
+  - Short answer: No private commercial or customer information should be shown. Future customer-kitchen images require appropriate permission.
+- [x] Preferred public angle
+  - Short answer: Modernising an established trade business website while building a stronger visual and digital foundation for future enquiries.
+- [x] Represents desired future work
+  - [x] Yes
+  - [ ] No
+  - [ ] Unsure
+
+Open items only:
+
+- [ ] Exact end date or current project phase confirmed
+  - Short answer:
+- [ ] Any additional contributors confirmed
+  - Short answer:
+- [ ] Testimonial wording and approval received
+  - Short answer:
+- [ ] Traceable source for commission feedback captured
+  - Short answer:
+- [ ] Measurable enquiry or commission data safely available
+  - Short answer:
+- [ ] Permissions for future customer-kitchen photographs confirmed
+  - Short answer:
+- [ ] Final list of Google, Facebook, and Instagram work completed versus planned confirmed
+  - Short answer:
+
+## CP-05 AFL Masters Vic Country website platform
+
+- [x] Engagement type confirmed
+  - [ ] Commercial client project
+  - [ ] Internal business project
+  - [ ] Personal studio project
+  - [x] Volunteer community project
+  - [ ] Mixed or requires clarification
+- [x] Paid status confirmed
+  - Short answer: Volunteer community project.
+- [x] Original request confirmed
+  - Short answer: The broader engagement began with migrating Google-hosted email to Microsoft 365 and helping roll out supporting infrastructure. The initial website-related request was simple SharePoint pages for individual clubs.
+- [x] Original problem confirmed
+  - Short answer: SharePoint was not appropriate as the public website layer for externally accessible club pages, and individually maintained club pages would not scale consistently.
+- [x] Additional problems or improvements identified
+  - Short answer: Reusable shared platform for all clubs and the main league site; central club and league content; PlayHQ live competition information; scalable club onboarding; resilient integrations; calendar feeds; social-content integration; QR-code generation and analytics; observability and support tooling; future expansion without separate codebases per club.
+- [x] Mark Blackburn specific contribution confirmed
+  - Short answer: Sole technical design and implementation by Mark Blackburn, including requirements gathering, stakeholder consultation, discovery, information and content architecture, UI and visual design, frontend, backend and API implementation, platform architecture, PlayHQ and SharePoint integration, Azure architecture and deployment, caching and resilience, last-known-good behaviour, freshness and stale-data indicators, telemetry foundations, QR-code generator and analytics, administration interface, automated tests, and ongoing support.
+- [x] Contributions from other people confirmed
+  - Short answer: No other person wrote code, designed pages, or configured Azure for the platform.
+- [x] Delivery status and approximate dates confirmed
+  - Short answer: Approximately June 2025 commencement. Live platform supporting the main league site and 17 clubs, with partial Facebook publishing and telemetry work, and planned Instagram publishing.
+- [ ] Repository or source location provided
+  - Short answer: No repository available in this workspace.
+- [ ] Client feedback provided (if available)
+  - Short answer: Exact wording of approved feedback still needed.
+- [x] Qualitative outcomes provided (if available)
+  - Short answer: Owner-confirmed very positive feedback; platform is the central operating platform for the league's public digital presence; supports the main league site and 17 clubs.
+- [ ] Measurable outcomes and source provided (if available)
+  - Short answer: Only supported scale indicator is 17 clubs. No supported visitor, usage, QR-scan, reliability, or business-performance metrics currently available.
+- [x] Permission to name client
+  - [x] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [x] Permission to publish screenshots
+  - [x] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [x] Permission to describe operational processes
+  - [x] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [x] Confidentiality concerns recorded
+  - Short answer: Do not publish private compliance information, member or administrator data, real board reports, private SharePoint or Teams content, credentials, telemetry secrets, or operational security information. Admin and telemetry screenshots remain excluded unless recreated or separately reviewed.
+- [x] Preferred public angle
+  - Short answer: Shared public website platform for the main league site and 17 clubs, with central content management, live competition data, QR analytics, and ongoing support.
+- [x] Represents desired future work
+  - [x] Yes
+  - [ ] No
+  - [ ] Unsure
+
+Open items:
+
+- [ ] Exact commencement date if later needed
+- [ ] Exact wording of any approved feedback
+- [ ] Supported visitor, usage, QR-scan or reliability metrics
+- [ ] Which public screenshots will be selected
+- [ ] Whether any third-party branding approval is needed
+
+## CP-06 AFL Masters Vic Country administrative workflows and automation
+
+- [x] Engagement type confirmed
+  - [ ] Commercial client project
+  - [ ] Internal business project
+  - [ ] Personal studio project
+  - [x] Volunteer community project
+  - [ ] Mixed or requires clarification
+- [x] Paid status confirmed
+  - Short answer: Volunteer community project.
+- [x] Original request confirmed
+  - Short answer: There was no single client request defining the full workflow program. The work emerged during the broader Microsoft 365 and infrastructure engagement.
+- [x] Original problem confirmed
+  - Short answer: Governance, compliance, reporting, and volunteer-administration weaknesses were identified during the broader engagement.
+- [x] Additional problems or improvements identified
+  - Short answer: Microsoft 365 migration; role-based league and club accounts; board and executive collaboration structures; central governance and compliance document management; structured club information; form-based data collection; compliance tracking; automated reminders; reporting; per-club summaries; board-level visibility; PDF reporting; automated email distribution; sentiment analysis; issue flagging; due-date tracking; easier volunteer handover; broader process standardisation.
+- [x] Mark Blackburn specific contribution confirmed
+  - Short answer: Mark Blackburn personally completed Microsoft 365 migration, account and role architecture, SharePoint architecture, Forms, Power Automate workflows, compliance lists, dashboards, reporting, automated emails, sentiment analysis, club onboarding, training, documentation, and ongoing support.
+- [x] Contributions from other people confirmed
+  - Short answer: Mark directed the Teams setup and Jon assisted with Teams setup. Brent had the initial concept of using Microsoft 365, while Mark designed and delivered the broader migration, information architecture, workflows, and operating system.
+- [x] Delivery status and approximate dates confirmed
+  - Short answer: Approximately June 2025 commencement. Implemented and operational, with ongoing improvement.
+- [ ] Repository or source location provided
+  - Short answer: No repository available in this workspace.
+- [ ] Client feedback provided (if available)
+  - Short answer: Exact wording of any board or club feedback still needed.
+- [x] Qualitative outcomes provided (if available)
+  - Short answer: Compliance status is now visible; relevant information is available to clubs; board and club users have access to a common operational information base; the systems have become part of the league's normal operations.
+- [ ] Measurable outcomes and source provided (if available)
+  - Short answer: No supported measurable productivity, time-saving, or compliance-rate outcome currently available.
+- [x] Permission to name client
+  - [x] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Permission to publish screenshots
+  - [ ] Yes
+  - [x] No
+  - [ ] Requires clarification
+- [x] Permission to describe operational processes
+  - [x] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [x] Confidentiality concerns recorded
+  - Short answer: Real SharePoint, Teams, compliance, and board screenshots should not be published unless recreated with sample data or separately approved. Member, club, and administrator information must not be exposed. Board discussions and private operational details must remain confidential.
+- [x] Preferred public angle
+  - Short answer: Volunteer-organisation workflow modernisation through Microsoft 365, SharePoint, Forms, Power Automate, dashboards, reporting, and governed handover structures.
+- [x] Represents desired future work
+  - [x] Yes
+  - [ ] No
+  - [ ] Unsure
+
+Open items:
+
+- [ ] Exact wording of any board or club feedback
+- [ ] Whether anonymised before-and-after workflow diagrams should be created
+- [ ] Whether historical compliance or reporting metrics can be safely compared
+- [ ] Whether any quantified time-saving evidence can be established
+- [ ] Whether recreated sample-data screenshots are required
+
+## CP-07 Gisborne Masters and related club-site work
+
+- [ ] Engagement type confirmed
+  - [ ] Commercial client project
+  - [ ] Internal business project
+  - [ ] Personal studio project
+  - [ ] Volunteer community project
+  - [ ] Mixed or requires clarification
+- [ ] Paid status confirmed
+  - Short answer:
+- [ ] Exact project list included in this candidate group confirmed
+  - Short answer:
+- [ ] Original request confirmed
+  - Short answer:
+- [ ] Original problem confirmed
+  - Short answer:
+- [ ] Additional problems or improvements identified
+  - Short answer:
+- [ ] Mark Blackburn specific contribution confirmed
+  - Short answer:
+- [ ] Contributions from other people confirmed
+  - Short answer:
+- [ ] Delivery status and approximate dates confirmed
+  - Short answer:
+- [ ] Repository or source location provided
+  - Short answer:
+- [ ] Client feedback provided (if available)
+  - Short answer:
+- [ ] Qualitative outcomes provided (if available)
+  - Short answer:
+- [ ] Measurable outcomes and source provided (if available)
+  - Short answer:
+- [ ] Permission to name client
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Permission to publish screenshots
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Permission to describe operational processes
+  - [ ] Yes
+  - [ ] No
+  - [ ] Requires clarification
+- [ ] Confidentiality concerns recorded
+  - Short answer:
+- [ ] Preferred public angle
+  - Short answer:
+- [ ] Represents desired future work
+  - [ ] Yes
+  - [ ] No
+  - [ ] Unsure

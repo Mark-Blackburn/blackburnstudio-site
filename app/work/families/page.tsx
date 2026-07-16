@@ -1,10 +1,14 @@
-import Link from "next/link";
-
 import FamiliesGrid from "./FamiliesGrid";
+import Link from "next/link";
 import { getImagesWithBlur, type ImageSource } from "../../../lib/getImagesWithBlur";
+import SiteFooter from "@/components/site/SiteFooter";
+import SiteHeader from "@/components/site/SiteHeader";
+import { SectionEyebrow, StudioButton } from "@/components/studio";
 
 export const metadata = {
   title: "Families — Blackburn Studio",
+  description:
+    "Family photography focused on connection, warmth and everyday moments.",
 };
 
 // Sequence preserved exactly — curated for emotional pacing and editorial rhythm.
@@ -26,41 +30,27 @@ const familySources: ImageSource[] = [
 export default async function FamiliesPage() {
   const images = await getImagesWithBlur("families", familySources);
   return (
-    <div className="flex min-h-screen flex-col bg-black text-neutral-300">
-      <header className="mx-auto flex w-full max-w-6xl items-center justify-between px-6 py-6 md:px-8">
-        <Link
-          href="/"
-          className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-300 transition-colors hover:text-white"
-        >
-          Blackburn Studio
-        </Link>
-        <nav className="hidden gap-8 text-sm text-neutral-400 md:flex">
-          <Link href="/work" className="transition-colors hover:text-white">
-            Work
-          </Link>
-          <Link href="/#about" className="transition-colors hover:text-white">
-            About
-          </Link>
-          <Link href="/#contact" className="transition-colors hover:text-white">
-            Contact
-          </Link>
-        </nav>
-      </header>
+    <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
+      <SiteHeader />
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 pt-12 pb-24 md:px-8 md:pt-20 md:pb-32">
         <section>
+          <Link
+            href="/work"
+            className="mb-5 inline-flex items-center text-[13px] text-studio-dim transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+          >
+            ← Back to work
+          </Link>
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-12">
             <div>
-              <p className="text-xs font-medium uppercase tracking-[0.3em] text-neutral-500">
-                Work
-              </p>
-              <h1 className="mt-3 text-4xl font-medium leading-[1.05] tracking-tight text-white md:text-6xl">
+              <SectionEyebrow>Work</SectionEyebrow>
+              <h1 className="mt-3 text-4xl font-medium leading-[1.05] tracking-tight text-studio-text md:text-6xl">
                 Families
               </h1>
             </div>
-            <p className="max-w-md text-sm leading-relaxed text-neutral-400 md:text-base">
-              Relaxed family photography focused on connection, warmth,
-              expression and real moments.
+            <p className="max-w-md text-sm leading-relaxed text-studio-dim md:text-base">
+              Family photography focused on connection, warmth and everyday
+              moments.
             </p>
           </div>
 
@@ -70,24 +60,17 @@ export default async function FamiliesPage() {
         </section>
 
         <div className="mt-20 flex justify-center">
-          <Link
+          <StudioButton
             href="/work"
-            className="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-2 text-sm font-medium text-white/80 transition hover:border-white/40 hover:text-white"
+            variant="secondary"
+            className="rounded-full"
           >
             ← Back to work
-          </Link>
+          </StudioButton>
         </div>
       </main>
 
-      <footer className="mx-auto w-full max-w-6xl px-6 py-10 md:px-8">
-        <div className="flex flex-col items-center justify-between gap-4 text-xs text-neutral-500 md:flex-row">
-          <span className="uppercase tracking-[0.3em]">Blackburn Studio</span>
-          <span>
-            &copy; {new Date().getFullYear()} Blackburn Studio. All rights
-            reserved.
-          </span>
-        </div>
-      </footer>
+      <SiteFooter />
     </div>
   );
 }
