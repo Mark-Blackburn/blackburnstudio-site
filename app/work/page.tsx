@@ -11,7 +11,7 @@ const categories = [
     slug: "portraits",
     title: "Portraits",
     description:
-      "Portraits focused on expression, presence and natural light.",
+      "Portraits with expression, a relaxed feel and considered light.",
     image: "work-portraits.jpg",
   },
   {
@@ -62,7 +62,7 @@ export default function WorkPage() {
             Start a conversation
           </StudioButton>
           <StudioButton href="/digital" variant="secondary">
-            Digital services
+            Explore digital
           </StudioButton>
         </div>
       </section>

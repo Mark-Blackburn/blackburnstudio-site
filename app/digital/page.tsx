@@ -59,7 +59,7 @@ export default function DigitalPage() {
             Websites that promote your work. Systems that make it easier to
             manage.
           </h1>
-          <p className="mt-7 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+          <p className="mt-7 max-w-[66ch] text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
             Blackburn Studio helps small businesses and community organisations
             build clearer websites, improve everyday processes and set up
             useful tools for managing information, content and follow-up.
@@ -96,6 +96,11 @@ export default function DigitalPage() {
             </a>
             .
           </p>
+          <p className="mt-6 max-w-[70ch] text-sm leading-relaxed text-studio-dim">
+            Common starting points include website refreshes, new business
+            sites, form and reporting clean-up, workflow reviews and small
+            internal tools.
+          </p>
         </section>
 
         <section id="websites" aria-labelledby="websites-heading" className="mt-28 max-w-[54rem] scroll-mt-28 md:mt-36 md:scroll-mt-32">
@@ -114,6 +119,19 @@ export default function DigitalPage() {
               also reveal broader opportunities in content, customer experience and ongoing digital
               support.
             </p>
+          </div>
+          <div className="mt-7 max-w-[68ch]">
+            <p className="text-sm leading-relaxed text-studio-dim md:text-base">
+              Website projects can also include photography where fresh images would help explain
+              the work, show the people involved or make the site feel more complete.
+            </p>
+            <Link
+              href="/work"
+              className="mt-3 inline-flex items-center gap-1.5 text-[13px] text-studio-dim transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              View photography work
+              <span aria-hidden="true">→</span>
+            </Link>
           </div>
           <ul className="mt-10 flex max-w-[68ch] flex-wrap gap-x-4 gap-y-4">
             <li><StudioTag>New websites</StudioTag></li>
@@ -265,7 +283,7 @@ export default function DigitalPage() {
                   Create from Concepts
                 </h3>
               </div>
-              <p className="mt-5 max-w-[86ch] text-sm leading-relaxed text-studio-muted">
+              <p className="mt-5 max-w-[86ch] text-[0.95rem] leading-relaxed text-studio-muted md:text-base">
                 Blackburn Studio modernised the Create from Concepts WordPress site with stronger
                 structure, improved portfolio presentation, and original team photography; the site
                 is live and the project remains ongoing.
@@ -308,7 +326,7 @@ export default function DigitalPage() {
                     AFL Masters Vic Country website platform
                   </h3>
                 </div>
-                <p className="mt-5 text-sm leading-relaxed text-studio-muted lg:min-h-[7.5rem]">
+                <p className="mt-5 text-[0.95rem] leading-relaxed text-studio-muted md:text-base lg:min-h-[7.5rem]">
                   A simple SharePoint-pages direction was not suitable for public club websites.
                   Blackburn Studio delivered a shared public platform for the main league site and
                   17 clubs, with central content and live competition information.
@@ -341,7 +359,7 @@ export default function DigitalPage() {
                 <h3 className="mt-3 pr-40 text-2xl font-medium tracking-tight text-studio-text">
                   AFL Masters Vic Country workflows and automation
                 </h3>
-                <p className="mt-5 text-sm leading-relaxed text-studio-muted lg:min-h-[7.5rem]">
+                <p className="mt-5 text-[0.95rem] leading-relaxed text-studio-muted md:text-base lg:min-h-[7.5rem]">
                   Administration relied on inboxes, spreadsheets, paper forms and manual reporting.
                   Blackburn Studio helped move this work into structured Microsoft 365, SharePoint,
                   Forms and Power Automate workflows.
@@ -434,20 +452,24 @@ export default function DigitalPage() {
         </section>
 
         <section aria-labelledby="capability-heading" className="mt-24 md:mt-28">
-          <SectionEyebrow>Deeper capability</SectionEyebrow>
+          <SectionEyebrow>Ongoing support</SectionEyebrow>
           <h2 id="capability-heading" className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
-            Practical depth where it is needed
+            Support beyond the first build
           </h2>
-          <div className="mt-9 grid gap-8 md:grid-cols-3">
-            <section className="border-l border-studio-border pl-4">
+          <p className="mt-6 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+            Some projects need more than a launch. Blackburn Studio can help with the structure,
+            content and systems that keep things useful over time.
+          </p>
+          <div className="mt-9 grid gap-5 md:grid-cols-3 md:gap-6">
+            <section className="rounded-2xl border border-studio-border/70 bg-studio-surface/65 px-5 py-5 md:px-6 md:py-6">
               <h3 className="text-lg font-medium text-studio-text">Structure and content</h3>
               <p className="mt-3 text-base leading-relaxed text-studio-muted">
-                Information architecture, content design and visual communication that make services
-                and decisions easier to understand.
+                Information architecture, content design and clear images that help people
+                understand the work.
               </p>
             </section>
 
-            <section className="border-l border-studio-border pl-4">
+            <section className="rounded-2xl border border-studio-border/70 bg-studio-surface/65 px-5 py-5 md:px-6 md:py-6">
               <h3 className="text-lg font-medium text-studio-text">Workflows and operations</h3>
               <p className="mt-3 text-base leading-relaxed text-studio-muted">
                 Microsoft 365, SharePoint, automation and reporting that support clearer,
@@ -455,7 +477,7 @@ export default function DigitalPage() {
               </p>
             </section>
 
-            <section className="border-l border-studio-border pl-4">
+            <section className="rounded-2xl border border-studio-border/70 bg-studio-surface/65 px-5 py-5 md:px-6 md:py-6">
               <h3 className="text-lg font-medium text-studio-text">Platforms and integration</h3>
               <p className="mt-3 text-base leading-relaxed text-studio-muted">
                 Portals, shared platforms, live-data integrations and administration tools for needs
@@ -465,11 +487,11 @@ export default function DigitalPage() {
           </div>
         </section>
 
-        <p className="mt-20 text-sm text-neutral-400 md:mt-24">
+        <p className="mt-10 text-sm text-studio-dim md:mt-12">
           For more about Mark Blackburn and the studio approach, visit{" "}
           <Link
             href="/about"
-            className="underline decoration-white/35 underline-offset-4 transition hover:text-studio-text"
+            className="text-studio-muted underline decoration-white/35 underline-offset-4 transition hover:text-studio-text"
           >
             About
           </Link>
@@ -481,7 +503,7 @@ export default function DigitalPage() {
           className="mt-24 max-w-[64rem] rounded-3xl border border-studio-border bg-studio-surface px-7 py-12 md:mt-28 md:px-12 md:py-14"
         >
           <h2 id="contact-heading" className="max-w-[22ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
-            Start with the outcome you want
+            Tell me what needs to work better
           </h2>
           <p className="mt-6 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             Tell me what you want your website, process or information flow to support, and what is

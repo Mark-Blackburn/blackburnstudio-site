@@ -1,4 +1,5 @@
 import JapanGrid from "./JapanGrid";
+import Link from "next/link";
 import { getImagesWithBlur, type ImageSource } from "../../../lib/getImagesWithBlur";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
@@ -92,6 +93,12 @@ export default async function JapanPage() {
 
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 pt-12 pb-24 md:px-8 md:pt-20 md:pb-32">
         <section>
+          <Link
+            href="/work"
+            className="mb-5 inline-flex items-center text-[13px] text-studio-dim transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+          >
+            ← Back to work
+          </Link>
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-12">
             <div>
               <SectionEyebrow>Work</SectionEyebrow>

@@ -39,12 +39,11 @@ export default async function Home() {
             heights only (iPhone SE / 12 Pro class). Larger phones, tablets,
             and desktop are untouched. */}
         <div className="relative z-30 mx-auto flex h-[calc(85vh-72px)] w-full max-w-6xl flex-col justify-end px-6 pb-16 [@media(max-height:760px)]:pb-8 md:px-8 md:pb-20">
-          <h1 className="rise-in mt-24 max-w-[90%] text-4xl font-medium leading-[1.1] tracking-tight text-white sm:text-5xl [@media(max-height:760px)]:mt-10 [@media(max-height:760px)]:max-w-[19rem] [@media(max-height:760px)]:text-3xl [@media(max-height:760px)]:leading-[1.15] md:mt-0 md:max-w-xl md:text-6xl">
-            Photography, websites and digital systems for people, businesses
-            and community groups.
+          <h1 className="rise-in mt-24 max-w-[90%] text-4xl font-medium leading-[1.1] tracking-tight text-white sm:text-5xl [@media(max-height:760px)]:mt-10 [@media(max-height:760px)]:text-3xl [@media(max-height:760px)]:leading-[1.15] md:mt-0 md:max-w-xl md:text-6xl">
+            Photography, websites and useful digital systems.
           </h1>
           <p
-            className="rise-in mt-6 max-w-xl text-sm leading-relaxed text-neutral-400 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:max-w-[19rem] [@media(max-height:760px)]:text-[13px] [@media(max-height:760px)]:leading-snug md:text-base"
+            className="rise-in mt-6 max-w-xl text-[15px] leading-relaxed text-neutral-300 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:max-w-[19rem] [@media(max-height:760px)]:text-[13px] [@media(max-height:760px)]:leading-snug md:text-base"
             style={{ animationDelay: "120ms" }}
           >
             Blackburn Studio creates natural portraits and family images,
@@ -81,7 +80,7 @@ export default async function Home() {
         <h2 className="mt-4 max-w-[24ch] text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
           Photography and digital work from one studio.
         </h2>
-        <p className="mt-6 max-w-[72ch] text-sm leading-relaxed text-studio-dim md:text-base">
+        <p className="mt-6 max-w-[72ch] text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
           Some projects need strong images. Some need a website that explains
           the work clearly. Others need a better way to manage information.
           Blackburn Studio can help with each, without making it bigger than it
@@ -90,7 +89,7 @@ export default async function Home() {
         <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
           <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
             <h3 className="text-2xl font-medium tracking-tight text-studio-text">Photography</h3>
-            <p className="mt-4 text-sm leading-relaxed text-studio-dim md:text-base">
+            <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
               Portraits, families, couples, business and project photography
               with a natural, honest style.
             </p>
@@ -101,9 +100,13 @@ export default async function Home() {
 
           <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
             <h3 className="text-2xl font-medium tracking-tight text-studio-text">Digital</h3>
-            <p className="mt-4 text-sm leading-relaxed text-studio-dim md:text-base">
+            <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
               Websites, workflow improvements and small digital systems for
               businesses, clubs and community organisations.
+            </p>
+            <p className="mt-3 text-[0.98rem] leading-relaxed text-studio-muted">
+              Recent work includes business websites, club platforms and
+              workflow automation.
             </p>
             <StudioButton href="/digital" variant="secondary" className="mt-6">
               Explore digital
@@ -127,8 +130,7 @@ export default async function Home() {
             </div>
             <div className="max-w-sm md:ml-auto">
               <p className="text-sm leading-relaxed text-studio-dim md:text-base">
-                Natural portrait photography focused on expression, light and
-                presence.
+                Portraits with considered light, expression and a relaxed feel.
               </p>
               <Link
                 href="/work"

@@ -100,18 +100,18 @@ export default function AboutPage() {
           </h2>
           <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             <p>
-              Mark brings senior engineering and technical leadership experience into practical,
-              studio-led implementation across websites, workflows and platforms.
+              Mark brings senior engineering and technical leadership experience into hands-on
+              website, workflow and platform work.
             </p>
             <p>
               He works with small businesses, trades, sporting organisations, and volunteer
               community organisations that need clearer delivery without extra complexity.
             </p>
             <p>
-              The studio also brings photography and visual communication capability where it helps
-              make services, processes and decisions easier to understand.
+              The studio also brings clear images that help explain the work,
+              services and decisions.
             </p>
-            <p>Based in Gisborne and working with businesses and organisations across Victoria and beyond.</p>
+            <p>Based in Gisborne, working with clients across Victoria.</p>
           </div>
         </section>
 
