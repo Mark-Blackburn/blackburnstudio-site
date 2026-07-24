@@ -240,7 +240,7 @@ export default function DigitalPage() {
             id="managed-heading"
             className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
           >
-            One point of contact for the whole setup
+            One point of contact for your complete online presence
           </h2>
           <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             <p>
