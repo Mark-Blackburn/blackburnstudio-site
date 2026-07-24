@@ -32,15 +32,13 @@ export default function Home() {
             and desktop are untouched. */}
         <div className="relative z-30 mx-auto flex h-[calc(85vh-72px)] w-full max-w-6xl flex-col justify-end px-6 pb-16 [@media(max-height:760px)]:pb-8 md:px-8 md:pb-20">
           <h1 className="rise-in mt-24 max-w-[90%] text-4xl font-medium leading-[1.1] tracking-tight text-white sm:text-5xl [@media(max-height:760px)]:mt-10 [@media(max-height:760px)]:text-3xl [@media(max-height:760px)]:leading-[1.15] md:mt-0 md:max-w-xl md:text-6xl">
-            Photography, websites and useful digital systems.
+            Photography, websites and practical digital services.
           </h1>
           <p
             className="rise-in mt-6 max-w-xl text-[15px] leading-relaxed text-neutral-300 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:max-w-76 [@media(max-height:760px)]:text-[13px] [@media(max-height:760px)]:leading-snug md:text-base"
             style={{ animationDelay: "120ms" }}
           >
-            Blackburn Studio creates natural portraits and family images,
-            business photography, clear websites and practical digital workflows
-            for people who need things to look good and work properly.
+            Blackburn Studio creates natural photography, builds clear and useful websites, and looks after the domains, hosting, Microsoft 365 and ongoing support behind them.
           </p>
           <div
             className="rise-in mt-8 flex w-full flex-col gap-3 [@media(max-height:760px)]:mt-4 [@media(max-height:760px)]:gap-2 md:mt-10 md:w-auto md:flex-row md:gap-4"
