@@ -65,6 +65,63 @@ export default function Home() {
       </section>
 
       <section id="work">
+        <section className="mx-auto max-w-6xl px-6 pt-16 pb-8 md:px-8 md:pt-20 md:pb-12">
+          <SectionEyebrow>Studio</SectionEyebrow>
+          <h2 className="mt-4 max-w-[24ch] text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
+            Photography and digital work from one studio.
+          </h2>
+          <p className="mt-6 max-w-[72ch] text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
+            Some projects need strong images. Some need a website that explains
+            the work clearly. Others need a better way to manage information.
+            Blackburn Studio can help with each, without making it bigger than
+            it needs to be.
+          </p>
+          <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
+            <section className="flex h-full flex-col rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
+              <h3 className="text-2xl font-medium tracking-tight text-studio-text">
+                Digital
+              </h3>
+              <div className="flex-1">
+                <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
+                  Websites, managed domains and hosting, Microsoft 365,
+                  workflow improvements and practical digital systems for small
+                  businesses, clubs and community organisations.
+                </p>
+                <p className="mt-3 text-[0.98rem] leading-relaxed text-studio-muted">
+                  Recent work includes business websites, club platforms,
+                  workflow automation and long-term digital support.
+                </p>
+              </div>
+              <div className="mt-auto pt-6">
+                <StudioButton href="/digital" variant="secondary">
+                  Explore digital
+                </StudioButton>
+              </div>
+            </section>
+
+            <section className="flex h-full flex-col rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
+              <h3 className="text-2xl font-medium tracking-tight text-studio-text">
+                Photography
+              </h3>
+              <div className="flex-1">
+                <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
+                  Portraits, families, couples, business and project
+                  photography with a natural, honest style.
+                </p>
+                <p className="mt-3 text-[0.98rem] leading-relaxed text-studio-muted">
+                  Available for personal branding, websites, families and
+                  projects across the Macedon Ranges and surrounding areas.
+                </p>
+              </div>
+              <div className="mt-auto pt-6">
+                <StudioButton href="/work#photography" variant="secondary">
+                  View photography
+                </StudioButton>
+              </div>
+            </section>
+          </div>
+        </section>
+
         <div className="mx-auto max-w-6xl px-6 pt-10 pb-20 [@media(max-height:760px)]:pt-16 md:px-8 md:pt-16 md:pb-28">
           <div className="flex flex-col items-start justify-between gap-6 md:flex-row md:gap-12">
             <div>
@@ -111,59 +168,6 @@ export default function Home() {
             ))}
           </div>
         </div>
-
-        <section className="mx-auto max-w-6xl px-6 pt-16 pb-8 md:px-8 md:pt-20 md:pb-12">
-          <SectionEyebrow>Studio</SectionEyebrow>
-          <h2 className="mt-4 max-w-[24ch] text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
-            Photography and digital work from one studio.
-          </h2>
-          <p className="mt-6 max-w-[72ch] text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
-            Some projects need strong images. Some need a website that explains
-            the work clearly. Others need a better way to manage information.
-            Blackburn Studio can help with each, without making it bigger than
-            it needs to be.
-          </p>
-          <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
-            <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
-              <h3 className="text-2xl font-medium tracking-tight text-studio-text">
-                Photography
-              </h3>
-              <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
-                Portraits, families, couples, business and project photography
-                with a natural, honest style.
-              </p>
-              <StudioButton
-                href="/work#photography"
-                variant="secondary"
-                className="mt-6"
-              >
-                View photography
-              </StudioButton>
-            </section>
-
-            <section className="rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
-              <h3 className="text-2xl font-medium tracking-tight text-studio-text">
-                Digital
-              </h3>
-              <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
-                Websites, managed domains and hosting, Microsoft 365, workflow
-                improvements and practical digital systems for small businesses,
-                clubs and community organisations.
-              </p>
-              <p className="mt-3 text-[0.98rem] leading-relaxed text-studio-muted">
-                Recent work includes business websites, club platforms, workflow
-                automation and long-term digital support.
-              </p>
-              <StudioButton
-                href="/digital"
-                variant="secondary"
-                className="mt-6"
-              >
-                Explore digital
-              </StudioButton>
-            </section>
-          </div>
-        </section>
 
         <section
           id="about"
