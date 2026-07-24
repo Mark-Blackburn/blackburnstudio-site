@@ -45,18 +45,18 @@ export default function Home() {
             style={{ animationDelay: "240ms" }}
           >
             <StudioButton
-              href="/work#photography"
+              href="/digital"
               variant="primary"
               className="w-full rounded-full [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
             >
-              View photography
+              Explore digital solutions
             </StudioButton>
             <StudioButton
-              href="/digital"
+              href="/work"
               variant="secondary"
               className="w-full rounded-full border-white/20 text-white/80 hover:border-white/40 hover:text-white [@media(max-height:760px)]:min-h-10 [@media(max-height:760px)]:py-1.5 [@media(max-height:760px)]:text-[13px] md:w-auto"
             >
-              Explore digital
+              View portfolio
             </StudioButton>
           </div>
         </div>
