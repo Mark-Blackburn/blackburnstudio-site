@@ -27,7 +27,7 @@ export default async function PortraitsPage() {
           </Link>
           <div className="flex flex-col gap-6 md:flex-row md:items-end md:justify-between md:gap-12">
             <div>
-              <SectionEyebrow>Primary</SectionEyebrow>
+              <SectionEyebrow>PORTRAITS</SectionEyebrow>
               <h1 className="mt-3 text-4xl font-medium leading-[1.05] tracking-tight text-studio-text md:text-6xl">
                 Portraits
               </h1>
