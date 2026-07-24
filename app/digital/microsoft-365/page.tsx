@@ -1,6 +1,12 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import { ServicePropositionCard } from "@/components/digital";
+import {
+  DigitalInfoPanel,
+  DigitalServicesSubnav,
+  RelatedDigitalServices,
+  ServicePropositionCard,
+} from "@/components/digital";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
@@ -26,13 +32,33 @@ export default function Microsoft365Page() {
             Microsoft 365 configured as a working business system
           </h1>
           <p className="mt-7 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Blackburn Studio helps businesses and organisations set up Microsoft 365 properly, from
-            email and user administration through to Teams, SharePoint, forms and workflow
-            automation.
+            Blackburn Studio helps businesses and organisations set up Microsoft
+            365 properly, from email and user administration through to Teams,
+            SharePoint, forms and workflow automation.
+          </p>
+          <p className="mt-4 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+            Microsoft 365 should operate as a connected business system, not
+            simply a collection of licences.
+          </p>
+          <p className="mt-4 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+            For domain connection, DNS and related email routing, see{" "}
+            <Link
+              href="/digital/hosting-domains"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              domains and hosting
+            </Link>
+            .
           </p>
         </section>
 
+        <DigitalServicesSubnav
+          currentPath="/digital/microsoft-365"
+          className="mt-12 max-w-[74ch] md:mt-14"
+        />
+
         <section className="mt-16 grid gap-5 md:mt-20 md:grid-cols-2 md:gap-6">
+          <h2 className="sr-only">Microsoft 365 service areas</h2>
           <ServicePropositionCard
             title="Set up the foundation"
             intro="Establish secure business email, users, licences and access so the Microsoft 365 environment is ready to operate properly."
@@ -69,23 +95,20 @@ export default function Microsoft365Page() {
           />
         </section>
 
-        <section className="mt-16 max-w-[72ch] md:mt-20" aria-labelledby="positioning-heading">
-          <h2 id="positioning-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
-            Practical positioning
-          </h2>
-          <p className="mt-6 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Microsoft 365 should operate as a connected business system, not simply a collection of
-            licences.
-          </p>
-        </section>
-
-        <section className="mt-16 md:mt-20" aria-labelledby="existing-env-heading">
-          <h2 id="existing-env-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
+        <section
+          className="mt-16 md:mt-20"
+          aria-labelledby="existing-env-heading"
+        >
+          <h2
+            id="existing-env-heading"
+            className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+          >
             Existing Microsoft 365 environments
           </h2>
           <p className="mt-6 max-w-[72ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Already using Microsoft 365? Blackburn Studio can review and improve an existing
-            environment without requiring a complete migration or rebuild.
+            Already using Microsoft 365? Blackburn Studio can review and improve
+            an existing environment without requiring a complete migration or
+            rebuild.
           </p>
           <ul className="mt-7 grid gap-3 text-base leading-relaxed text-studio-muted sm:grid-cols-2 md:text-[1.02rem]">
             <li>Domain and DNS review</li>
@@ -99,8 +122,14 @@ export default function Microsoft365Page() {
           </ul>
         </section>
 
-        <section className="mt-16 md:mt-20" aria-labelledby="engagement-start-heading">
-          <h2 id="engagement-start-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
+        <section
+          className="mt-16 md:mt-20"
+          aria-labelledby="engagement-start-heading"
+        >
+          <h2
+            id="engagement-start-heading"
+            className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+          >
             How an engagement can start
           </h2>
           <div className="mt-8 grid gap-5 md:grid-cols-3 md:gap-6">
@@ -131,47 +160,72 @@ export default function Microsoft365Page() {
           </div>
         </section>
 
-        <section className="mt-16 max-w-[74ch] md:mt-20" aria-labelledby="security-heading">
-          <h2 id="security-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
+        <section
+          className="mt-16 max-w-[74ch] md:mt-20"
+          aria-labelledby="security-heading"
+        >
+          <h2
+            id="security-heading"
+            className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+          >
             Security and governance
           </h2>
           <p className="mt-6 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Implementation can include practical controls and governance appropriate to the
-            organisation.
+            Practical security and governance settings can be set up to match
+            how your organisation works.
           </p>
-          <ul className="mt-7 grid gap-3 text-base leading-relaxed text-studio-muted sm:grid-cols-2 md:text-[1.02rem]">
-            <li>Multi-factor authentication</li>
-            <li>Administrator-role review</li>
-            <li>User onboarding and offboarding</li>
-            <li>Access and permissions</li>
-            <li>Shared account reduction</li>
-            <li>Recovery and continuity planning</li>
-          </ul>
+          <DigitalInfoPanel title="Practical setup areas" className="mt-7">
+            <div className="grid gap-6 md:grid-cols-2">
+              <div>
+                <h3 className="text-base font-medium text-studio-text">
+                  Identity and access
+                </h3>
+                <ul className="mt-3 space-y-2 text-sm leading-relaxed text-studio-muted md:text-base">
+                  <li>Multi-factor authentication</li>
+                  <li>Administrator-role review</li>
+                  <li>User onboarding and offboarding</li>
+                  <li>Access and permissions</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className="text-base font-medium text-studio-text">
+                  Continuity and information
+                </h3>
+                <ul className="mt-3 space-y-2 text-sm leading-relaxed text-studio-muted md:text-base">
+                  <li>Shared account reduction</li>
+                  <li>Recovery and continuity planning</li>
+                  <li>SharePoint permissions</li>
+                  <li>Information structure</li>
+                </ul>
+              </div>
+            </div>
+          </DigitalInfoPanel>
         </section>
 
-        <section className="mt-16 max-w-[74ch] md:mt-20" aria-labelledby="managed-support-heading">
-          <h2 id="managed-support-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
-            Managed Microsoft 365 support
-          </h2>
-          <p className="mt-6 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Ongoing administration can be provided by agreement and may cover the day-to-day
-            support tasks your team needs most.
-          </p>
-          <ul className="mt-7 grid gap-3 text-base leading-relaxed text-studio-muted sm:grid-cols-2 md:text-[1.02rem]">
-            <li>Users and licences</li>
-            <li>Mailbox changes</li>
-            <li>Access requests</li>
-            <li>Onboarding and offboarding</li>
-            <li>Teams and SharePoint support</li>
-            <li>Technical coordination</li>
-          </ul>
-        </section>
+        <RelatedDigitalServices
+          currentPath="/digital/microsoft-365"
+          relatedHrefs={[
+            "/digital/hosting-domains",
+            "/digital/support",
+            "/digital/websites",
+          ]}
+          className="mt-16 md:mt-20"
+        />
 
         <section className="mt-20 rounded-3xl border border-studio-border bg-studio-surface px-7 py-11 md:mt-24 md:px-10 md:py-12">
-          <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">Need help setting up Microsoft 365?</h2>
+          <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
+            Need help setting up Microsoft 365?
+          </h2>
           <p className="mt-5 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            I can help you stabilise email and access first, then build toward clearer team
-            collaboration, structured information and better workflow support.
+            <Link
+              href="/digital/support"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              Ongoing support
+            </Link>{" "}
+            can cover users and licences, mailbox changes, access requests,
+            onboarding, Teams and SharePoint support, and technical
+            coordination.
           </p>
           <div className="mt-8">
             <StudioButton href="/contact" variant="primary">

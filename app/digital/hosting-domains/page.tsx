@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import { ServicePropositionCard } from "@/components/digital";
+import {
+  DigitalServicesSubnav,
+  RelatedDigitalServices,
+  ServicePropositionCard,
+} from "@/components/digital";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
@@ -32,7 +37,13 @@ export default function HostingDomainsPage() {
           </p>
         </section>
 
+        <DigitalServicesSubnav
+          currentPath="/digital/hosting-domains"
+          className="mt-12 max-w-[74ch] md:mt-14"
+        />
+
         <section className="mt-16 grid gap-5 md:mt-20 md:grid-cols-2 md:gap-6">
+          <h2 className="sr-only">Core hosting and domain services</h2>
           <ServicePropositionCard
             title="Domain services"
             intro="Domain registration, transfers, renewals and DNS setup for websites and business email."
@@ -72,13 +83,22 @@ export default function HostingDomainsPage() {
           className="mt-12 max-w-[74ch] md:mt-14"
           aria-labelledby="business-email-heading"
         >
-          <h2 id="business-email-heading" className="text-2xl font-medium tracking-tight text-studio-text md:text-3xl">
+          <h2
+            id="business-email-heading"
+            className="text-2xl font-medium tracking-tight text-studio-text md:text-3xl"
+          >
             Email connected to your domain
           </h2>
           <p className="mt-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Blackburn Studio can configure straightforward hosted email or Microsoft 365,
-            depending on the number of users, collaboration needs, security requirements and
-            preferred way of working.
+            Blackburn Studio can configure straightforward hosted email or{" "}
+            <Link
+              href="/digital/microsoft-365"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              Microsoft 365
+            </Link>
+            , depending on the number of users, collaboration needs, security
+            requirements and preferred way of working.
           </p>
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
@@ -92,6 +112,14 @@ export default function HostingDomainsPage() {
                 "Domain and email DNS configuration",
                 "Basic migration and troubleshooting",
               ]}
+              footerText={
+                <Link
+                  href="/contact"
+                  className="inline-flex min-h-10 items-center text-sm text-studio-muted transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+                >
+                  Discuss hosted email →
+                </Link>
+              }
               compact
               className="h-full"
             />
@@ -106,18 +134,18 @@ export default function HostingDomainsPage() {
                 "Security and access management",
                 "Workflow and business-system integration",
               ]}
+              footerText={
+                <Link
+                  href="/digital/microsoft-365"
+                  className="inline-flex min-h-10 items-center text-sm text-studio-muted transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+                >
+                  Explore Microsoft 365 →
+                </Link>
+              }
               compact
               className="h-full"
             />
           </div>
-
-          <a
-            href="/digital/microsoft-365"
-            className="mt-6 inline-flex items-center gap-1.5 text-sm text-studio-muted transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
-          >
-            Explore Microsoft 365
-            <span aria-hidden="true">→</span>
-          </a>
         </section>
 
         <section
@@ -128,7 +156,7 @@ export default function HostingDomainsPage() {
             id="managed-any-heading"
             className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
           >
-            Managed hosting for any suitable website
+            Managed hosting for new and existing websites
           </h2>
           <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             <p className="font-medium text-studio-text">
@@ -160,7 +188,15 @@ export default function HostingDomainsPage() {
           </h2>
           <p className="mt-5 max-w-[74ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             Blackburn Studio manages the agreed domain, hosting and technical
-            services while keeping ownership, access and responsibilities clear.
+            services, with{" "}
+            <Link
+              href="/digital/support"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              ongoing support
+            </Link>{" "}
+            where required, while keeping ownership, access and responsibilities
+            clear.
           </p>
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
@@ -214,9 +250,15 @@ export default function HostingDomainsPage() {
             Choose the level of support your website needs
           </h2>
           <p className="mt-5 max-w-[74ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Hosting plans are based on the website, expected usage and level of
-            ongoing management required. Blackburn Studio will recommend the
-            most appropriate option after reviewing the setup.
+            Hosting plans are based on the website, expected usage and level of{" "}
+            <Link
+              href="/digital/support"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              ongoing management
+            </Link>{" "}
+            required. Blackburn Studio will recommend the most appropriate
+            option after reviewing the setup.
           </p>
 
           <div className="mt-8 grid gap-5 md:grid-cols-3 md:gap-6">
@@ -235,7 +277,7 @@ export default function HostingDomainsPage() {
             />
 
             <ServicePropositionCard
-              title="Managed"
+              title="Managed Care"
               intro="Proactive maintenance and monitoring for websites that need regular technical care."
               capabilities={[
                 "Platform and dependency maintenance where applicable",
@@ -271,6 +313,16 @@ export default function HostingDomainsPage() {
             </StudioButton>
           </div>
         </section>
+
+        <RelatedDigitalServices
+          currentPath="/digital/hosting-domains"
+          relatedHrefs={[
+            "/digital/websites",
+            "/digital/microsoft-365",
+            "/digital/support",
+          ]}
+          className="mt-16 md:mt-20"
+        />
 
         <section className="mt-20 rounded-3xl border border-studio-border bg-studio-surface px-7 py-11 md:mt-24 md:px-10 md:py-12">
           <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">

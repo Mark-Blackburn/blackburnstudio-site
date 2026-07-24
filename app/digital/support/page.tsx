@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import { ServicePropositionCard } from "@/components/digital";
+import {
+  DigitalServicesSubnav,
+  RelatedDigitalServices,
+  ServicePropositionCard,
+} from "@/components/digital";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
@@ -26,12 +31,39 @@ export default function DigitalSupportPage() {
             Ongoing support for the digital services your business relies on
           </h1>
           <p className="mt-7 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Blackburn Studio provides ongoing technical support, maintenance and improvement work
-            across websites, hosting, domains and Microsoft 365.
+            Blackburn Studio provides ongoing technical support, maintenance and
+            improvement work across{" "}
+            <Link
+              href="/digital/websites"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              websites
+            </Link>
+            ,{" "}
+            <Link
+              href="/digital/hosting-domains"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              domains and hosting
+            </Link>
+            , and{" "}
+            <Link
+              href="/digital/microsoft-365"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              Microsoft 365
+            </Link>
+            .
           </p>
         </section>
 
+        <DigitalServicesSubnav
+          currentPath="/digital/support"
+          className="mt-12 max-w-[74ch] md:mt-14"
+        />
+
         <section className="mt-16 grid gap-5 md:mt-20 md:grid-cols-3 md:gap-6">
+          <h2 className="sr-only">Digital support service areas</h2>
           <ServicePropositionCard
             title="Keep the website reliable"
             intro="Regular maintenance, monitoring and troubleshooting to keep an agreed website operating securely and reliably."
@@ -81,18 +113,14 @@ export default function DigitalSupportPage() {
           />
         </section>
 
-        <section className="mt-16 max-w-[72ch] md:mt-20" aria-labelledby="support-note-heading">
-          <h2 id="support-note-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
-            Support scope
-          </h2>
-          <p className="mt-6 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Urgent or after-hours support is not automatically included and is handled only when
-            specifically agreed.
-          </p>
-        </section>
-
-        <section className="mt-16 md:mt-20" aria-labelledby="arrangements-heading">
-          <h2 id="arrangements-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
+        <section
+          className="mt-16 md:mt-20"
+          aria-labelledby="arrangements-heading"
+        >
+          <h2
+            id="arrangements-heading"
+            className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+          >
             Ways support can be arranged
           </h2>
           <div className="mt-8 grid gap-5 md:grid-cols-3 md:gap-6">
@@ -123,22 +151,60 @@ export default function DigitalSupportPage() {
           </div>
         </section>
 
-        <section className="mt-16 max-w-[74ch] md:mt-20" aria-labelledby="suitable-env-heading">
-          <h2 id="suitable-env-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
-            Suitable existing environments
+        <section
+          className="mt-16 max-w-[74ch] md:mt-20"
+          aria-labelledby="scope-suitability-heading"
+        >
+          <h2
+            id="scope-suitability-heading"
+            className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+          >
+            Scope and suitability
           </h2>
           <p className="mt-6 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Ongoing support can be provided for Blackburn Studio projects and suitable existing
-            websites, hosting accounts, domains and Microsoft 365 environments.
+            Ongoing support can cover Blackburn Studio projects and suitable
+            existing{" "}
+            <Link
+              href="/digital/websites"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              websites
+            </Link>
+            ,{" "}
+            <Link
+              href="/digital/hosting-domains"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              hosting accounts and domains
+            </Link>
+            , and{" "}
+            <Link
+              href="/digital/microsoft-365"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              Microsoft 365 environments
+            </Link>
+            .
           </p>
           <p className="mt-4 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Where systems are unfamiliar or managed by third parties, Blackburn Studio will review
-            the current setup before agreeing to ongoing responsibility.
+            Where a system is unfamiliar or managed by another provider, the
+            current setup will be reviewed before ongoing responsibility is
+            agreed.
+          </p>
+          <p className="mt-4 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+            Urgent or after-hours support is only included where it has been
+            specifically arranged.
           </p>
         </section>
 
-        <section className="mt-16 max-w-[74ch] md:mt-20" aria-labelledby="not-included-heading">
-          <h2 id="not-included-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
+        <section
+          className="mt-16 max-w-[74ch] md:mt-20"
+          aria-labelledby="not-included-heading"
+        >
+          <h2
+            id="not-included-heading"
+            className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+          >
             What is not automatically included
           </h2>
           <ul className="mt-7 space-y-3 text-base leading-relaxed text-studio-muted md:text-[1.02rem]">
@@ -151,22 +217,24 @@ export default function DigitalSupportPage() {
           </ul>
         </section>
 
-        <section className="mt-16 max-w-[74ch] md:mt-20" aria-labelledby="managed-statement-heading">
-          <h2 id="managed-statement-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
-            One managed-service relationship
-          </h2>
-          <p className="mt-6 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Blackburn Studio can coordinate website, hosting, domain and Microsoft 365 support
-            through one ongoing relationship, with responsibilities and response expectations
-            agreed in advance.
-          </p>
-        </section>
+        <RelatedDigitalServices
+          currentPath="/digital/support"
+          relatedHrefs={[
+            "/digital/websites",
+            "/digital/hosting-domains",
+            "/digital/microsoft-365",
+          ]}
+          className="mt-16 md:mt-20"
+        />
 
         <section className="mt-20 rounded-3xl border border-studio-border bg-studio-surface px-7 py-11 md:mt-24 md:px-10 md:py-12">
-          <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">Need ongoing digital support?</h2>
+          <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
+            Need ongoing digital support?
+          </h2>
           <p className="mt-5 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            If you need regular support or occasional technical help, we can define the right level
-            of ongoing service for your setup.
+            Regular support can cover one service or the wider digital setup. We
+            can agree on what is included, who is responsible for each part and
+            how support will be handled.
           </p>
           <div className="mt-8">
             <StudioButton href="/contact" variant="primary">

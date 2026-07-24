@@ -364,7 +364,7 @@ export default function RichDigitalWorkSection({
             <p className="mt-5 max-w-[86ch] text-sm leading-relaxed text-studio-muted md:text-base">
               {coaching.description}
             </p>
-            <div className="relative mt-6 overflow-hidden rounded-2xl border border-studio-border bg-studio-surface-soft">
+            <div className="relative mt-7 overflow-hidden rounded-2xl border border-studio-border bg-studio-surface-soft">
               {coaching.imageSrc ? (
                 <Image
                   src={coaching.imageSrc}

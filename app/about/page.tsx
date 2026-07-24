@@ -28,7 +28,7 @@ export default function AboutPage() {
             >
               Blackburn Studio
             </h1>
-            <div className="mt-10 grid gap-8 md:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] md:items-start md:gap-12 lg:max-w-192 lg:grid-cols-[max-content_auto] lg:items-stretch lg:justify-start lg:gap-12">
+            <div className="mt-10 grid gap-8 md:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] md:items-start md:gap-12 lg:max-w-3xl lg:grid-cols-[max-content_auto] lg:items-stretch lg:justify-start lg:gap-12">
               <div className="space-y-5 text-base leading-relaxed text-studio-muted md:max-w-[40ch] md:text-[1.08rem] lg:max-w-[33ch] lg:leading-[1.78]">
                 <p>
                   Blackburn Studio is run by Mark Blackburn. The work ranges
@@ -156,29 +156,55 @@ export default function AboutPage() {
             className="mt-14 md:mt-18"
             aria-labelledby="background-heading"
           >
-            <h2
-              id="background-heading"
-              className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
-            >
-              Mark’s background
-            </h2>
-            <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:max-w-[44ch] md:text-[1.08rem] lg:max-w-[46ch]">
-              <p>
-                Mark brings senior engineering and technical leadership
-                experience into hands-on website, managed-service, workflow and
-                platform work.
-              </p>
-              <p>
-                He works with small businesses, trades, sporting organisations,
-                and volunteer community organisations that need clearer delivery
-                across content, systems and ongoing support without extra
-                complexity.
-              </p>
-              <p>
-                The studio also brings clear images that help explain the work,
-                services and decisions.
-              </p>
-              <p>Based in Gisborne, working with clients across Victoria.</p>
+            <div className="grid gap-8 md:grid-cols-2 md:gap-12 lg:gap-14">
+              <div>
+                <h2
+                  id="background-heading"
+                  className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+                >
+                  Mark’s background
+                </h2>
+                <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+                  <p>
+                    Mark brings senior engineering and technical leadership
+                    experience into hands-on website, managed-service, workflow
+                    and platform work.
+                  </p>
+                  <p>
+                    He works with small businesses, trades, sporting
+                    organisations, and volunteer community organisations that
+                    need clearer delivery across content, systems and ongoing
+                    support without extra complexity.
+                  </p>
+                  <p>
+                    The studio also brings clear images that help explain the
+                    work, services and decisions.
+                  </p>
+                </div>
+              </div>
+
+              <aside className="md:pt-1">
+                <div className="space-y-6 border-l border-studio-border/60 pl-5 md:pl-6">
+                  <div>
+                    <h3 className="text-base font-medium text-studio-text">
+                      Based in Gisborne
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-studio-dim md:text-base">
+                      Working with businesses, trades, sporting organisations
+                      and community groups across Victoria.
+                    </p>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-medium text-studio-text">
+                      Experience
+                    </h3>
+                    <p className="mt-2 text-sm leading-relaxed text-studio-dim md:text-base">
+                      Senior engineering leadership, website delivery, workflow
+                      design and practical managed support.
+                    </p>
+                  </div>
+                </div>
+              </aside>
             </div>
           </section>
 

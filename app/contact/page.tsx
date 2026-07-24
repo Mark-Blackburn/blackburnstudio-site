@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 import ContactEnquiryForm from "@/components/site/ContactEnquiryForm";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
-import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { SectionEyebrow } from "@/components/studio";
 import { domainManagementUrl } from "@/lib/domainManagement";
 
 export const metadata: Metadata = {
@@ -27,28 +27,21 @@ export default function ContactPage() {
             Tell me what you&apos;re working on.
           </h1>
           <p className="mt-6 text-[0.98rem] leading-relaxed text-studio-muted md:text-[1.02rem]">
-            Website, hosting, Microsoft 365 and photography enquiries are
-            welcome. Send through a few details and I&apos;ll come back to you.
+            Website, photography, domain, hosting, Microsoft 365 and ongoing
+            support enquiries are welcome. Share a few details and I&apos;ll
+            come back to you with the most useful next step.
           </p>
-          <div className="mt-8">
-            <StudioButton
+          <ContactEnquiryForm />
+          <p className="mt-6 text-sm leading-relaxed text-studio-dim md:text-base">
+            Prefer email? Contact{" "}
+            <a
               href="mailto:hello@theblackburn.studio"
-              variant="primary"
+              className="text-studio-muted underline decoration-white/30 underline-offset-4 transition hover:text-studio-text"
             >
               hello@theblackburn.studio
-            </StudioButton>
-          </div>
-          <div className="mt-8 max-w-xl rounded-2xl border border-studio-border/70 bg-studio-surface/65 px-5 py-5">
-            <h2 className="text-base font-medium text-studio-text">
-              What to include
-            </h2>
-            <ul className="mt-3 space-y-2 text-sm leading-relaxed text-studio-dim">
-              <li>What you need help with</li>
-              <li>Where things are up to now</li>
-              <li>Any timing, location or deadline</li>
-            </ul>
-          </div>
-          <ContactEnquiryForm />
+            </a>{" "}
+            directly.
+          </p>
           {domainManagementUrl ? (
             <p className="mt-4 text-sm leading-relaxed text-studio-dim">
               Need to manage a domain registered through Blackburn Studio?{" "}

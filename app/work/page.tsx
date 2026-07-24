@@ -52,12 +52,15 @@ export default function WorkPage() {
       <main className="mx-auto w-full max-w-6xl flex-1 px-6 pt-16 pb-28 md:px-8 md:pt-24 md:pb-32">
         <section aria-labelledby="work-heading" className="max-w-3xl">
           <SectionEyebrow>Work</SectionEyebrow>
-          <h1 id="work-heading" className="mt-4 text-4xl font-medium leading-[1.1] tracking-tight text-studio-text md:text-5xl">
+          <h1
+            id="work-heading"
+            className="mt-4 text-4xl font-medium leading-[1.1] tracking-tight text-studio-text md:text-5xl"
+          >
             Selected Work
           </h1>
           <p className="mt-6 max-w-2xl text-sm leading-relaxed text-studio-dim md:text-base">
-            Photography, websites, workflows and digital platforms. A selection of work created
-            for people, businesses and community organisations.
+            Photography, websites, workflows and digital platforms. A selection
+            of work created for people, businesses and community organisations.
           </p>
           <div className="mt-5 flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-studio-muted">
             <Link
@@ -79,15 +82,19 @@ export default function WorkPage() {
             <StudioButton href="/contact" variant="primary">
               Start a conversation
             </StudioButton>
-            <StudioButton href="/digital" variant="secondary">
-              Explore digital
-            </StudioButton>
           </div>
         </section>
 
-        <section id="photography" aria-labelledby="photography-heading" className="mt-20 scroll-mt-28 md:mt-24 md:scroll-mt-32">
+        <section
+          id="photography"
+          aria-labelledby="photography-heading"
+          className="mt-20 scroll-mt-28 md:mt-24 md:scroll-mt-32"
+        >
           <SectionEyebrow>Photography</SectionEyebrow>
-          <h2 id="photography-heading" className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
+          <h2
+            id="photography-heading"
+            className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+          >
             Portraits, families and places
           </h2>
           <p className="mt-6 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
@@ -108,7 +115,10 @@ export default function WorkPage() {
                     alt={c.title}
                     fill
                     sizes="(min-width: 768px) 50vw, 100vw"
-                    style={{ willChange: "transform", backfaceVisibility: "hidden" }}
+                    style={{
+                      willChange: "transform",
+                      backfaceVisibility: "hidden",
+                    }}
                     className="object-cover transform-gpu transition-transform duration-700 ease-[cubic-bezier(0.22,1,0.36,1)] group-hover:scale-[1.01]"
                   />
                   <div

@@ -174,13 +174,12 @@ export default function Home() {
           <div className="mx-auto max-w-2xl text-center">
             <SectionEyebrow>About</SectionEyebrow>
             <h2 className="mt-4 text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
-              Photography and digital work, handled carefully.
+              Clear work, practical systems and one person accountable for the
+              result.
             </h2>
             <p className="mt-8 text-sm leading-loose text-studio-dim md:text-base">
-              Blackburn Studio is built around simple ideas: understand what is
-              needed, keep things clear and make something useful. That applies
-              to photography, websites, managed hosting, Microsoft 365 and the
-              digital systems that support day-to-day work.
+              Blackburn Studio combines photography, websites and managed
+              digital services without adding unnecessary complexity.
             </p>
           </div>
         </section>

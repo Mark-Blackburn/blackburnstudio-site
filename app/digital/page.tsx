@@ -2,12 +2,15 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
-import { DigitalInfoPanel, DigitalServiceCard } from "@/components/digital";
+import {
+  DigitalInfoPanel,
+  DigitalServiceCard,
+  DigitalServicesSubnav,
+} from "@/components/digital";
 import {
   leadDigitalProject,
   secondaryDigitalProjects,
 } from "@/components/digital-work/data";
-import { FeaturedDigitalWorkSection } from "@/components/digital-work";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
@@ -52,23 +55,19 @@ const serviceCards = [
 const processStages = [
   {
     title: "Understand",
-    text: "Understand the business, goals and current setup.",
+    text: "Learn what the organisation needs, what is already in place and what is getting in the way.",
   },
   {
     title: "Recommend",
-    text: "Identify the most practical approach, services and priorities.",
+    text: "Agree on the most practical approach, priorities and level of support.",
   },
   {
-    title: "Build or configure",
-    text: "Create, migrate or configure the required website and systems.",
-  },
-  {
-    title: "Launch and verify",
-    text: "Test the complete setup and confirm that services are operating correctly.",
+    title: "Build and launch",
+    text: "Create, configure or improve the website or system, then test it properly before release.",
   },
   {
     title: "Support and improve",
-    text: "Provide ongoing management, troubleshooting and improvements.",
+    text: "Provide agreed support, maintenance and practical improvements over time.",
   },
 ];
 
@@ -77,7 +76,7 @@ export default function DigitalPage() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-[82rem] flex-1 px-6 pt-14 pb-24 md:px-8 md:pt-20 md:pb-32">
+      <main className="mx-auto w-full max-w-328 flex-1 px-6 pt-14 pb-24 md:px-8 md:pt-20 md:pb-32">
         <section
           aria-labelledby="digital-hero-heading"
           className="max-w-[76ch]"
@@ -107,6 +106,8 @@ export default function DigitalPage() {
           </div>
         </section>
 
+        <DigitalServicesSubnav className="mt-12 max-w-[74ch] md:mt-14" />
+
         <section
           aria-labelledby="intro-heading"
           className="mt-20 max-w-[74ch] md:mt-24"
@@ -132,7 +133,7 @@ export default function DigitalPage() {
 
         <section
           aria-labelledby="evidence-strip-heading"
-          className="mt-16 max-w-[72rem] md:mt-20"
+          className="mt-16 max-w-6xl md:mt-20"
         >
           <SectionEyebrow>Selected digital work</SectionEyebrow>
           <div className="mt-3 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
@@ -215,7 +216,7 @@ export default function DigitalPage() {
             id="services-heading"
             className="mt-3 max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
           >
-            Practical digital services with end-to-end management
+            Practical digital services with clear management
           </h2>
           <div className="mt-10 grid gap-5 md:grid-cols-2 md:gap-6">
             {serviceCards.map((service) => (
@@ -300,25 +301,29 @@ export default function DigitalPage() {
               </p>
             </DigitalInfoPanel>
           </div>
+          <div className="mt-8">
+            <Link
+              href="/work#digital-work"
+              className="inline-flex items-center gap-1.5 text-sm text-studio-muted transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              View all selected digital work
+              <span aria-hidden="true">→</span>
+            </Link>
+          </div>
         </section>
-
-        <FeaturedDigitalWorkSection
-          id="selected-digital-work"
-          className="mt-24 max-w-[70rem] md:mt-28"
-        />
 
         <section
           aria-labelledby="process-heading"
-          className="mt-24 max-w-[70rem] md:mt-28"
+          className="mt-24 max-w-280 md:mt-28"
         >
           <SectionEyebrow>Process</SectionEyebrow>
           <h2
             id="process-heading"
             className="mt-3 max-w-[22ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
           >
-            A practical path from planning to long-term support
+            A practical path from planning to ongoing support
           </h2>
-          <ol className="mt-10 grid gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-5">
+          <ol className="mt-10 grid gap-5 md:grid-cols-2 md:gap-6 lg:grid-cols-4">
             {processStages.map((stage, index) => (
               <li
                 key={stage.title}
@@ -340,7 +345,7 @@ export default function DigitalPage() {
 
         <section
           aria-labelledby="contact-heading"
-          className="mt-24 max-w-[66rem] rounded-3xl border border-studio-border bg-studio-surface px-7 py-11 md:mt-28 md:px-11 md:py-13"
+          className="mt-24 max-w-264 rounded-3xl border border-studio-border bg-studio-surface px-7 py-11 md:mt-28 md:px-11 md:py-13"
         >
           <h2
             id="contact-heading"

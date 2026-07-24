@@ -1,6 +1,11 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 
-import { ServicePropositionCard } from "@/components/digital";
+import {
+  DigitalServicesSubnav,
+  RelatedDigitalServices,
+  ServicePropositionCard,
+} from "@/components/digital";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton, StudioTag } from "@/components/studio";
@@ -28,11 +33,34 @@ export default function DigitalWebsitesPage() {
           <p className="mt-7 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             Blackburn Studio creates practical, well-structured websites for
             businesses and organisations. The work can include strategy, content
-            structure, photography, development, hosting and ongoing support.
+            structure, photography, development,{" "}
+            <Link
+              href="/digital/hosting-domains"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              managed hosting
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/digital/support"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              ongoing support
+            </Link>
+            .
           </p>
         </section>
 
-        <section className="mt-16 grid gap-5 md:mt-20 md:grid-cols-2 md:gap-6" aria-label="Website service panels">
+        <DigitalServicesSubnav
+          currentPath="/digital/websites"
+          className="mt-12 max-w-[74ch] md:mt-14"
+        />
+
+        <section
+          className="mt-16 grid gap-5 md:mt-20 md:grid-cols-2 md:gap-6"
+          aria-label="Website service panels"
+        >
+          <h2 className="sr-only">Website service panels</h2>
           <ServicePropositionCard
             title="Build something new"
             intro="A clear, maintainable website designed around what your business needs visitors to understand and do."
@@ -73,7 +101,7 @@ export default function DigitalWebsitesPage() {
             id="approach-heading"
             className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
           >
-            Approach
+            Designed for use, not just appearance
           </h2>
           <p className="mt-6 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             The focus is not only on appearance, but also structure, usability,
@@ -149,7 +177,30 @@ export default function DigitalWebsitesPage() {
               compact
             />
           </div>
+          <p className="mt-6 max-w-[72ch] text-sm leading-relaxed text-studio-dim md:text-base">
+            After launch,{" "}
+            <Link
+              href="/digital/hosting-domains"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              managed hosting
+            </Link>{" "}
+            and{" "}
+            <Link
+              href="/digital/support"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              ongoing support
+            </Link>{" "}
+            can be arranged around the same website setup.
+          </p>
         </section>
+
+        <RelatedDigitalServices
+          currentPath="/digital/websites"
+          relatedHrefs={["/digital/hosting-domains", "/digital/support"]}
+          className="mt-16 md:mt-20"
+        />
 
         <section className="mt-20 rounded-3xl border border-studio-border bg-studio-surface px-7 py-11 md:mt-24 md:px-10 md:py-12">
           <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
