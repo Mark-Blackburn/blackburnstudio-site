@@ -207,13 +207,49 @@ export default function DigitalSupportPage() {
           >
             What is not automatically included
           </h2>
-          <ul className="mt-7 space-y-3 text-base leading-relaxed text-studio-muted md:text-[1.02rem]">
-            <li>Emergency or after-hours response</li>
-            <li>Major redesign or redevelopment</li>
-            <li>Unsupported or abandoned software</li>
-            <li>Third-party custom code repair</li>
-            <li>Incident recovery outside the agreed service</li>
-            <li>Work requiring specialist providers</li>
+          <ul className="mt-7 space-y-2.5 text-sm leading-relaxed text-studio-muted md:text-base">
+            <li className="flex gap-2">
+              <span
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                aria-hidden="true"
+              />
+              <span>Emergency or after-hours response.</span>
+            </li>
+            <li className="flex gap-2">
+              <span
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                aria-hidden="true"
+              />
+              <span>Major redesign or redevelopment.</span>
+            </li>
+            <li className="flex gap-2">
+              <span
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                aria-hidden="true"
+              />
+              <span>Unsupported or abandoned software.</span>
+            </li>
+            <li className="flex gap-2">
+              <span
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                aria-hidden="true"
+              />
+              <span>Third-party custom code repair.</span>
+            </li>
+            <li className="flex gap-2">
+              <span
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                aria-hidden="true"
+              />
+              <span>Incident recovery outside the agreed service.</span>
+            </li>
+            <li className="flex gap-2">
+              <span
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                aria-hidden="true"
+              />
+              <span>Work requiring specialist providers.</span>
+            </li>
           </ul>
         </section>
 
