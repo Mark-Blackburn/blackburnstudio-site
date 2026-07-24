@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { DigitalInfoPanel } from "@/components/digital";
+import { ServicePropositionCard } from "@/components/digital";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
@@ -16,7 +16,7 @@ export default function Microsoft365Page() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-[78rem] flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
+      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
         <section aria-labelledby="m365-heading" className="max-w-[76ch]">
           <SectionEyebrow>Digital services</SectionEyebrow>
           <h1
@@ -33,30 +33,40 @@ export default function Microsoft365Page() {
         </section>
 
         <section className="mt-16 grid gap-5 md:mt-20 md:grid-cols-2 md:gap-6">
-          <DigitalInfoPanel title="Microsoft 365 setup" className="h-full">
-            <ul className="space-y-2">
-              <li>New tenant setup</li>
-              <li>Business email and domain connection</li>
-              <li>Users and licences</li>
-              <li>Mailbox migration</li>
-              <li>Shared mailboxes and aliases</li>
-              <li>Security and access configuration</li>
-              <li>Outlook setup and troubleshooting</li>
-            </ul>
-          </DigitalInfoPanel>
+          <ServicePropositionCard
+            title="Set up the foundation"
+            intro="Establish secure business email, users, licences and access so the Microsoft 365 environment is ready to operate properly."
+            capabilities={[
+              "New tenant setup",
+              "Business email and domain connection",
+              "Users and licences",
+              "Mailbox migration",
+              "Shared mailboxes and aliases",
+              "Security and access configuration",
+              "Outlook setup and troubleshooting",
+            ]}
+            footerLabel="Typical outcome"
+            footerText="A stable Microsoft 365 environment with working email, clear access and correctly configured users."
+            className="h-full"
+          />
 
-          <DigitalInfoPanel title="Collaboration and workflows" className="h-full">
-            <ul className="space-y-2">
-              <li>Teams</li>
-              <li>SharePoint</li>
-              <li>Document libraries</li>
-              <li>Microsoft Forms</li>
-              <li>Microsoft Lists</li>
-              <li>Workflow automation</li>
-              <li>Permissions and governance</li>
-              <li>Process digitisation</li>
-            </ul>
-          </DigitalInfoPanel>
+          <ServicePropositionCard
+            title="Connect the way your team works"
+            intro="Organise collaboration, information and repeatable processes so the platform supports everyday work rather than becoming another collection of tools."
+            capabilities={[
+              "Teams",
+              "SharePoint",
+              "Document libraries",
+              "Microsoft Forms",
+              "Microsoft Lists",
+              "Workflow automation",
+              "Permissions and governance",
+              "Process digitisation",
+            ]}
+            footerLabel="Typical outcome"
+            footerText="Clearer collaboration, structured information and less repeated administration."
+            className="h-full"
+          />
         </section>
 
         <section className="mt-16 max-w-[72ch] md:mt-20" aria-labelledby="positioning-heading">
@@ -94,15 +104,30 @@ export default function Microsoft365Page() {
             How an engagement can start
           </h2>
           <div className="mt-8 grid gap-5 md:grid-cols-3 md:gap-6">
-            <DigitalInfoPanel title="Stabilise">
-              <p>Resolve immediate email, access, account or domain problems.</p>
-            </DigitalInfoPanel>
-            <DigitalInfoPanel title="Organise">
-              <p>Improve users, licences, permissions, Teams, SharePoint and document structure.</p>
-            </DigitalInfoPanel>
-            <DigitalInfoPanel title="Improve">
-              <p>Add forms, workflows, automation and ongoing administration.</p>
-            </DigitalInfoPanel>
+            <ServicePropositionCard
+              title="Stabilise"
+              intro="Resolve immediate email, access, account or domain problems."
+              footerLabel="Best for"
+              footerText="Getting the environment working again."
+              className="h-full"
+              compact
+            />
+            <ServicePropositionCard
+              title="Organise"
+              intro="Improve users, licences, permissions, Teams, SharePoint and document structure."
+              footerLabel="Best for"
+              footerText="Making the existing setup clearer and easier to manage."
+              className="h-full"
+              compact
+            />
+            <ServicePropositionCard
+              title="Improve"
+              intro="Add forms, workflows, automation and ongoing administration."
+              footerLabel="Best for"
+              footerText="Extending Microsoft 365 into a more useful business system."
+              className="h-full"
+              compact
+            />
           </div>
         </section>
 

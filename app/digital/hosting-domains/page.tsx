@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { DigitalInfoPanel } from "@/components/digital";
+import { ServicePropositionCard } from "@/components/digital";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
@@ -16,7 +16,7 @@ export default function HostingDomainsPage() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-[78rem] flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
+      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
         <section aria-labelledby="hosting-heading" className="max-w-[76ch]">
           <SectionEyebrow>Digital services</SectionEyebrow>
           <h1
@@ -33,68 +33,82 @@ export default function HostingDomainsPage() {
         </section>
 
         <section className="mt-16 grid gap-5 md:mt-20 md:grid-cols-2 md:gap-6">
-          <DigitalInfoPanel title="Domain services" className="h-full">
-            <ul className="space-y-2">
-              <li>Domain registration</li>
-              <li>Domain transfers</li>
-              <li>Renewal management</li>
-              <li>DNS configuration</li>
-              <li>Registrant and ownership assistance</li>
-              <li>Domain portfolio management</li>
-            </ul>
-          </DigitalInfoPanel>
+          <ServicePropositionCard
+            title="Domain services"
+            intro="Domain registration, transfers, renewals and DNS setup for websites and business email."
+            capabilities={[
+              "Domain registration",
+              "Domain transfers",
+              "Renewal management",
+              "DNS configuration",
+              "Registrant and ownership assistance",
+              "Domain portfolio management",
+            ]}
+            footerLabel="Outcome"
+            footerText="Domain administration is handled in one place."
+            className="h-full"
+          />
 
-          <DigitalInfoPanel title="Hosting services" className="h-full">
-            <ul className="space-y-2">
-              <li>Australian-hosted web services</li>
-              <li>Hosting setup and migration</li>
-              <li>WordPress hosting</li>
-              <li>SSL setup and renewal</li>
-              <li>Domain email routing and DNS configuration</li>
-              <li>Backup and recovery planning</li>
-              <li>Hosting troubleshooting</li>
-              <li>Performance and security reviews</li>
-            </ul>
-          </DigitalInfoPanel>
+          <ServicePropositionCard
+            title="Hosting services"
+            intro="Managed hosting and technical coordination for websites that need a reliable home."
+            capabilities={[
+              "Australian-hosted web services",
+              "Hosting setup and migration",
+              "WordPress hosting",
+              "SSL setup and renewal",
+              "Domain email routing and DNS configuration",
+              "Backup and recovery planning",
+              "Hosting troubleshooting",
+              "Performance and security reviews",
+            ]}
+            footerLabel="Outcome"
+            footerText="Hosting, SSL and recovery planning stay aligned with the website."
+            className="h-full"
+          />
         </section>
 
         <section
           className="mt-12 max-w-[74ch] md:mt-14"
           aria-labelledby="business-email-heading"
         >
-          <h2
-            id="business-email-heading"
-            className="text-2xl font-medium tracking-tight text-studio-text md:text-3xl"
-          >
-            Business email options
+          <h2 id="business-email-heading" className="text-2xl font-medium tracking-tight text-studio-text md:text-3xl">
+            Email connected to your domain
           </h2>
           <p className="mt-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Blackburn Studio can provide straightforward domain email or
-            configure Microsoft 365, depending on the number of users,
-            collaboration needs, security requirements and preferred way of
-            working.
+            Blackburn Studio can configure straightforward hosted email or Microsoft 365,
+            depending on the number of users, collaboration needs, security requirements and
+            preferred way of working.
           </p>
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
-            <DigitalInfoPanel title="Basic domain email" className="h-full">
-              <ul className="list-disc space-y-2 pl-5 marker:text-studio-dim">
-                <li>Individual and small-team mailboxes</li>
-                <li>Forwarding and aliases</li>
-                <li>Webmail and standard mail-client setup</li>
-                <li>Domain and email DNS configuration</li>
-                <li>Basic migration and troubleshooting</li>
-              </ul>
-            </DigitalInfoPanel>
+            <ServicePropositionCard
+              title="Hosted domain email"
+              intro="Straightforward mailboxes for individuals and small teams, with aliases, forwarding, DNS and mail-client setup."
+              capabilities={[
+                "Individual and small-team mailboxes",
+                "Forwarding and aliases",
+                "Webmail and standard mail-client setup",
+                "Domain and email DNS configuration",
+                "Basic migration and troubleshooting",
+              ]}
+              compact
+              className="h-full"
+            />
 
-            <DigitalInfoPanel title="Microsoft 365" className="h-full">
-              <ul className="list-disc space-y-2 pl-5 marker:text-studio-dim">
-                <li>Business email and shared mailboxes</li>
-                <li>Users and licence administration</li>
-                <li>Teams and SharePoint</li>
-                <li>Security and access management</li>
-                <li>Workflow and business-system integration</li>
-              </ul>
-            </DigitalInfoPanel>
+            <ServicePropositionCard
+              title="Microsoft 365"
+              intro="Business email with shared mailboxes, managed users, collaboration tools and stronger administration options."
+              capabilities={[
+                "Business email and shared mailboxes",
+                "Users and licence administration",
+                "Teams and SharePoint",
+                "Security and access management",
+                "Workflow and business-system integration",
+              ]}
+              compact
+              className="h-full"
+            />
           </div>
 
           <a
@@ -150,30 +164,36 @@ export default function HostingDomainsPage() {
           </p>
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 md:gap-6">
-            <DigitalInfoPanel
+            <ServicePropositionCard
               title="Blackburn Studio manages"
+              intro="Setup, migration and the technical pieces that sit between the website, DNS, SSL and hosting."
+              capabilities={[
+                "Setup and migration",
+                "DNS and SSL",
+                "Hosting administration",
+                "Renewals and technical coordination",
+                "Agreed ongoing support",
+              ]}
+              footerLabel="Outcome"
+              footerText="Technical administration stays centralised."
               className="h-full"
-            >
-              <ul className="list-disc space-y-2 pl-5 marker:text-studio-dim">
-                <li>Setup and migration</li>
-                <li>DNS and SSL</li>
-                <li>Hosting administration</li>
-                <li>Renewals and technical coordination</li>
-                <li>Agreed ongoing support</li>
-              </ul>
-            </DigitalInfoPanel>
+              compact
+            />
 
-            <DigitalInfoPanel title="You retain" className="h-full">
-              <ul className="list-disc space-y-2 pl-5 marker:text-studio-dim">
-                <li>Ownership of the domain and business accounts</li>
-                <li>Access where appropriate</li>
-                <li>Control of business information</li>
-                <li>
-                  Responsibility for third-party website work outside the agreed
-                  service
-                </li>
-              </ul>
-            </DigitalInfoPanel>
+            <ServicePropositionCard
+              title="You retain"
+              intro="Ownership, access and business control remain with you, while the technical service is managed on your behalf."
+              capabilities={[
+                "Ownership of the domain and business accounts",
+                "Access where appropriate",
+                "Control of business information",
+                "Responsibility for third-party website work outside the agreed service",
+              ]}
+              footerLabel="Outcome"
+              footerText="The arrangement stays clear about ownership and responsibility."
+              className="h-full"
+              compact
+            />
           </div>
 
           <p className="mt-6 max-w-[74ch] text-sm leading-relaxed text-studio-dim md:text-base">
@@ -200,52 +220,45 @@ export default function HostingDomainsPage() {
           </p>
 
           <div className="mt-8 grid gap-5 md:grid-cols-3 md:gap-6">
-            <DigitalInfoPanel title="Essential" className="h-full">
-              <p className="text-studio-dim">
-                For simple brochure and small-business websites.
-              </p>
-              <p className="font-medium text-studio-text">Includes:</p>
-              <ul className="list-disc space-y-2 pl-5 marker:text-studio-dim">
-                <li>Managed web hosting</li>
-                <li>SSL</li>
-                <li>Routine hosting backups</li>
-                <li>Domain and DNS coordination</li>
-                <li>Basic service monitoring</li>
-                <li>Renewal administration</li>
-              </ul>
-            </DigitalInfoPanel>
+            <ServicePropositionCard
+              title="Essential"
+              intro="Core hosting and service administration for websites that need a reliable managed foundation."
+              capabilities={[
+                "Managed web hosting",
+                "SSL",
+                "Routine hosting backups",
+                "Domain and DNS coordination",
+                "Basic service monitoring",
+                "Renewal administration",
+              ]}
+              className="h-full"
+            />
 
-            <DigitalInfoPanel title="Business" className="h-full">
-              <p className="text-studio-dim">
-                For active WordPress and business websites.
-              </p>
-              <p className="font-medium text-studio-text">
-                Includes everything in Essential, plus:
-              </p>
-              <ul className="list-disc space-y-2 pl-5 marker:text-studio-dim">
-                <li>WordPress and plugin maintenance</li>
-                <li>Security and performance reviews</li>
-                <li>Uptime monitoring</li>
-                <li>Minor technical support</li>
-                <li>Scheduled service checks</li>
-              </ul>
-            </DigitalInfoPanel>
+            <ServicePropositionCard
+              title="Managed"
+              intro="Proactive maintenance and monitoring for websites that need regular technical care."
+              capabilities={[
+                "Platform and dependency maintenance where applicable",
+                "Security and performance reviews",
+                "Uptime monitoring",
+                "Minor technical support",
+                "Scheduled service checks",
+              ]}
+              className="h-full"
+            />
 
-            <DigitalInfoPanel title="Supported" className="h-full">
-              <p className="text-studio-dim">
-                For organisations wanting one ongoing technical contact.
-              </p>
-              <p className="font-medium text-studio-text">
-                Includes everything in Business, plus:
-              </p>
-              <ul className="list-disc space-y-2 pl-5 marker:text-studio-dim">
-                <li>Agreed support allocation</li>
-                <li>Content or configuration changes</li>
-                <li>Priority handling during agreed business hours</li>
-                <li>Domain, hosting and email coordination</li>
-                <li>Scheduled improvement planning</li>
-              </ul>
-            </DigitalInfoPanel>
+            <ServicePropositionCard
+              title="Supported"
+              intro="Ongoing technical support for organisations wanting one point of contact across the wider digital setup."
+              capabilities={[
+                "Agreed support allocation",
+                "Content or configuration changes",
+                "Priority handling during agreed business hours",
+                "Domain, hosting and email coordination",
+                "Scheduled improvement planning",
+              ]}
+              className="h-full"
+            />
           </div>
 
           <p className="mt-6 max-w-[74ch] text-sm leading-relaxed text-studio-dim md:text-base">

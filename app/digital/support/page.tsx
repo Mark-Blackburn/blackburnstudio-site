@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { DigitalInfoPanel } from "@/components/digital";
+import { ServicePropositionCard } from "@/components/digital";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
@@ -16,7 +16,7 @@ export default function DigitalSupportPage() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-[78rem] flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
+      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
         <section aria-labelledby="support-heading" className="max-w-[76ch]">
           <SectionEyebrow>Digital services</SectionEyebrow>
           <h1
@@ -32,40 +32,53 @@ export default function DigitalSupportPage() {
         </section>
 
         <section className="mt-16 grid gap-5 md:mt-20 md:grid-cols-3 md:gap-6">
-          <DigitalInfoPanel title="Website care" className="h-full">
-            <ul className="space-y-2">
-              <li>WordPress and plugin updates</li>
-              <li>Security checks</li>
-              <li>Backups</li>
-              <li>Uptime monitoring</li>
-              <li>Minor content updates</li>
-              <li>Technical troubleshooting</li>
-            </ul>
-          </DigitalInfoPanel>
+          <ServicePropositionCard
+            title="Keep the website reliable"
+            intro="Regular maintenance, monitoring and troubleshooting to keep an agreed website operating securely and reliably."
+            capabilities={[
+              "Platform and dependency updates where applicable",
+              "Security checks",
+              "Backups",
+              "Uptime monitoring",
+              "Minor content updates",
+              "Technical troubleshooting",
+            ]}
+            footerLabel="Outcome"
+            footerText="A more reliable website with routine technical work handled."
+            className="h-full"
+          />
 
-          <DigitalInfoPanel title="Managed digital services" className="h-full">
-            <ul className="space-y-2">
-              <li>Domain and hosting management</li>
-              <li>SSL renewals</li>
-              <li>Microsoft 365 administration</li>
-              <li>User onboarding and offboarding</li>
-              <li>Website improvements</li>
-              <li>Supplier and integration coordination</li>
-              <li>Priority support where included in an agreed plan</li>
-            </ul>
-          </DigitalInfoPanel>
+          <ServicePropositionCard
+            title="Manage the wider digital setup"
+            intro="Ongoing coordination across domains, hosting, email, Microsoft 365 and the services connected to them."
+            capabilities={[
+              "Domain and hosting management",
+              "SSL renewals",
+              "Microsoft 365 administration",
+              "User onboarding and offboarding",
+              "Website improvements",
+              "Supplier and integration coordination",
+            ]}
+            footerLabel="Outcome"
+            footerText="One point of contact across the agreed digital environment."
+            className="h-full"
+          />
 
-          <DigitalInfoPanel title="Ad hoc support" className="h-full">
-            <ul className="space-y-2">
-              <li>DNS issues</li>
-              <li>Email setup</li>
-              <li>Website problems</li>
-              <li>Content updates</li>
-              <li>Performance issues</li>
-              <li>Technical advice</li>
-              <li>Support blocks or separately scoped work</li>
-            </ul>
-          </DigitalInfoPanel>
+          <ServicePropositionCard
+            title="Get help when something changes"
+            intro="Practical assistance with problems, changes or small pieces of technical work that do not require an ongoing plan."
+            capabilities={[
+              "DNS issues",
+              "Email setup",
+              "Website problems",
+              "Content changes",
+              "Performance issues",
+              "Technical advice",
+            ]}
+            footerLabel="Outcome"
+            footerText="Focused help without committing to a full managed-service plan."
+            className="h-full"
+          />
         </section>
 
         <section className="mt-16 max-w-[72ch] md:mt-20" aria-labelledby="support-note-heading">
@@ -83,15 +96,30 @@ export default function DigitalSupportPage() {
             Ways support can be arranged
           </h2>
           <div className="mt-8 grid gap-5 md:grid-cols-3 md:gap-6">
-            <DigitalInfoPanel title="Ongoing plan">
-              <p>Regularly scheduled management and support for an agreed environment.</p>
-            </DigitalInfoPanel>
-            <DigitalInfoPanel title="Support block">
-              <p>A prepaid allocation for smaller changes, troubleshooting and advice.</p>
-            </DigitalInfoPanel>
-            <DigitalInfoPanel title="Scoped work">
-              <p>A separate quote for significant improvements, migrations or redevelopment.</p>
-            </DigitalInfoPanel>
+            <ServicePropositionCard
+              title="Ongoing plan"
+              intro="Regularly scheduled management and support for an agreed environment."
+              footerLabel="Best for"
+              footerText="Environments requiring regular administration and proactive care."
+              className="h-full"
+              compact
+            />
+            <ServicePropositionCard
+              title="Support block"
+              intro="A prepaid allocation for smaller changes, troubleshooting and advice."
+              footerLabel="Best for"
+              footerText="Smaller changes, troubleshooting and advice used as needed."
+              className="h-full"
+              compact
+            />
+            <ServicePropositionCard
+              title="Scoped work"
+              intro="A separate quote for significant improvements, migrations or redevelopment."
+              footerLabel="Best for"
+              footerText="Defined improvements, migrations or redevelopment."
+              className="h-full"
+              compact
+            />
           </div>
         </section>
 

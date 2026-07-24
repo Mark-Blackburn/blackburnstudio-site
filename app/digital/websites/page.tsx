@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 
-import { DigitalInfoPanel } from "@/components/digital";
+import { ServicePropositionCard } from "@/components/digital";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
-import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { SectionEyebrow, StudioButton, StudioTag } from "@/components/studio";
 
 export const metadata: Metadata = {
   title: "Website Design and Development | Blackburn Studio",
@@ -16,7 +16,7 @@ export default function DigitalWebsitesPage() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-[78rem] flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
+      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
         <section aria-labelledby="websites-heading" className="max-w-[76ch]">
           <SectionEyebrow>Digital services</SectionEyebrow>
           <h1
@@ -32,49 +32,37 @@ export default function DigitalWebsitesPage() {
           </p>
         </section>
 
-        <section
-          className="mt-16 grid gap-5 md:mt-20 md:grid-cols-2 md:gap-6"
-          aria-label="Website service panels"
-        >
-          <DigitalInfoPanel title="Build something new" className="h-full">
-            <p>
-              A clear, maintainable website designed around what your business
-              needs visitors to understand and do.
-            </p>
-            <ul className="list-disc space-y-2 pl-5 marker:text-studio-dim">
-              <li>Business and organisation websites</li>
-              <li>WordPress builds</li>
-              <li>Online stores</li>
-              <li>Landing pages and campaign sites</li>
-              <li>Custom websites and web applications</li>
-            </ul>
-            <p className="border-t border-studio-border/60 pt-3 text-studio-dim">
-              Typical outcome: A new website ready to launch, manage and
-              support.
-            </p>
-          </DigitalInfoPanel>
-
-          <DigitalInfoPanel
-            title="Improve what you already have"
+        <section className="mt-16 grid gap-5 md:mt-20 md:grid-cols-2 md:gap-6" aria-label="Website service panels">
+          <ServicePropositionCard
+            title="Build something new"
+            intro="A clear, maintainable website designed around what your business needs visitors to understand and do."
+            capabilities={[
+              "Business and organisation websites",
+              "WordPress builds",
+              "Online stores",
+              "Landing pages and campaign sites",
+              "Custom websites and web applications",
+            ]}
+            footerLabel="Typical outcome"
+            footerText="A new website ready to launch, manage and support."
             className="h-full"
-          >
-            <p>
-              Restructure, modernise or extend an existing website without
-              rebuilding more than necessary.
-            </p>
-            <ul className="list-disc space-y-2 pl-5 marker:text-studio-dim">
-              <li>Redesigns and rebuilds</li>
-              <li>WordPress migrations</li>
-              <li>Content and image updates</li>
-              <li>Performance improvements</li>
-              <li>Mobile and accessibility improvements</li>
-              <li>Forms and integrations</li>
-            </ul>
-            <p className="border-t border-studio-border/60 pt-3 text-studio-dim">
-              Typical outcome: A clearer, more reliable website with fewer
-              technical and content problems.
-            </p>
-          </DigitalInfoPanel>
+          />
+
+          <ServicePropositionCard
+            title="Improve what you already have"
+            intro="Restructure, modernise or extend an existing website without rebuilding more than necessary."
+            capabilities={[
+              "Redesigns and rebuilds",
+              "WordPress migrations",
+              "Content and image updates",
+              "Performance improvements",
+              "Mobile and accessibility improvements",
+              "Forms and integrations",
+            ]}
+            footerLabel="Typical outcome"
+            footerText="A clearer, more reliable website with fewer technical and content problems."
+            className="h-full"
+          />
         </section>
 
         <section
@@ -110,13 +98,19 @@ export default function DigitalWebsitesPage() {
               content and create original photography as part of the project.
             </p>
           </div>
-          <ul className="mt-7 grid gap-3 text-base leading-relaxed text-studio-muted sm:grid-cols-2 md:text-[1.02rem]">
-            <li>Content structure and page planning</li>
-            <li>Service and project photography</li>
-            <li>Team and business portraits</li>
-            <li>Image preparation and optimisation</li>
-            <li>Coordination of copy, design and development</li>
-          </ul>
+          <div className="mt-7 flex flex-wrap gap-2.5">
+            {[
+              "Content structure",
+              "Page planning",
+              "Service photography",
+              "Project photography",
+              "Team portraits",
+              "Image preparation",
+              "Design coordination",
+            ].map((tag) => (
+              <StudioTag key={tag}>{tag}</StudioTag>
+            ))}
+          </div>
         </section>
 
         <section
@@ -130,24 +124,30 @@ export default function DigitalWebsitesPage() {
             Engagement models
           </h2>
           <div className="mt-8 grid gap-5 md:grid-cols-3 md:gap-6">
-            <DigitalInfoPanel title="Scoped website projects">
-              <p>
-                Defined delivery for new websites, rebuilds and
-                platform-specific outcomes.
-              </p>
-            </DigitalInfoPanel>
-            <DigitalInfoPanel title="Ongoing improvements">
-              <p>
-                Regular updates and enhancement work as your organisation
-                evolves.
-              </p>
-            </DigitalInfoPanel>
-            <DigitalInfoPanel title="Managed hosting and care after launch">
-              <p>
-                Hosting, domain and support services to keep the website
-                operating reliably.
-              </p>
-            </DigitalInfoPanel>
+            <ServicePropositionCard
+              title="Scoped website projects"
+              intro="Defined delivery for new websites, rebuilds and platform-specific outcomes."
+              footerLabel="Best for"
+              footerText="Clear project work with a defined scope."
+              className="h-full"
+              compact
+            />
+            <ServicePropositionCard
+              title="Ongoing improvements"
+              intro="Regular updates and enhancement work as your organisation evolves."
+              footerLabel="Best for"
+              footerText="Small improvements spread over time."
+              className="h-full"
+              compact
+            />
+            <ServicePropositionCard
+              title="Managed hosting and care after launch"
+              intro="Hosting, domain and support services to keep the website operating reliably."
+              footerLabel="Best for"
+              footerText="Sites that need continuing technical care."
+              className="h-full"
+              compact
+            />
           </div>
         </section>
 
