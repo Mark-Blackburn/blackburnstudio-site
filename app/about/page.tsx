@@ -28,8 +28,8 @@ export default function AboutPage() {
             >
               Blackburn Studio
             </h1>
-            <div className="mt-10 grid gap-8 md:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] md:items-start md:gap-12 lg:gap-14">
-              <div className="space-y-5 text-base leading-relaxed text-studio-muted md:max-w-[44ch] md:text-[1.08rem] lg:max-w-[46ch]">
+            <div className="mt-10 grid gap-8 md:grid-cols-[minmax(0,1.08fr)_minmax(0,0.92fr)] md:items-start md:gap-12 lg:max-w-192 lg:grid-cols-[max-content_auto] lg:items-stretch lg:justify-start lg:gap-12">
+              <div className="space-y-5 text-base leading-relaxed text-studio-muted md:max-w-[40ch] md:text-[1.08rem] lg:max-w-[33ch] lg:leading-[1.78]">
                 <p>
                   Blackburn Studio is run by Mark Blackburn. The work ranges
                   from portraits and family photography through to websites,
@@ -45,14 +45,13 @@ export default function AboutPage() {
                 </p>
               </div>
 
-              <figure className="w-full max-w-96 justify-self-start overflow-hidden rounded-2xl border border-studio-border/70 bg-studio-surface/65 md:justify-self-end lg:max-w-100">
-                <div className="relative aspect-4/5">
+              <figure className="w-full max-w-96 justify-self-start overflow-hidden rounded-2xl border border-studio-border/70 bg-studio-surface/65 md:justify-self-end lg:w-auto lg:max-w-none lg:self-stretch">
+                <div className="relative aspect-4/5 lg:h-full">
                   <Image
                     src="/images/about/mark-blackburn-about-portrait.jpg"
                     alt="Mark Blackburn in his workspace"
                     fill
-                    loading="eager"
-                    sizes="(min-width: 1024px) 24rem, (min-width: 768px) 22rem, 100vw"
+                    sizes="(min-width: 1440px) 20rem, (min-width: 1024px) 19rem, (min-width: 768px) 18rem, 100vw"
                     className="object-cover"
                     style={{ objectPosition: "50% 35%" }}
                   />
