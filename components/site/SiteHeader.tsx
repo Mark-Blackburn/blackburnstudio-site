@@ -17,7 +17,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   {
     href: "/work",
-    label: "Photography",
+    label: "Work",
     isActive: (pathname) => pathname === "/work" || pathname.startsWith("/work/"),
   },
   {

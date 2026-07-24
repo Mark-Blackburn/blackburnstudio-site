@@ -61,6 +61,13 @@ Script location:
 - `scripts/screenshot-site.mjs`
 - Run `npm run screenshot:site -- --help` for all options
 
+## Environment Variables
+
+Create a local `.env.local` file when needed. The site reads these public values:
+
+- `NEXT_PUBLIC_IMAGE_BASE_URL` - optional image base path for local or alternate hosting.
+- `NEXT_PUBLIC_DOMAIN_MANAGEMENT_URL` - Blackburn Studio domain-management URL. Leave blank if the link should not be shown.
+
 ## Learn More
 
 To learn more about Next.js, take a look at the following resources:
