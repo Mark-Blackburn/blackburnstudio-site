@@ -3,6 +3,12 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { submitContactForm } from "@/lib/actions/submitContactForm";
+import {
+  getSetupState,
+  isValidAustralianPhone,
+  isValidEmail,
+  isValidRequiredDate,
+} from "@/lib/contact/sharedValidation";
 
 type SubmissionState = "idle" | "submitting" | "success" | "error";
 
@@ -57,16 +63,6 @@ const SERVICE_VALUES: ReadonlySet<string> = new Set(
   SERVICE_OPTIONS.map((option) => option.value),
 );
 
-const DIGITAL_SETUP_SERVICES = new Set([
-  "new-website",
-  "existing-website",
-  "hosting",
-  "domain-email",
-  "microsoft-365",
-  "ongoing-support",
-  "workflow",
-]);
-
 const SETUP_OPTIONS = [
   { value: "no-setup", label: "No — this is something new" },
   { value: "website", label: "Yes — website" },
@@ -110,6 +106,19 @@ const fieldClassName =
 
 const errorClassName = "border-red-500/55 focus-visible:ring-red-500/50";
 
+const FIELD_FOCUS_TARGETS: Record<string, string> = {
+  name: "contact-name",
+  email: "contact-email",
+  phone: "contact-phone",
+  services: "contact-service-new-website",
+  setup: "contact-setup",
+  message: "contact-message",
+  contactMethod: "contact-method-email",
+  timing: "contact-timing",
+  requiredDate: "contact-requiredDate",
+  consent: "contact-consent",
+};
+
 function mapQueryServiceToInternal(value: string): string | null {
   const mapped: Record<string, string> = {
     photography: "photography",
@@ -139,79 +148,6 @@ function getUniqueValidServices(values: string[]): string[] {
   return Array.from(collected);
 }
 
-function getSetupState(selectedServices: string[]): {
-  shouldShowSetup: boolean;
-  derivedSetup: string;
-} {
-  if (selectedServices.length === 0) {
-    return { shouldShowSetup: false, derivedSetup: "" };
-  }
-
-  const isPhotographyOrOtherOnly = selectedServices.every(
-    (service) => service === "photography" || service === "other",
-  );
-  if (isPhotographyOrOtherOnly) {
-    return { shouldShowSetup: false, derivedSetup: "" };
-  }
-
-  if (selectedServices.length === 1) {
-    const selected = selectedServices[0];
-    if (selected === "new-website") {
-      return { shouldShowSetup: false, derivedSetup: "no-setup" };
-    }
-    if (selected === "existing-website") {
-      return { shouldShowSetup: false, derivedSetup: "website" };
-    }
-    if (selected === "ongoing-support") {
-      return { shouldShowSetup: false, derivedSetup: "" };
-    }
-  }
-
-  const newWebsiteContextOnly = selectedServices.includes("new-website")
-    && selectedServices.every(
-      (service) => service === "new-website" || service === "photography" || service === "other",
-    );
-  if (newWebsiteContextOnly) {
-    return { shouldShowSetup: false, derivedSetup: "no-setup" };
-  }
-
-  const shouldShowSetup = selectedServices.some((service) =>
-    DIGITAL_SETUP_SERVICES.has(service),
-  );
-
-  return {
-    shouldShowSetup,
-    derivedSetup: "",
-  };
-}
-
-function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
-}
-
-function validateAustralianPhone(value: string): boolean {
-  const trimmed = value.trim();
-  if (!trimmed) {
-    return true;
-  }
-
-  if (/[^\d\s()+-]/.test(trimmed)) {
-    return false;
-  }
-
-  let normalized = trimmed.replace(/[\s()-]/g, "");
-  normalized = normalized.replace(/^\+610/, "+61");
-
-  if (normalized.startsWith("+61")) {
-    return /^\+61(4\d{8}|[2378]\d{8})$/.test(normalized);
-  }
-
-  if (normalized.startsWith("0")) {
-    return /^(04\d{8}|0[2378]\d{8})$/.test(normalized);
-  }
-
-  return false;
-}
 
 function getDetailsCopy(selectedServices: string[]): DetailsCopy {
   if (selectedServices.length > 1) {
@@ -273,19 +209,6 @@ function getDetailsCopy(selectedServices: string[]): DetailsCopy {
   };
 }
 
-function validateRequiredDate(value: string): boolean {
-  if (!value.trim()) {
-    return true;
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return false;
-  }
-
-  const parsed = new Date(`${value}T00:00:00`);
-  return !Number.isNaN(parsed.getTime());
-}
-
 export default function ContactEnquiryForm({
   initialServices = [],
 }: ContactEnquiryFormProps) {
@@ -314,6 +237,7 @@ export default function ContactEnquiryForm({
   });
 
   const errorSummaryRef = useRef<HTMLDivElement>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   const isSubmitting = submissionState === "submitting";
   const isSuccess = submissionState === "success";
@@ -356,7 +280,7 @@ export default function ContactEnquiryForm({
       nextErrors.email = EMAIL_ERROR_MESSAGE;
     }
 
-    if (!validateAustralianPhone(phone)) {
+    if (!isValidAustralianPhone(phone)) {
       nextErrors.phone = PHONE_ERROR_MESSAGE;
     }
 
@@ -384,7 +308,7 @@ export default function ContactEnquiryForm({
       nextErrors.timing = "Select a valid timeframe.";
     }
 
-    if (requiredDate && !validateRequiredDate(requiredDate)) {
+    if (requiredDate && !isValidRequiredDate(requiredDate)) {
       nextErrors.requiredDate = "Enter a valid date.";
     }
 
@@ -439,7 +363,7 @@ export default function ContactEnquiryForm({
         return { ...current, phone: undefined };
       }
 
-      if (!validateAustralianPhone(phone)) {
+      if (!isValidAustralianPhone(phone)) {
         return { ...current, phone: PHONE_ERROR_MESSAGE };
       }
 
@@ -466,6 +390,23 @@ export default function ContactEnquiryForm({
     });
     clearError("services");
   }, [clearError]);
+
+  const focusErrorField = useCallback((field: string) => {
+    const targetId = FIELD_FOCUS_TARGETS[field];
+    const target = targetId ? document.getElementById(targetId) : null;
+
+    if (target instanceof HTMLElement) {
+      target.focus();
+      return;
+    }
+
+    if (formRef.current) {
+      formRef.current.focus();
+      return;
+    }
+
+    errorSummaryRef.current?.focus();
+  }, []);
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -607,8 +548,7 @@ export default function ContactEnquiryForm({
                     type="button"
                     className="underline decoration-red-300/60 underline-offset-2"
                     onClick={() => {
-                      const target = document.getElementById(`contact-${field}`);
-                      target?.focus();
+                      focusErrorField(field);
                     }}
                   >
                     {message}
@@ -620,7 +560,13 @@ export default function ContactEnquiryForm({
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+      <form
+        id="contact-form"
+        ref={formRef}
+        tabIndex={-1}
+        onSubmit={handleSubmit}
+        className="mt-6 space-y-6"
+      >
         <input
           type="text"
           name="website"
@@ -740,7 +686,7 @@ export default function ContactEnquiryForm({
                     } else {
                       clearError("phone");
                     }
-                  } else if (!validateAustralianPhone(nextValue)) {
+                  } else if (!isValidAustralianPhone(nextValue)) {
                     setErrors((current) => ({
                       ...current,
                       phone: PHONE_ERROR_MESSAGE,

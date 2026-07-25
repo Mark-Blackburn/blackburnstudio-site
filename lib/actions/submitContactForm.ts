@@ -2,12 +2,19 @@
 
 import { Resend } from "resend";
 
+import {
+  getSetupState,
+  isValidAustralianPhone,
+  isValidEmail,
+  isValidRequiredDate,
+} from "@/lib/contact/sharedValidation";
+
 // Validation constants
 const MIN_MESSAGE_LENGTH = 20;
 const MAX_FIELD_LENGTH = 500;
 const MAX_MESSAGE_LENGTH = 5000;
 
-// Rate limit storage (simple in-memory; in production, use Redis or database)
+// Best-effort in-memory rate limiting only; not distributed across serverless instances.
 const submissionTimestamps: Map<string, number[]> = new Map();
 const RATE_LIMIT_WINDOW_MS = 3600000; // 1 hour
 const MAX_SUBMISSIONS_PER_HOUR = 5;
@@ -22,16 +29,6 @@ const VALID_SERVICES = new Set([
   "photography",
   "workflow",
   "other",
-]);
-
-const DIGITAL_SETUP_SERVICES = new Set([
-  "new-website",
-  "existing-website",
-  "hosting",
-  "domain-email",
-  "microsoft-365",
-  "ongoing-support",
-  "workflow",
 ]);
 
 const VALID_SETUP_OPTIONS = new Set([
@@ -115,11 +112,11 @@ interface SubmissionResult {
   message?: string;
 }
 
-function sanitizeInput(input: string): string {
+function sanitizeInput(input: string, maxLength = MAX_FIELD_LENGTH): string {
   return input
     .replace(/<[^>]*>/g, "")
     .trim()
-    .substring(0, MAX_FIELD_LENGTH);
+    .substring(0, maxLength + 1);
 }
 
 function escapeHtml(input: string): string {
@@ -129,33 +126,6 @@ function escapeHtml(input: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-function validateEmail(email: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
-}
-
-function validateAustralianPhone(phone: string): boolean {
-  if (!phone.trim()) {
-    return true;
-  }
-
-  if (/[^\d\s()+-]/.test(phone)) {
-    return false;
-  }
-
-  let normalized = phone.trim().replace(/[\s()-]/g, "");
-  normalized = normalized.replace(/^\+610/, "+61");
-
-  if (normalized.startsWith("+61")) {
-    return /^\+61(4\d{8}|[2378]\d{8})$/.test(normalized);
-  }
-
-  if (normalized.startsWith("0")) {
-    return /^(04\d{8}|0[2378]\d{8})$/.test(normalized);
-  }
-
-  return false;
 }
 
 function normalizeAustralianPhone(phone: string): string {
@@ -194,57 +164,26 @@ function sanitizeServices(services: string[]): string[] {
   return sanitized;
 }
 
-function getSetupState(services: string[]): {
-  shouldShowSetup: boolean;
-  derivedSetup: string;
-} {
-  if (services.length === 0) {
-    return { shouldShowSetup: false, derivedSetup: "" };
-  }
-
-  const isPhotographyOrOtherOnly = services.every(
-    (service) => service === "photography" || service === "other",
-  );
-  if (isPhotographyOrOtherOnly) {
-    return { shouldShowSetup: false, derivedSetup: "" };
-  }
-
-  if (services.length === 1) {
-    if (services[0] === "new-website") {
-      return { shouldShowSetup: false, derivedSetup: "no-setup" };
-    }
-
-    if (services[0] === "existing-website") {
-      return { shouldShowSetup: false, derivedSetup: "website" };
-    }
-
-    if (services[0] === "ongoing-support") {
-      return { shouldShowSetup: false, derivedSetup: "" };
-    }
-  }
-
-  const newWebsiteContextOnly = services.includes("new-website")
-    && services.every(
-      (service) => service === "new-website" || service === "photography" || service === "other",
-    );
-  if (newWebsiteContextOnly) {
-    return { shouldShowSetup: false, derivedSetup: "no-setup" };
-  }
-
-  return {
-    shouldShowSetup: services.some((service) => DIGITAL_SETUP_SERVICES.has(service)),
-    derivedSetup: "",
-  };
-}
-
 function getRateLimitKey(email: string): string {
   return email.toLowerCase();
 }
 
+function cleanupRateLimit(now: number): void {
+  for (const [entryKey, timestamps] of submissionTimestamps.entries()) {
+    const recentTimestamps = timestamps.filter((ts) => now - ts < RATE_LIMIT_WINDOW_MS);
+    if (recentTimestamps.length === 0) {
+      submissionTimestamps.delete(entryKey);
+      continue;
+    }
+
+    submissionTimestamps.set(entryKey, recentTimestamps);
+  }
+}
+
 function checkRateLimit(key: string): boolean {
   const now = Date.now();
-  const timestamps = submissionTimestamps.get(key) || [];
-  const recentTimestamps = timestamps.filter((ts) => now - ts < RATE_LIMIT_WINDOW_MS);
+  cleanupRateLimit(now);
+  const recentTimestamps = submissionTimestamps.get(key) || [];
 
   if (recentTimestamps.length >= MAX_SUBMISSIONS_PER_HOUR) {
     return false;
@@ -255,20 +194,6 @@ function checkRateLimit(key: string): boolean {
 
   return true;
 }
-
-function validateRequiredDate(value: string): boolean {
-  if (!value.trim()) {
-    return true;
-  }
-
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) {
-    return false;
-  }
-
-  const parsed = new Date(`${value}T00:00:00`);
-  return !Number.isNaN(parsed.getTime());
-}
-
 function validateForm(data: FormData): ValidationError[] {
   const errors: ValidationError[] = [];
 
@@ -277,19 +202,19 @@ function validateForm(data: FormData): ValidationError[] {
     return [{ field: "form", message: "Form submission failed validation" }];
   }
 
-  const nameClean = sanitizeInput(data.name);
+  const nameClean = sanitizeInput(data.name, MAX_FIELD_LENGTH);
   if (!nameClean || nameClean.length < 2) {
     errors.push({ field: "name", message: "Please enter your name." });
   }
 
-  const emailClean = sanitizeInput(data.email);
+  const emailClean = sanitizeInput(data.email, MAX_FIELD_LENGTH);
   if (!emailClean) {
     errors.push({ field: "email", message: "Please enter your email address." });
-  } else if (!validateEmail(emailClean)) {
+  } else if (!isValidEmail(emailClean)) {
     errors.push({ field: "email", message: "Enter a valid email address." });
   }
 
-  const phoneClean = sanitizeInput(data.phone);
+  const phoneClean = sanitizeInput(data.phone, MAX_FIELD_LENGTH);
   if (data.contactMethod === "phone" && !phoneClean) {
     errors.push({
       field: "phone",
@@ -297,7 +222,7 @@ function validateForm(data: FormData): ValidationError[] {
     });
   }
 
-  if (phoneClean && !validateAustralianPhone(phoneClean)) {
+  if (phoneClean && !isValidAustralianPhone(phoneClean)) {
     errors.push({
       field: "phone",
       message: "Enter a valid Australian phone number.",
@@ -314,13 +239,13 @@ function validateForm(data: FormData): ValidationError[] {
   }
 
   const setupState = getSetupState(servicesClean);
-  const setupClean = sanitizeInput(data.setup);
+  const setupClean = sanitizeInput(data.setup, MAX_FIELD_LENGTH);
 
   if (setupState.shouldShowSetup && !VALID_SETUP_OPTIONS.has(setupClean)) {
     errors.push({ field: "setup", message: "Select your current setup." });
   }
 
-  const messageClean = sanitizeInput(data.message);
+  const messageClean = sanitizeInput(data.message, MAX_MESSAGE_LENGTH);
   if (!messageClean || messageClean.length < MIN_MESSAGE_LENGTH) {
     errors.push({
       field: "message",
@@ -330,17 +255,21 @@ function validateForm(data: FormData): ValidationError[] {
     errors.push({ field: "message", message: "Message is too long." });
   }
 
-  if (data.contactMethod && !VALID_CONTACT_METHODS.has(data.contactMethod)) {
-    errors.push({ field: "contactMethod", message: "Invalid contact method." });
+  const contactMethodClean = sanitizeInput(data.contactMethod, MAX_FIELD_LENGTH);
+  if (!contactMethodClean || !VALID_CONTACT_METHODS.has(contactMethodClean)) {
+    errors.push({
+      field: "contactMethod",
+      message: "Choose a preferred contact method.",
+    });
   }
 
-  const timingClean = sanitizeInput(data.timing);
+  const timingClean = sanitizeInput(data.timing, MAX_FIELD_LENGTH);
   if (timingClean && !VALID_TIMINGS.has(timingClean)) {
     errors.push({ field: "timing", message: "Invalid timing selection." });
   }
 
-  const requiredDateClean = sanitizeInput(data.requiredDate);
-  if (requiredDateClean && !validateRequiredDate(requiredDateClean)) {
+  const requiredDateClean = sanitizeInput(data.requiredDate, MAX_FIELD_LENGTH);
+  if (requiredDateClean && !isValidRequiredDate(requiredDateClean)) {
     errors.push({ field: "requiredDate", message: "Enter a valid date." });
   }
 
@@ -522,7 +451,7 @@ export async function submitContactForm(
       };
     }
 
-    const email = sanitizeInput(formData.email);
+    const email = sanitizeInput(formData.email, MAX_FIELD_LENGTH);
     const rateLimitKey = getRateLimitKey(email);
     if (!checkRateLimit(rateLimitKey)) {
       console.log("[contact-form] Rate limit exceeded for:", rateLimitKey);
@@ -556,16 +485,18 @@ export async function submitContactForm(
     });
 
     const sanitizedServices = sanitizeServices(formData.services || []);
-    const sanitizedName = sanitizeInput(formData.name);
-    const sanitizedMessage = sanitizeInput(formData.message).substring(0, MAX_MESSAGE_LENGTH);
-    const normalizedPhone = normalizeAustralianPhone(sanitizeInput(formData.phone));
-      const setupState = getSetupState(sanitizedServices);
-      const setup = setupState.shouldShowSetup
-        ? sanitizeInput(formData.setup)
-        : setupState.derivedSetup;
-    const timing = sanitizeInput(formData.timing);
-    const requiredDate = sanitizeInput(formData.requiredDate);
-    const contactMethod = sanitizeInput(formData.contactMethod);
+    const sanitizedName = sanitizeInput(formData.name, MAX_FIELD_LENGTH);
+    const sanitizedMessage = sanitizeInput(formData.message, MAX_MESSAGE_LENGTH);
+    const normalizedPhone = normalizeAustralianPhone(
+      sanitizeInput(formData.phone, MAX_FIELD_LENGTH),
+    );
+    const setupState = getSetupState(sanitizedServices);
+    const setup = setupState.shouldShowSetup
+      ? sanitizeInput(formData.setup, MAX_FIELD_LENGTH)
+      : setupState.derivedSetup;
+    const timing = sanitizeInput(formData.timing, MAX_FIELD_LENGTH);
+    const requiredDate = sanitizeInput(formData.requiredDate, MAX_FIELD_LENGTH);
+    const contactMethod = sanitizeInput(formData.contactMethod, MAX_FIELD_LENGTH);
 
     const subject = generateEmailSubject(sanitizedServices, sanitizedName);
     const textContent = generatePlainTextEmail({
