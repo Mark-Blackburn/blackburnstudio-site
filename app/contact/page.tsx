@@ -12,7 +12,18 @@ export const metadata: Metadata = {
     "Get in touch about websites, domains, hosting, Microsoft 365, photography or ongoing support.",
 };
 
-export default function ContactPage() {
+export default async function ContactPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ service?: string | string[] }>;
+}) {
+  const params = await searchParams;
+  const preselectedServices = Array.isArray(params.service)
+    ? params.service
+    : params.service
+      ? [params.service]
+      : [];
+
   return (
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
@@ -31,7 +42,7 @@ export default function ContactPage() {
             support enquiries are welcome. Share a few details and I&apos;ll
             come back to you with the most useful next step.
           </p>
-          <ContactEnquiryForm />
+          <ContactEnquiryForm initialServices={preselectedServices} />
           <p className="mt-6 text-sm leading-relaxed text-studio-dim md:text-base">
             Prefer email? Contact{" "}
             <a
