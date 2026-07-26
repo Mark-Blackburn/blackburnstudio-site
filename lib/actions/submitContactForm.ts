@@ -7,6 +7,7 @@ import {
   isValidAustralianPhone,
   isValidEmail,
   isValidRequiredDate,
+  parseAustralianPhone,
 } from "@/lib/contact/sharedValidation";
 
 // Validation constants
@@ -126,26 +127,6 @@ function escapeHtml(input: string): string {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#39;");
-}
-
-function normalizeAustralianPhone(phone: string): string {
-  const trimmed = phone.trim();
-  if (!trimmed) {
-    return "";
-  }
-
-  let normalized = trimmed.replace(/[\s()-]/g, "");
-  normalized = normalized.replace(/^\+610/, "+61");
-
-  if (/^04\d{8}$/.test(normalized)) {
-    return `+61${normalized.slice(1)}`;
-  }
-
-  if (/^0[2378]\d{8}$/.test(normalized)) {
-    return `+61${normalized.slice(1)}`;
-  }
-
-  return normalized;
 }
 
 function sanitizeServices(services: string[]): string[] {
@@ -487,9 +468,9 @@ export async function submitContactForm(
     const sanitizedServices = sanitizeServices(formData.services || []);
     const sanitizedName = sanitizeInput(formData.name, MAX_FIELD_LENGTH);
     const sanitizedMessage = sanitizeInput(formData.message, MAX_MESSAGE_LENGTH);
-    const normalizedPhone = normalizeAustralianPhone(
-      sanitizeInput(formData.phone, MAX_FIELD_LENGTH),
-    );
+    const sanitizedPhone = sanitizeInput(formData.phone, MAX_FIELD_LENGTH);
+    const parsedPhone = parseAustralianPhone(sanitizedPhone);
+    const normalizedPhone = parsedPhone.valid ? parsedPhone.canonical : "";
     const setupState = getSetupState(sanitizedServices);
     const setup = setupState.shouldShowSetup
       ? sanitizeInput(formData.setup, MAX_FIELD_LENGTH)
