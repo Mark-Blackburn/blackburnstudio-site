@@ -54,28 +54,102 @@ export function isValidEmail(value: string): boolean {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
 }
 
-export function isValidAustralianPhone(value: string): boolean {
+export type AustralianPhoneType = "mobile" | "landline";
+
+export type ParsedAustralianPhone =
+  | {
+      valid: true;
+      canonical: string;
+      display: string;
+      type: AustralianPhoneType;
+    }
+  | {
+      valid: false;
+    };
+
+function formatMobileDisplay(nationalSignificantNumber: string): string {
+  const local = `0${nationalSignificantNumber}`;
+  return `${local.slice(0, 4)} ${local.slice(4, 7)} ${local.slice(7)}`;
+}
+
+function formatLandlineDisplay(nationalSignificantNumber: string): string {
+  const local = `0${nationalSignificantNumber}`;
+  return `${local.slice(0, 2)} ${local.slice(2, 6)} ${local.slice(6)}`;
+}
+
+export function parseAustralianPhone(value: string): ParsedAustralianPhone {
   const trimmed = value.trim();
   if (!trimmed) {
-    return true;
+    return { valid: false };
   }
 
   if (/[^\d\s()+-]/.test(trimmed)) {
-    return false;
+    return { valid: false };
   }
 
-  let normalized = trimmed.replace(/[\s()-]/g, "");
-  normalized = normalized.replace(/^\+610/, "+61");
-
-  if (normalized.startsWith("+61")) {
-    return /^\+61(4\d{8}|[2378]\d{8})$/.test(normalized);
+  const compact = trimmed.replace(/[\s()-]/g, "");
+  if (!compact) {
+    return { valid: false };
   }
 
-  if (normalized.startsWith("0")) {
-    return /^(04\d{8}|0[2378]\d{8})$/.test(normalized);
+  if (compact.includes("+") && !compact.startsWith("+")) {
+    return { valid: false };
   }
 
-  return false;
+  let nationalSignificantNumber = "";
+
+  if (compact.startsWith("+")) {
+    const intlDigits = compact.slice(1);
+    if (!intlDigits.startsWith("61")) {
+      return { valid: false };
+    }
+
+    nationalSignificantNumber = intlDigits.slice(2);
+    if (nationalSignificantNumber.startsWith("0")) {
+      nationalSignificantNumber = nationalSignificantNumber.slice(1);
+    }
+  } else if (compact.startsWith("61")) {
+    nationalSignificantNumber = compact.slice(2);
+    if (nationalSignificantNumber.startsWith("0")) {
+      nationalSignificantNumber = nationalSignificantNumber.slice(1);
+    }
+  } else if (compact.startsWith("0")) {
+    nationalSignificantNumber = compact.slice(1);
+  } else {
+    nationalSignificantNumber = compact;
+  }
+
+  if (!/^\d{9}$/.test(nationalSignificantNumber)) {
+    return { valid: false };
+  }
+
+  if (nationalSignificantNumber.startsWith("4")) {
+    return {
+      valid: true,
+      canonical: `+61${nationalSignificantNumber}`,
+      display: formatMobileDisplay(nationalSignificantNumber),
+      type: "mobile",
+    };
+  }
+
+  if (/^[2378]/.test(nationalSignificantNumber)) {
+    return {
+      valid: true,
+      canonical: `+61${nationalSignificantNumber}`,
+      display: formatLandlineDisplay(nationalSignificantNumber),
+      type: "landline",
+    };
+  }
+
+  return { valid: false };
+}
+
+export function isValidAustralianPhone(value: string): boolean {
+  if (!value.trim()) {
+    return true;
+  }
+
+  return parseAustralianPhone(value).valid;
 }
 
 export function isValidRequiredDate(value: string): boolean {

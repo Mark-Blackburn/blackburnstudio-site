@@ -8,6 +8,7 @@ import {
   isValidAustralianPhone,
   isValidEmail,
   isValidRequiredDate,
+  parseAustralianPhone,
 } from "@/lib/contact/sharedValidation";
 
 type SubmissionState = "idle" | "submitting" | "success" | "error";
@@ -349,6 +350,12 @@ export default function ContactEnquiryForm({
 
   const handlePhoneBlur = useCallback(() => {
     setTouched((current) => ({ ...current, phone: true }));
+    const parsedPhone = parseAustralianPhone(phone);
+
+    if (parsedPhone.valid && phone.trim()) {
+      setPhone(parsedPhone.display);
+    }
+
     setErrors((current) => {
       if (!phone.trim()) {
         if (contactMethod === "phone") {
@@ -363,7 +370,7 @@ export default function ContactEnquiryForm({
         return { ...current, phone: undefined };
       }
 
-      if (!isValidAustralianPhone(phone)) {
+      if (!parsedPhone.valid) {
         return { ...current, phone: PHONE_ERROR_MESSAGE };
       }
 
@@ -670,6 +677,7 @@ export default function ContactEnquiryForm({
             <input
               id="contact-phone"
               type="tel"
+              inputMode="tel"
               name="phone"
               autoComplete="tel"
               value={phone}
@@ -686,7 +694,7 @@ export default function ContactEnquiryForm({
                     } else {
                       clearError("phone");
                     }
-                  } else if (!isValidAustralianPhone(nextValue)) {
+                  } else if (!parseAustralianPhone(nextValue).valid) {
                     setErrors((current) => ({
                       ...current,
                       phone: PHONE_ERROR_MESSAGE,

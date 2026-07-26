@@ -80,4 +80,25 @@ describe("ContactEnquiryForm error summary focus targets", () => {
 
     expect(document.activeElement).toHaveAttribute("id", "contact-consent");
   });
+
+  it("formats a valid 9-digit mobile on blur and clears phone error", async () => {
+    const user = userEvent.setup();
+    render(<ContactEnquiryForm />);
+
+    const phoneInput = screen.getByLabelText("Phone number");
+
+    await user.type(phoneInput, "123");
+    await user.tab();
+    expect(screen.getByText("Enter a valid Australian phone number.")).toBeInTheDocument();
+
+    await user.clear(phoneInput);
+    await user.type(phoneInput, "424961192");
+    await user.tab();
+
+    await waitFor(() => {
+      expect(phoneInput).toHaveValue("0424 961 192");
+    });
+
+    expect(screen.queryByText("Enter a valid Australian phone number.")).not.toBeInTheDocument();
+  });
 });

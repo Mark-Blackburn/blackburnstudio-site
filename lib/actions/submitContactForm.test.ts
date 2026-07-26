@@ -103,4 +103,16 @@ describe("submitContactForm message limits", () => {
     );
     expect(sendMock).not.toHaveBeenCalled();
   });
+
+  it("accepts 9-digit autofill mobile and sends canonical phone", async () => {
+    const result = await submitContactForm(
+      buildFormData({
+        phone: "424961192",
+      }),
+    );
+
+    expect(result.success).toBe(true);
+    expect(sendMock).toHaveBeenCalledTimes(1);
+    expect(sendMock.mock.calls[0][0].text).toContain("Phone: +61424961192");
+  });
 });
