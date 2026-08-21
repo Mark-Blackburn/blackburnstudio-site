@@ -4,12 +4,14 @@ import { getImagesWithBlur, type ImageSource } from "../../../lib/getImagesWithB
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata = {
-  title: "Couples — Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Couples",
   description:
     "Couples photography with gentle direction and natural interaction.",
-};
+  path: "/work/couples",
+});
 
 // Sequence preserved exactly — curated for emotional pacing and editorial rhythm.
 const couplesSources: ImageSource[] = [

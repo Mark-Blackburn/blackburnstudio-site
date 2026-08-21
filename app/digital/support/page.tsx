@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
@@ -9,12 +8,14 @@ import {
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata: Metadata = {
-  title: "Website and Digital Support | Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Website and Digital Support",
   description:
     "Ongoing website and digital support across maintenance, hosting, domains and Microsoft 365 for businesses and organisations.",
-};
+  path: "/digital/support",
+});
 
 export default function DigitalSupportPage() {
   return (

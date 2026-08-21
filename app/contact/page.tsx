@@ -1,16 +1,16 @@
-import type { Metadata } from "next";
-
 import ContactEnquiryForm from "@/components/site/ContactEnquiryForm";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow } from "@/components/studio";
 import { domainManagementUrl } from "@/lib/domainManagement";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata: Metadata = {
-  title: "Contact — Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Contact",
   description:
     "Get in touch about websites, domains, hosting, Microsoft 365, photography or ongoing support.",
-};
+  path: "/contact",
+});
 
 export default async function ContactPage({
   searchParams,

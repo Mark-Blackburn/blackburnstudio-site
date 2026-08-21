@@ -4,12 +4,14 @@ import { getImagesWithBlur } from "../../../lib/getImagesWithBlur";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata = {
-  title: "Portraits — Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Portraits",
   description:
     "Portrait photography focused on expression, natural light and presence.",
-};
+  path: "/work/portraits",
+});
 
 export default async function PortraitsPage() {
   const images = await getImagesWithBlur();

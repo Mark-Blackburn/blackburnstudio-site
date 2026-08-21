@@ -102,17 +102,18 @@ Potential inconsistencies or duplication requiring review:
 
 Verified gaps:
 
-- `/work/portraits`, `/work/families`, and `/work/couples` define `metadata.title` only and rely on inherited description.
-- `/about` and `/contact` define title and description but do not currently define route-level Open Graph/Twitter objects.
-- `/digital` defines route-level `openGraph` title/description only, which overrides layout-level Open Graph object fields in Next.js metadata merging.
-- No route defines a complete route-level Open Graph/Twitter object set.
-- No `robots` or `sitemap` files in repository.
 - No explicit service/pricing/process/about-team pages.
 - No legal pages (privacy, terms, cookies) detected.
 
+Verified technical SEO coverage:
+
+- All public routes define titles, descriptions, self-referencing canonical URLs and consistent Open Graph/Twitter metadata.
+- Generated `/sitemap.xml` and `/robots.txt` routes are present.
+- Site-wide `WebSite` and `ProfessionalService` JSON-LD describes the site, services and verified service area without unverified contact or address details.
+
 Requires verification:
 
-- Whether legal pages or SEO artefacts are provided externally at hosting level.
+- Whether legal pages are provided externally at hosting level.
 
 ## Facts, assumptions, and gaps classification
 

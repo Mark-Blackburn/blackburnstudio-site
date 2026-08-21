@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
@@ -10,12 +9,14 @@ import {
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata: Metadata = {
-  title: "Microsoft 365 Setup and Support | Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Microsoft 365 Setup and Support",
   description:
     "Microsoft 365 setup, migration, administration and workflow delivery across email, Teams, SharePoint and automation.",
-};
+  path: "/digital/microsoft-365",
+});
 
 export default function Microsoft365Page() {
   return (

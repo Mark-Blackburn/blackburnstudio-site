@@ -10,7 +10,7 @@ import { promises as fs } from "node:fs";
 import path from "node:path";
 import sharp from "sharp";
 
-const FOLDERS = ["public/portraits", "public/families", "public/couples", "public/japan", "public/images"];
+const FOLDERS = ["public/Portraits", "public/families", "public/couples", "public/japan", "public/images"];
 const MAX_EDGE = 2400;
 const QUALITY = 82;
 

@@ -1,15 +1,16 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata: Metadata = {
-  title: "About — Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "About",
   description:
     "Blackburn Studio is run by Mark Blackburn and combines photography with websites, managed digital services, Microsoft 365 and practical business-system support.",
-};
+  path: "/about",
+});
 
 export default function AboutPage() {
   return (

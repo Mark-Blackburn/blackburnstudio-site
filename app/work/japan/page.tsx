@@ -4,12 +4,14 @@ import { getImagesWithBlur, type ImageSource } from "../../../lib/getImagesWithB
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata = {
-  title: "Japan — Atmosphere & Memory — Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Japan — Atmosphere & Memory",
   description:
     "A personal landscape study of place, texture and memory in Japan.",
-};
+  path: "/work/japan",
+});
 
 // Sequence preserved exactly — order is data-driven, independent of filenames.
 const japanSources: ImageSource[] = [
