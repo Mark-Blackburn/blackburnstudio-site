@@ -78,7 +78,7 @@ Shared footer content:
 
 | Collection | Route | Data definition | Folder path used by loader | Approx image count (defined sources) | Notes |
 |---|---|---|---|---:|---|
-| Portraits | `/work/portraits` | `portraitSources` default in [lib/getImagesWithBlur.ts](../../lib/getImagesWithBlur.ts) | `portraits` (default) | 7 | Loader default path is lowercase; on-disk folder appears as `public/Portraits` and requires verification on case-sensitive builds |
+| Portraits | `/work/portraits` | `portraitSources` default in [lib/getImagesWithBlur.ts](../../lib/getImagesWithBlur.ts) | `portraits` (default) | 7 | Canonical asset directory and public URL path are lowercase: `public/portraits` and `/portraits/...` |
 | Families | `/work/families` | `familySources` in [app/work/families/page.tsx](../../app/work/families/page.tsx) | `families` | 12 | Sequenced for editorial pacing |
 | Couples | `/work/couples` | `couplesSources` in [app/work/couples/page.tsx](../../app/work/couples/page.tsx) | `couples` | 5 | Sequenced for editorial pacing |
 | Japan | `/work/japan` | `japanSources` in [app/work/japan/page.tsx](../../app/work/japan/page.tsx) | `japan` | 14 | Sequenced for editorial pacing |

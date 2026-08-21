@@ -32,7 +32,7 @@ function deriveOrientation(width?: number, height?: number): Orientation | undef
 }
 
 export async function getImagesWithBlur(
-  folder: string = "Portraits",
+  folder: string = "portraits",
   imageSources: ImageSource[] = portraitSources,
 ): Promise<GalleryImage[]> {
   const dir = path.join(process.cwd(), "public", folder);

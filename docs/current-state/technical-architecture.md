@@ -187,13 +187,13 @@ Observed folders in [public](../../public):
 - [public/couples](../../public/couples)
 - [public/families](../../public/families)
 - [public/japan](../../public/japan)
-- [public/Portraits](../../public/Portraits)
+- [public/portraits](../../public/portraits)
 
 Important implementation detail:
 
 - Default portrait loader folder is `portraits` (lowercase) in [lib/getImagesWithBlur.ts](../../lib/getImagesWithBlur.ts).
 - Compression script also targets `public/portraits` in [scripts/compress-images.mjs](../../scripts/compress-images.mjs).
-- On-disk folder is `public/Portraits` in this working tree.
+- The canonical on-disk folder and public URL path are lowercase: `public/portraits` and `/portraits/...`.
 
 Known risk:
 
