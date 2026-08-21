@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 
+import SiteAnalytics from "@/components/site/SiteAnalytics";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
@@ -95,6 +96,7 @@ export default function RootLayout({
         />
         {children}
       </body>
+      <SiteAnalytics />
     </html>
   );
 }

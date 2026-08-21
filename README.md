@@ -67,6 +67,9 @@ Create a local `.env.local` file when needed. The site reads these public values
 
 - `NEXT_PUBLIC_IMAGE_BASE_URL` - optional image base path for local or alternate hosting.
 - `NEXT_PUBLIC_DOMAIN_MANAGEMENT_URL` - Blackburn Studio domain-management URL. Leave blank if the link should not be shown.
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID` - optional GA4 Measurement ID. Analytics is omitted when this is blank.
+
+The production build must define `NEXT_PUBLIC_GA_MEASUREMENT_ID=G-XBFZ8VW4Y9` in its deployment build environment. GA4 records initial page loads through the Google tag and client-side App Router navigation through browser-history enhanced measurement. Keep the GA4 property's **Page changes based on browser history events** setting enabled; do not add manual page-view events unless automatic measurement is disabled.
 
 ## Learn More
 

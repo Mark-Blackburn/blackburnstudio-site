@@ -260,8 +260,10 @@ Defined custom tokens in [app/globals.css](../../app/globals.css):
 
 ## Analytics and telemetry
 
-- No analytics or telemetry integration found in application source.
-- Note: telemetry-related transitive packages in lockfile are dependency internals, not direct site instrumentation.
+- GA4 is loaded once from the root layout through `@next/third-parties/google` when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is configured.
+- Initial page loads use the Google tag's standard page view. Client-side route changes rely on GA4 enhanced measurement for browser-history events; no manual page-view event is sent.
+- A privacy-safe `generate_lead` event is sent only after the enquiry server action confirms success. Its only custom property is the fixed `form_name` value `project_enquiry`.
+- No consent manager or cookie banner is implemented in the application.
 
 ## Tests
 
@@ -318,8 +320,9 @@ Observed in source:
 
 - `NEXT_PUBLIC_IMAGE_BASE_URL` in [app/page.tsx](../../app/page.tsx) and [app/work/page.tsx](../../app/work/page.tsx)
 - Fallback default is `/images` when env var is unset.
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID` conditionally enables the root GA4 integration. The production build uses `G-XBFZ8VW4Y9`.
 
-No `.env` files are committed in repository.
+An empty configuration template is committed as [.env.example](../../.env.example). Local `.env` files remain ignored.
 
 ## Security-relevant configuration
 
