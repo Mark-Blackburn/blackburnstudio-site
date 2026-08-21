@@ -320,7 +320,7 @@ Observed in source:
 
 - `NEXT_PUBLIC_IMAGE_BASE_URL` in [app/page.tsx](../../app/page.tsx) and [app/work/page.tsx](../../app/work/page.tsx)
 - Fallback default is `/images` when env var is unset.
-- `NEXT_PUBLIC_GA_MEASUREMENT_ID` conditionally enables the root GA4 integration. The production build uses `G-XBFZ8VW4Y9`.
+- `NEXT_PUBLIC_GA_MEASUREMENT_ID` conditionally enables the root GA4 integration. Deployments that require GA4 provide their property-specific Measurement ID to the production build.
 
 An empty configuration template is committed as [.env.example](../../.env.example). Local `.env` files remain ignored.
 

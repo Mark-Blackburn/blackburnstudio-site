@@ -95,8 +95,8 @@ export default function RootLayout({
           }}
         />
         {children}
+        <SiteAnalytics />
       </body>
-      <SiteAnalytics />
     </html>
   );
 }
