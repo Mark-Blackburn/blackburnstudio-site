@@ -187,13 +187,13 @@ Observed folders in [public](../../public):
 - [public/couples](../../public/couples)
 - [public/families](../../public/families)
 - [public/japan](../../public/japan)
-- [public/Portraits](../../public/Portraits)
+- [public/portraits](../../public/portraits)
 
 Important implementation detail:
 
 - Default portrait loader folder is `portraits` (lowercase) in [lib/getImagesWithBlur.ts](../../lib/getImagesWithBlur.ts).
 - Compression script also targets `public/portraits` in [scripts/compress-images.mjs](../../scripts/compress-images.mjs).
-- On-disk folder is `public/Portraits` in this working tree.
+- The canonical on-disk folder and public URL path are lowercase: `public/portraits` and `/portraits/...`.
 
 Known risk:
 
@@ -241,17 +241,17 @@ Defined custom tokens in [app/globals.css](../../app/globals.css):
 
 ## Metadata and SEO
 
-- Global metadata defined in [app/layout.tsx](../../app/layout.tsx): title, description, icons, manifest.
-- Route-level metadata present on launch routes and work routes.
-- `/digital` defines route-level Open Graph title/description only in [app/digital/page.tsx](../../app/digital/page.tsx).
-- No route currently defines a complete route-level Open Graph and Twitter metadata object set.
-- No explicit canonical URLs found.
+- Global metadata defined in [app/layout.tsx](../../app/layout.tsx): production `metadataBase`, title template, description, icons and manifest.
+- Site identity, the public route inventory and shared page-metadata generation are centralized in [lib/siteConfig.ts](../../lib/siteConfig.ts).
+- Every public indexable route defines a title, description, self-referencing canonical URL and complete Open Graph/Twitter metadata through the shared helper.
+- Site-wide JSON-LD in [app/layout.tsx](../../app/layout.tsx) identifies the site and business using `WebSite` and `ProfessionalService` types.
 
 ## Sitemap, robots and manifest configuration
 
 - Manifest configured as `/site.webmanifest` via [app/layout.tsx](../../app/layout.tsx).
 - Manifest file: [public/site.webmanifest](../../public/site.webmanifest).
-- No `robots.ts`, `robots.txt`, `sitemap.ts`, or `sitemap.xml` found in repository.
+- [app/sitemap.ts](../../app/sitemap.ts) generates `/sitemap.xml` from the centralized public route inventory.
+- [app/robots.ts](../../app/robots.ts) generates `/robots.txt`, allows public crawling and references the production sitemap.
 
 ## Contact implementation
 
@@ -348,10 +348,7 @@ Known gap:
 
 ## Known technical debt
 
-- No automated test coverage.
-- No robots/sitemap implementation.
-- Metadata implementation is uneven across routes.
-- Potential folder-case mismatch (`Portraits` vs `portraits`) should be validated in Linux build/deploy contexts.
+- Automated tests cover contact validation and form behaviour, but there are no dedicated metadata-route regression tests.
 - Existing gallery documents in [docs](../../docs) include historical statements that no longer match current route implementation and need periodic reconciliation.
 
 ## Areas requiring external verification

@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
@@ -9,12 +8,14 @@ import {
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton, StudioTag } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata: Metadata = {
-  title: "Website Design and Development | Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Website Design and Development",
   description:
     "Practical website design and development for businesses and organisations, including new builds, rebuilds, content structure and ongoing improvement.",
-};
+  path: "/digital/websites",
+});
 
 export default function DigitalWebsitesPage() {
   return (

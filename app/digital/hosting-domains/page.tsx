@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 
 import {
@@ -9,12 +8,14 @@ import {
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata: Metadata = {
-  title: "Managed Website Hosting and Domains | Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Managed Website Hosting and Domains",
   description:
     "Managed domain and hosting services including DNS, SSL, migrations and ongoing technical coordination with one point of contact.",
-};
+  path: "/digital/hosting-domains",
+});
 
 export default function HostingDomainsPage() {
   return (

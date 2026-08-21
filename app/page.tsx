@@ -4,10 +4,22 @@ import Link from "next/link";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import {
+  createPageMetadata,
+  DEFAULT_DESCRIPTION,
+  DEFAULT_TITLE,
+} from "@/lib/siteConfig";
 
 const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/images";
 
 const portraits = ["portrait-01.jpg", "portrait-02.jpg", "portrait-03.jpg"];
+
+export const metadata = createPageMetadata({
+  title: DEFAULT_TITLE,
+  description: DEFAULT_DESCRIPTION,
+  path: "/",
+  includeBrandSuffix: false,
+});
 
 export default function Home() {
   return (

@@ -4,6 +4,7 @@ import { RichDigitalWorkSection } from "@/components/digital-work";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
 const baseUrl = process.env.NEXT_PUBLIC_IMAGE_BASE_URL || "/images";
 
@@ -38,11 +39,12 @@ const categories = [
   },
 ];
 
-export const metadata = {
-  title: "Selected Photography and Digital Work | Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Selected Photography and Digital Work",
   description:
     "Explore selected photography, website, workflow and digital-platform work created by Blackburn Studio for people, businesses and community organisations.",
-};
+  path: "/work",
+});
 
 export default function WorkPage() {
   return (

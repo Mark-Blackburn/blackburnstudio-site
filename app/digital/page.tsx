@@ -1,4 +1,3 @@
-import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 
@@ -14,13 +13,14 @@ import {
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata: Metadata = {
-  title:
-    "Digital Services | Websites, Hosting and Microsoft 365 | Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Digital Services | Websites, Hosting and Microsoft 365",
   description:
     "Blackburn Studio delivers managed digital services across websites, hosting, domains, Microsoft 365 and ongoing support for businesses and organisations.",
-};
+  path: "/digital",
+});
 
 const serviceCards = [
   {

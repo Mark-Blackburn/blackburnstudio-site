@@ -78,7 +78,7 @@ Shared footer content:
 
 | Collection | Route | Data definition | Folder path used by loader | Approx image count (defined sources) | Notes |
 |---|---|---|---|---:|---|
-| Portraits | `/work/portraits` | `portraitSources` default in [lib/getImagesWithBlur.ts](../../lib/getImagesWithBlur.ts) | `portraits` (default) | 7 | Loader default path is lowercase; on-disk folder appears as `public/Portraits` and requires verification on case-sensitive builds |
+| Portraits | `/work/portraits` | `portraitSources` default in [lib/getImagesWithBlur.ts](../../lib/getImagesWithBlur.ts) | `portraits` (default) | 7 | Canonical asset directory and public URL path are lowercase: `public/portraits` and `/portraits/...` |
 | Families | `/work/families` | `familySources` in [app/work/families/page.tsx](../../app/work/families/page.tsx) | `families` | 12 | Sequenced for editorial pacing |
 | Couples | `/work/couples` | `couplesSources` in [app/work/couples/page.tsx](../../app/work/couples/page.tsx) | `couples` | 5 | Sequenced for editorial pacing |
 | Japan | `/work/japan` | `japanSources` in [app/work/japan/page.tsx](../../app/work/japan/page.tsx) | `japan` | 14 | Sequenced for editorial pacing |
@@ -102,17 +102,18 @@ Potential inconsistencies or duplication requiring review:
 
 Verified gaps:
 
-- `/work/portraits`, `/work/families`, and `/work/couples` define `metadata.title` only and rely on inherited description.
-- `/about` and `/contact` define title and description but do not currently define route-level Open Graph/Twitter objects.
-- `/digital` defines route-level `openGraph` title/description only, which overrides layout-level Open Graph object fields in Next.js metadata merging.
-- No route defines a complete route-level Open Graph/Twitter object set.
-- No `robots` or `sitemap` files in repository.
 - No explicit service/pricing/process/about-team pages.
 - No legal pages (privacy, terms, cookies) detected.
 
+Verified technical SEO coverage:
+
+- All public routes define titles, descriptions, self-referencing canonical URLs and consistent Open Graph/Twitter metadata.
+- Generated `/sitemap.xml` and `/robots.txt` routes are present.
+- Site-wide `WebSite` and `ProfessionalService` JSON-LD describes the site, services and verified service area without unverified contact or address details.
+
 Requires verification:
 
-- Whether legal pages or SEO artefacts are provided externally at hosting level.
+- Whether legal pages are provided externally at hosting level.
 
 ## Facts, assumptions, and gaps classification
 

@@ -4,12 +4,14 @@ import { getImagesWithBlur, type ImageSource } from "../../../lib/getImagesWithB
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
+import { createPageMetadata } from "@/lib/siteConfig";
 
-export const metadata = {
-  title: "Families — Blackburn Studio",
+export const metadata = createPageMetadata({
+  title: "Families",
   description:
     "Family photography focused on connection, warmth and everyday moments.",
-};
+  path: "/work/families",
+});
 
 // Sequence preserved exactly — curated for emotional pacing and editorial rhythm.
 const familySources: ImageSource[] = [
