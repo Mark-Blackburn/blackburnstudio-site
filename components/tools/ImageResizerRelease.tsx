@@ -54,7 +54,7 @@ function optionalBoolean(value: unknown): boolean | undefined {
 }
 
 function optionalPositiveNumber(value: unknown): number | undefined {
-  return typeof value === "number" && Number.isFinite(value) && value >= 0
+  return typeof value === "number" && Number.isFinite(value) && value > 0
     ? value
     : undefined;
 }

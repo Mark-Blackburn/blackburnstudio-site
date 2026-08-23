@@ -46,7 +46,7 @@ describe("ImageResizerRelease", () => {
     vi.unstubAllGlobals();
   });
 
-  it("loads the current release and release history at runtime", async () => {
+  it("loads the current release with a positive file size and release history at runtime", async () => {
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
       return Promise.resolve(
@@ -99,6 +99,43 @@ describe("ImageResizerRelease", () => {
       IMAGE_RESIZER_RELEASES_URL,
       expect.objectContaining({ cache: "no-store" }),
     );
+  });
+
+  it.each([
+    ["zero", 0],
+    ["a negative number", -1],
+    ["NaN", Number.NaN],
+    ["Infinity", Number.POSITIVE_INFINITY],
+    ["a non-number value", "20389502"],
+  ])("treats %s installer size as unavailable", async (_label, sizeBytes) => {
+    const release = {
+      ...latestRelease,
+      installer: {
+        ...latestRelease.installer,
+        sizeBytes,
+      },
+    };
+
+    vi.stubGlobal(
+      "fetch",
+      vi.fn((input: RequestInfo | URL) =>
+        Promise.resolve(
+          jsonResponse(
+            String(input) === IMAGE_RESIZER_LATEST_URL
+              ? release
+              : historyRelease,
+          ),
+        ),
+      ),
+    );
+
+    render(<ImageResizerRelease />);
+
+    await screen.findByRole("link", { name: /Download for Windows/ });
+    expect(screen.getByText("Installer size").parentElement).toHaveTextContent(
+      "Not specified",
+    );
+    expect(screen.queryByText("0.0 MB")).not.toBeInTheDocument();
   });
 
   it("suppresses unsafe current release URLs without breaking release details", async () => {

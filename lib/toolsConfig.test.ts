@@ -24,9 +24,14 @@ describe("getSafeToolDownloadUrl", () => {
       "http://blackburnstudiodl01.blob.core.windows.net/downloads/image-resizer/setup.exe",
     ],
     [
-      "path outside Image Resizer downloads",
+      "sibling download path",
       `${TOOLS_DOWNLOADS_BASE_URL}/other-tool/setup.exe`,
     ],
+    [
+      "similarly prefixed path",
+      `${TOOLS_DOWNLOADS_BASE_URL}/image-resizer-other/setup.exe`,
+    ],
+    ["downloads base path", `${TOOLS_DOWNLOADS_BASE_URL}/setup.exe`],
   ])("rejects %s", (_label, value) => {
     expect(getSafeToolDownloadUrl(value)).toBeNull();
   });
