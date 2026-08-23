@@ -3,6 +3,7 @@ import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioButton } from "@/components/studio";
 import ToolCard from "@/components/tools/ToolCard";
 import { createPageMetadata } from "@/lib/siteConfig";
+import imageResizerApp from "@/public/tools/image-resizer/image-resizer-app.webp";
 
 export const metadata = createPageMetadata({
   title: "Tools",
@@ -63,6 +64,9 @@ export default function ToolsPage() {
               title="Web Image Resizer"
               summary="Batch resize and prepare images for websites and online stores with web-friendly sizing, filenames and metadata."
               href="/tools/image-resizer"
+              ctaLabel="View Image Resizer"
+              imageSrc={imageResizerApp}
+              imageAlt="Blackburn Studio Web Image Resizer showing batch image sizing, output dimensions and metadata options"
               features={imageResizerFeatures}
               platform="Windows"
               availability="Free download"

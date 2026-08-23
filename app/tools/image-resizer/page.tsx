@@ -1,8 +1,11 @@
+import Image from "next/image";
+
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow, StudioTag } from "@/components/studio";
 import ImageResizerRelease from "@/components/tools/ImageResizerRelease";
 import { createPageMetadata } from "@/lib/siteConfig";
+import imageResizerApp from "@/public/tools/image-resizer/image-resizer-app.webp";
 
 export const metadata = createPageMetadata({
   title: "Web Image Resizer",
@@ -23,11 +26,7 @@ const capabilities = [
 const workflowTags = [
   "Batch resizing",
   "Website presets",
-  "Ecommerce images",
   "Custom dimensions",
-  "JPEG",
-  "WebP",
-  "PNG",
   "Local processing",
 ];
 
@@ -58,6 +57,15 @@ export default function ImageResizerPage() {
           </div>
         </section>
 
+        <figure className="mt-16 overflow-hidden rounded-2xl border border-studio-border/70 bg-studio-surface/65 md:mt-20">
+          <Image
+            src={imageResizerApp}
+            alt="Blackburn Studio Web Image Resizer showing batch image sizing, output dimensions and metadata options"
+            sizes="(min-width: 1280px) 74rem, (min-width: 768px) calc(100vw - 4rem), calc(100vw - 3rem)"
+            className="h-auto w-full"
+          />
+        </figure>
+
         <section
           aria-labelledby="capabilities-heading"
           className="mt-16 grid gap-8 md:mt-20 md:grid-cols-[minmax(0,1fr)_minmax(18rem,0.7fr)] md:gap-12"
@@ -75,7 +83,7 @@ export default function ImageResizerPage() {
               general website use.
             </p>
           </div>
-          <ul className="space-y-3 rounded-2xl border border-studio-border/70 bg-studio-surface/65 p-6 text-sm leading-relaxed text-studio-muted md:p-7 md:text-base">
+          <ul className="space-y-4 text-sm leading-relaxed text-studio-muted md:pt-1 md:text-base">
             {capabilities.map((capability) => (
               <li key={capability} className="flex gap-3">
                 <span

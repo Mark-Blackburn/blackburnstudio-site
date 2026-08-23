@@ -1,25 +1,51 @@
+import Image, { type StaticImageData } from "next/image";
+
 import { StudioButton, StudioTag } from "@/components/studio";
 
-type ToolCardProps = {
+type ToolCardBaseProps = {
   title: string;
   summary: string;
   href: string;
+  ctaLabel: string;
   features: string[];
   platform: string;
   availability: string;
 };
 
+type ToolCardImageProps =
+  | {
+      imageSrc: StaticImageData;
+      imageAlt: string;
+    }
+  | {
+      imageSrc?: undefined;
+      imageAlt?: undefined;
+    };
+
+type ToolCardProps = ToolCardBaseProps & ToolCardImageProps;
+
 export default function ToolCard({
   title,
   summary,
   href,
+  ctaLabel,
   features,
   platform,
   availability,
+  imageSrc,
+  imageAlt,
 }: ToolCardProps) {
   return (
     <article className="flex h-full flex-col rounded-2xl border border-studio-border/70 bg-studio-surface/65 p-6 md:p-7">
-      <div className="flex flex-wrap gap-2.5">
+      {imageSrc ? (
+        <Image
+          src={imageSrc}
+          alt={imageAlt}
+          sizes="(min-width: 768px) 36rem, calc(100vw - 6rem)"
+          className="h-auto w-full max-w-xl rounded-xl border border-studio-border/70"
+        />
+      ) : null}
+      <div className={`flex flex-wrap gap-2.5${imageSrc ? " mt-6" : ""}`}>
         <StudioTag>{platform}</StudioTag>
         <StudioTag>{availability}</StudioTag>
       </div>
@@ -46,7 +72,7 @@ export default function ToolCard({
       <div className="mt-8 flex-1" />
       <div className="border-t border-studio-border/60 pt-6">
         <StudioButton href={href} variant="secondary">
-          View Image Resizer
+          {ctaLabel}
         </StudioButton>
       </div>
     </article>

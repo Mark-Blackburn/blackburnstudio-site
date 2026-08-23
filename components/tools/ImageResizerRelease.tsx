@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-import { StudioButton, StudioTag } from "@/components/studio";
+import { SectionEyebrow, StudioButton, StudioTag } from "@/components/studio";
 import {
+  getSafeToolDownloadUrl,
   IMAGE_RESIZER_LATEST_URL,
   IMAGE_RESIZER_RELEASES_URL,
 } from "@/lib/toolsConfig";
@@ -65,8 +66,9 @@ function parseArtifact(value: unknown): DownloadArtifact | undefined {
 
   return {
     fileName: optionalString(value.fileName),
-    downloadUrl: optionalString(value.downloadUrl),
-    versionedDownloadUrl: optionalString(value.versionedDownloadUrl),
+    downloadUrl: getSafeToolDownloadUrl(value.downloadUrl) ?? undefined,
+    versionedDownloadUrl:
+      getSafeToolDownloadUrl(value.versionedDownloadUrl) ?? undefined,
     sha256: optionalString(value.sha256),
     sizeBytes: optionalPositiveNumber(value.sizeBytes),
   };
@@ -85,8 +87,8 @@ function parseLatestRelease(value: unknown): LatestRelease | null {
     codeSigned: optionalBoolean(value.codeSigned),
     installer: parseArtifact(value.installer),
     portable: parseArtifact(value.portable),
-    checksumUrl: optionalString(value.checksumUrl),
-    noticesUrl: optionalString(value.noticesUrl),
+    checksumUrl: getSafeToolDownloadUrl(value.checksumUrl) ?? undefined,
+    noticesUrl: getSafeToolDownloadUrl(value.noticesUrl) ?? undefined,
   };
 
   return release.version || release.installer?.downloadUrl ? release : null;
@@ -105,8 +107,8 @@ function parseHistoryRelease(value: unknown): HistoryRelease | null {
   return {
     version,
     releasedAt: optionalString(value.releasedAt),
-    installerUrl: optionalString(value.installerUrl),
-    checksumUrl: optionalString(value.checksumUrl),
+    installerUrl: getSafeToolDownloadUrl(value.installerUrl) ?? undefined,
+    checksumUrl: getSafeToolDownloadUrl(value.checksumUrl) ?? undefined,
   };
 }
 
@@ -193,7 +195,7 @@ function CurrentRelease({ release }: { release: LatestRelease }) {
         {release.platform ? <StudioTag>{release.platform}</StudioTag> : null}
       </div>
 
-      <dl className="mt-7 grid gap-5 border-y border-studio-border/60 py-6 sm:grid-cols-3">
+      <dl className="mt-8 grid gap-6 sm:grid-cols-3">
         <div>
           <dt className="text-xs uppercase tracking-[0.16em] text-studio-dim">
             Version
@@ -220,7 +222,7 @@ function CurrentRelease({ release }: { release: LatestRelease }) {
         </div>
       </dl>
 
-      <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-center">
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
         {release.installer?.downloadUrl ? (
           <StudioButton
             href={release.installer.downloadUrl}
@@ -253,14 +255,14 @@ function CurrentRelease({ release }: { release: LatestRelease }) {
       </p>
 
       {release.codeSigned === false ? (
-        <aside className="mt-6 rounded-xl border border-studio-border/70 bg-studio-base/35 px-5 py-4 text-sm leading-relaxed text-studio-muted">
+        <aside className="mt-8 max-w-[72ch] text-sm leading-relaxed text-studio-dim">
           Windows or Microsoft Edge may display a SmartScreen warning because
           this version is not yet digitally signed.
         </aside>
       ) : null}
 
       {release.installer?.sha256 ? (
-        <div className="mt-7">
+        <div className="mt-9">
           <h3 className="text-sm font-medium text-studio-text">
             SHA-256 checksum
           </h3>
@@ -271,7 +273,7 @@ function CurrentRelease({ release }: { release: LatestRelease }) {
       ) : null}
 
       {release.checksumUrl || release.noticesUrl ? (
-        <div className="mt-5 flex flex-wrap gap-x-6 gap-y-3 text-sm text-studio-muted">
+        <div className="mt-7 flex flex-wrap gap-x-6 gap-y-3 text-sm text-studio-muted">
           {release.checksumUrl ? (
             <ExternalLink
               href={release.checksumUrl}
@@ -290,13 +292,6 @@ function CurrentRelease({ release }: { release: LatestRelease }) {
           ) : null}
         </div>
       ) : null}
-
-      <div className="mt-7 border-t border-studio-border/60 pt-6">
-        <p className="text-sm leading-relaxed text-studio-muted">
-          Images are processed locally on your computer. Image files are not
-          uploaded to Blackburn Studio.
-        </p>
-      </div>
     </>
   );
 }
@@ -439,9 +434,7 @@ export default function ImageResizerRelease() {
         aria-labelledby="current-release-heading"
         className="rounded-3xl border border-studio-border bg-studio-surface px-6 py-8 md:px-9 md:py-10"
       >
-        <p className="text-xs font-medium uppercase tracking-[0.24em] text-studio-dim">
-          Latest release
-        </p>
+        <SectionEyebrow>Latest release</SectionEyebrow>
         <h2
           id="current-release-heading"
           className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
@@ -451,7 +444,7 @@ export default function ImageResizerRelease() {
 
         <div className="mt-7" aria-live="polite">
           {latestState.status === "loading" ? (
-            <div className="min-h-32 rounded-2xl border border-studio-border/60 bg-studio-base/25 px-5 py-6">
+            <div className="min-h-32 py-2">
               <p className="text-sm text-studio-dim" role="status">
                 Checking the latest release…
               </p>
@@ -459,7 +452,7 @@ export default function ImageResizerRelease() {
           ) : null}
 
           {latestState.status === "error" ? (
-            <div className="min-h-32 rounded-2xl border border-studio-border/60 bg-studio-base/25 px-5 py-6">
+            <div className="min-h-32 py-2">
               <p className="text-sm leading-relaxed text-studio-muted">
                 Current release information is temporarily unavailable.
               </p>
