@@ -26,6 +26,11 @@ const navItems: NavItem[] = [
     isActive: (pathname) => pathname === "/digital" || pathname.startsWith("/digital/"),
   },
   {
+    href: "/tools",
+    label: "Tools",
+    isActive: (pathname) => pathname === "/tools" || pathname.startsWith("/tools/"),
+  },
+  {
     href: "/about",
     label: "About",
     isActive: (pathname) => pathname === "/about",

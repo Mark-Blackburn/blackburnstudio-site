@@ -14,6 +14,8 @@ export const INDEXABLE_ROUTES = [
   "/digital/hosting-domains",
   "/digital/microsoft-365",
   "/digital/support",
+  "/tools",
+  "/tools/image-resizer",
   "/work",
   "/work/portraits",
   "/work/families",
