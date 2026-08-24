@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isCreateZipWorkerRequest,
   isImageResizerWorkerResponse,
   isProcessImageWorkerRequest,
 } from "@/components/tools/imageResizerWorkerProtocol";
@@ -13,6 +14,12 @@ const validProcessImageRequest = {
   neverEnlarge: true,
   outputFormat: "JPEG",
   quality: 85,
+  outputFilename: "portrait-resized-1600px.jpg",
+  title: "Portrait",
+  altText: "A portrait in natural light",
+  creator: "Blackburn Studio",
+  copyright: "Copyright Blackburn Studio",
+  stripMetadata: true,
 };
 
 describe("isProcessImageWorkerRequest", () => {
@@ -28,6 +35,12 @@ describe("isProcessImageWorkerRequest", () => {
     ["neverEnlarge", { neverEnlarge: undefined }],
     ["outputFormat", { outputFormat: undefined }],
     ["quality", { quality: undefined }],
+    ["outputFilename", { outputFilename: undefined }],
+    ["title", { title: undefined }],
+    ["altText", { altText: undefined }],
+    ["creator", { creator: undefined }],
+    ["copyright", { copyright: undefined }],
+    ["stripMetadata", { stripMetadata: undefined }],
   ])("rejects a request missing %s", (_field, override) => {
     expect(
       isProcessImageWorkerRequest({
@@ -94,6 +107,61 @@ describe("isProcessImageWorkerRequest", () => {
       ).toBe(false);
     },
   );
+
+  it("rejects invalid metadata and output fields", () => {
+    expect(
+      isProcessImageWorkerRequest({
+        ...validProcessImageRequest,
+        outputFilename: "",
+      }),
+    ).toBe(false);
+    expect(
+      isProcessImageWorkerRequest({
+        ...validProcessImageRequest,
+        title: 42,
+      }),
+    ).toBe(false);
+    expect(
+      isProcessImageWorkerRequest({
+        ...validProcessImageRequest,
+        stripMetadata: "true",
+      }),
+    ).toBe(false);
+  });
+});
+
+describe("isCreateZipWorkerRequest", () => {
+  const validRequest = {
+    type: "create-zip",
+    requestId: "zip-1",
+    entries: [
+      {
+        fileName: "portrait.jpg",
+        bytes: new Uint8Array([1, 2, 3]).buffer,
+      },
+    ],
+  };
+
+  it("accepts a valid ZIP request", () => {
+    expect(isCreateZipWorkerRequest(validRequest)).toBe(true);
+  });
+
+  it.each([
+    { ...validRequest, requestId: "" },
+    { ...validRequest, entries: [] },
+    { ...validRequest, entries: [{ fileName: "", bytes: new ArrayBuffer(1) }] },
+    {
+      ...validRequest,
+      entries: [{ fileName: "../image.jpg", bytes: new ArrayBuffer(1) }],
+    },
+    { ...validRequest, entries: [{ fileName: "image.jpg", bytes: "bytes" }] },
+    {
+      ...validRequest,
+      entries: [{ fileName: "image.jpg", bytes: new ArrayBuffer(0) }],
+    },
+  ])("rejects a malformed ZIP request: %j", (request) => {
+    expect(isCreateZipWorkerRequest(request)).toBe(false);
+  });
 });
 
 describe("isImageResizerWorkerResponse", () => {

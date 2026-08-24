@@ -9,11 +9,13 @@ import {
 } from "@/lib/imageResizerRuntime";
 
 import {
+  isCreateZipWorkerRequest,
   isProcessImageWorkerRequest,
   type ImageResizerCapabilities,
   type ImageResizerWorkerRequest,
   type ImageResizerWorkerResponse,
 } from "./imageResizerWorkerProtocol";
+import { createImageZip } from "./imageResizerZip";
 
 type PyProxy = {
   (...args: unknown[]): PyProxy;
@@ -89,8 +91,10 @@ sys.path.insert(0, "/image-resizer-runtime")
 
 from PIL import Image
 from image_resizer import (
+  ImageMetadata,
     ProcessingOptions,
     ResizeOptions,
+  filename_stem_from_input,
     get_image_dimensions,
     process_image,
 )
@@ -153,6 +157,12 @@ def _browser_process(
     never_enlarge,
     output_format,
     quality,
+    output_filename,
+    title,
+    alt_text,
+    creator,
+    copyright_text,
+    strip_metadata,
 ):
     data = _browser_bytes(input_value)
     resize = ResizeOptions(
@@ -164,11 +174,18 @@ def _browser_process(
         resize=resize,
         output_format=output_format,
         quality=int(quality),
-        strip_metadata=True,
+        strip_metadata=bool(strip_metadata),
         web_filenames=True,
         source_filename=source_filename,
+        custom_output_stem=filename_stem_from_input(output_filename),
     )
-    processed = process_image(data, options)
+    metadata = ImageMetadata(
+        title=title,
+        alt_text=alt_text,
+        creator=creator,
+        copyright=copyright_text,
+    )
+    processed = process_image(data, options, metadata)
     return {
         "data": processed.data,
         "suggestedFilename": processed.suggested_filename,
@@ -220,7 +237,12 @@ function workerFailure(
 
 function reportError(
   requestId: string,
-  stage: "initialization" | "selection" | "processing" | "protocol",
+  stage:
+    | "initialization"
+    | "selection"
+    | "processing"
+    | "zip"
+    | "protocol",
   error: unknown,
   fallback: Pick<WorkerFailureOptions, "code" | "userMessage">,
 ) {
@@ -531,6 +553,12 @@ async function handleProcessImage(
         request.neverEnlarge,
         outputFormat,
         request.quality,
+        request.outputFilename,
+        request.title,
+        request.altText,
+        request.creator,
+        request.copyright,
+        request.stripMetadata,
       ),
     );
     const outputBytes = rawResult.data;
@@ -564,6 +592,31 @@ async function handleProcessImage(
     });
   } finally {
     processing = false;
+    selectedImage = null;
+  }
+}
+
+function handleCreateZip(
+  request: Extract<ImageResizerWorkerRequest, { type: "create-zip" }>,
+) {
+  try {
+    const zipBytes = createImageZip(request.entries);
+    const transferableBytes = zipBytes.slice().buffer;
+    postMessage(
+      {
+        type: "zip-created",
+        requestId: request.requestId,
+        bytes: transferableBytes,
+        fileCount: request.entries.length,
+      },
+      [transferableBytes],
+    );
+  } catch (error) {
+    reportError(request.requestId, "zip", error, {
+      code: "ZIP_CREATION_FAILED",
+      userMessage:
+        "The download archive could not be created. Individual downloads are still available.",
+    });
   }
 }
 
@@ -595,6 +648,13 @@ workerScope.addEventListener("message", (event: MessageEvent<unknown>) => {
   } else if (isProcessImageWorkerRequest(request)) {
     void handleProcessImage(request);
   } else if (request.type === "process-image") {
+    reportError(request.requestId, "protocol", null, {
+      code: "INVALID_REQUEST",
+      userMessage: "The image tool received an invalid request.",
+    });
+  } else if (isCreateZipWorkerRequest(request)) {
+    handleCreateZip(request);
+  } else if (request.type === "create-zip") {
     reportError(request.requestId, "protocol", null, {
       code: "INVALID_REQUEST",
       userMessage: "The image tool received an invalid request.",

@@ -1,6 +1,6 @@
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
-import ImageResizerOnlineApp from "@/components/tools/ImageResizerOnlineApp";
+import ImageResizerBatchApp from "@/components/tools/ImageResizerBatchApp";
 import { createPageMetadata } from "@/lib/siteConfig";
 
 export const metadata = createPageMetadata({
@@ -16,7 +16,7 @@ export default function OnlineImageResizerPage() {
       <SiteHeader />
 
       <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
-        <ImageResizerOnlineApp />
+        <ImageResizerBatchApp />
       </main>
 
       <SiteFooter />
