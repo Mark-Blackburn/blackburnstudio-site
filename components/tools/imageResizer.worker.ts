@@ -8,10 +8,11 @@ import {
   type ImageResizerBrowserManifest,
 } from "@/lib/imageResizerRuntime";
 
-import type {
-  ImageResizerCapabilities,
-  ImageResizerWorkerRequest,
-  ImageResizerWorkerResponse,
+import {
+  isProcessImageWorkerRequest,
+  type ImageResizerCapabilities,
+  type ImageResizerWorkerRequest,
+  type ImageResizerWorkerResponse,
 } from "./imageResizerWorkerProtocol";
 
 type PyProxy = {
@@ -591,16 +592,13 @@ workerScope.addEventListener("message", (event: MessageEvent<unknown>) => {
         { type: "select-image" }
       >,
     );
-  } else if (
-    request.type === "process-image" &&
-    typeof request.imageId === "string"
-  ) {
-    void handleProcessImage(
-      request as Extract<
-        ImageResizerWorkerRequest,
-        { type: "process-image" }
-      >,
-    );
+  } else if (isProcessImageWorkerRequest(request)) {
+    void handleProcessImage(request);
+  } else if (request.type === "process-image") {
+    reportError(request.requestId, "protocol", null, {
+      code: "INVALID_REQUEST",
+      userMessage: "The image tool received an invalid request.",
+    });
   } else {
     reportError(request.requestId, "protocol", null, {
       code: "UNKNOWN_REQUEST",
