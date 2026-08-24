@@ -2,7 +2,7 @@ import Image from "next/image";
 
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
-import { SectionEyebrow, StudioTag } from "@/components/studio";
+import { SectionEyebrow, StudioButton, StudioTag } from "@/components/studio";
 import ImageResizerRelease from "@/components/tools/ImageResizerRelease";
 import { createPageMetadata } from "@/lib/siteConfig";
 import imageResizerApp from "@/public/tools/image-resizer/image-resizer-app.webp";
@@ -10,7 +10,7 @@ import imageResizerApp from "@/public/tools/image-resizer/image-resizer-app.webp
 export const metadata = createPageMetadata({
   title: "Web Image Resizer",
   description:
-    "Download Blackburn Studio Web Image Resizer for Windows. Batch resize and prepare images for websites and online stores with web-friendly sizing, filenames and metadata.",
+    "Use Blackburn Studio Web Image Resizer online or download it for Windows to resize and prepare images for websites and online stores.",
   path: "/tools/image-resizer",
 });
 
@@ -45,15 +45,23 @@ export default function ImageResizerPage() {
             Prepare website images without the repetitive work
           </h1>
           <p className="mt-7 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Web Image Resizer is a free Windows utility for batch resizing and
-            preparing images for websites and online stores. Apply consistent
-            dimensions, formats, filenames and metadata from one practical
-            workflow.
+            Web Image Resizer is a free tool for preparing images for websites
+            and online stores. Use it online for a focused one-image workflow,
+            or download the Windows application for batch resizing, consistent
+            filenames and metadata.
           </p>
           <div className="mt-7 flex flex-wrap gap-2.5">
             {workflowTags.map((tag) => (
               <StudioTag key={tag}>{tag}</StudioTag>
             ))}
+          </div>
+          <div className="mt-9 flex flex-wrap gap-3">
+            <StudioButton href="/tools/image-resizer/app" variant="primary">
+              Use online
+            </StudioButton>
+            <StudioButton href="#download" variant="secondary">
+              Download for Windows
+            </StudioButton>
           </div>
         </section>
 
@@ -96,7 +104,11 @@ export default function ImageResizerPage() {
           </ul>
         </section>
 
-        <section aria-labelledby="download-heading" className="mt-20 md:mt-24">
+        <section
+          id="download"
+          aria-labelledby="download-heading"
+          className="mt-20 scroll-mt-28 md:mt-24 md:scroll-mt-32"
+        >
           <h2 id="download-heading" className="sr-only">
             Download and release information
           </h2>

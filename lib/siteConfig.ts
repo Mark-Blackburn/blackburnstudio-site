@@ -16,6 +16,7 @@ export const INDEXABLE_ROUTES = [
   "/digital/support",
   "/tools",
   "/tools/image-resizer",
+  "/tools/image-resizer/app",
   "/work",
   "/work/portraits",
   "/work/families",
