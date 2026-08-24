@@ -62,14 +62,14 @@ export default function ToolsPage() {
           <div className="mt-10 grid max-w-3xl gap-6">
             <ToolCard
               title="Web Image Resizer"
-              summary="Batch resize and prepare images for websites and online stores with web-friendly sizing, filenames and metadata."
+              summary="Resize one image online in your browser, or download the Windows application for batch preparation, web-friendly filenames and metadata."
               href="/tools/image-resizer"
               ctaLabel="View Image Resizer"
               imageSrc={imageResizerApp}
               imageAlt="Blackburn Studio Web Image Resizer showing batch image sizing, output dimensions and metadata options"
               features={imageResizerFeatures}
-              platform="Windows"
-              availability="Free download"
+              platform="Browser + Windows"
+              availability="Free tool"
             />
           </div>
         </section>
