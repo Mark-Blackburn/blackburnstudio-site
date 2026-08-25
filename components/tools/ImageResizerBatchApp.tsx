@@ -88,6 +88,8 @@ const ACCEPTED_MIME_TYPES = new Set([
 ]);
 const CREATOR_STORAGE_KEY = "blackburn-image-resizer-creator";
 const COPYRIGHT_STORAGE_KEY = "blackburn-image-resizer-copyright";
+const WORKER_FAILURE_MESSAGE =
+  "The browser image worker stopped unexpectedly. Reload the page to try again.";
 
 function defaultWorkerFactory() {
   return new Worker(new URL("./imageResizer.worker.ts", import.meta.url), {
@@ -258,7 +260,7 @@ export default function ImageResizerBatchApp({
     return new Promise<ImageResizerWorkerResponse>((resolve, reject) => {
       const worker = workerRef.current;
       if (!worker) {
-        reject(new Error("The image worker is not available."));
+        reject(new Error(WORKER_FAILURE_MESSAGE));
         return;
       }
       pendingRequestsRef.current.set(request.requestId, { resolve, reject });
@@ -286,7 +288,11 @@ export default function ImageResizerBatchApp({
     } catch {
       if (mountedRef.current) {
         setRuntimeState("error");
-        setRuntimeError("The browser image worker could not be started.");
+        setRuntimeError(
+          workerRef.current
+            ? "The browser image worker could not be started."
+            : WORKER_FAILURE_MESSAGE,
+        );
       }
     }
   }
@@ -428,13 +434,39 @@ export default function ImageResizerBatchApp({
     };
 
     const handleWorkerError = () => {
-      const error = new Error("The browser image worker stopped unexpectedly.");
+      const error = new Error(WORKER_FAILURE_MESSAGE);
+      const wasProcessingBatch = batchProcessingRef.current;
+      const wasCreatingZip = zipCreatingRef.current;
       pendingRequests.forEach((pending) => pending.reject(error));
       pendingRequests.clear();
+      if (workerRef.current === worker) {
+        worker.terminate();
+        workerRef.current = null;
+      }
+      batchProcessingRef.current = false;
+      zipCreatingRef.current = false;
+      setBatchProcessing(false);
+      if (wasProcessingBatch) {
+        replaceQueue(
+          queueRef.current.map((item) =>
+            item.status === "processing"
+              ? {
+                  ...item,
+                  status: "failed",
+                  detailsExpanded: true,
+                  error: WORKER_FAILURE_MESSAGE,
+                }
+              : item,
+          ),
+        );
+        setBatchStatus("Batch processing stopped. Reload the page to try again.");
+      }
+      if (wasCreatingZip) {
+        setZipState("error");
+        setZipError(WORKER_FAILURE_MESSAGE);
+      }
       setRuntimeState("error");
-      setRuntimeError(
-        "The browser image worker stopped unexpectedly. Reload the page to try again.",
-      );
+      setRuntimeError(WORKER_FAILURE_MESSAGE);
     };
 
     worker.addEventListener("message", handleMessage);
@@ -451,8 +483,10 @@ export default function ImageResizerBatchApp({
       pendingRequests.clear();
       queueRef.current.forEach((item) => revokeResult(item.result));
       if (zipUrlRef.current) URL.revokeObjectURL(zipUrlRef.current);
-      worker.terminate();
-      workerRef.current = null;
+      if (workerRef.current === worker) {
+        worker.terminate();
+        workerRef.current = null;
+      }
     };
     // The worker factory is intentionally fixed for this page session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -741,6 +775,7 @@ export default function ImageResizerBatchApp({
               : "The image could not be resized.",
         }));
         failed += 1;
+        if (!workerRef.current) break;
       }
     }
 

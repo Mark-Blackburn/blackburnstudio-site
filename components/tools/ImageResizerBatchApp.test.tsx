@@ -12,6 +12,7 @@ class MockWorker {
   messages: ImageResizerWorkerRequest[] = [];
   transfers: Transferable[][] = [];
   terminated = false;
+  terminateCount = 0;
   private messageListeners = new Set<(event: MessageEvent<unknown>) => void>();
   private errorListeners = new Set<(event: Event) => void>();
 
@@ -42,11 +43,17 @@ class MockWorker {
 
   terminate() {
     this.terminated = true;
+    this.terminateCount += 1;
   }
 
   emit(message: ImageResizerWorkerResponse | unknown) {
     const event = { data: message } as MessageEvent<unknown>;
     this.messageListeners.forEach((listener) => listener(event));
+  }
+
+  crash() {
+    const event = new Event("error");
+    this.errorListeners.forEach((listener) => listener(event));
   }
 }
 
@@ -99,6 +106,13 @@ async function emitAndFlush(
 ) {
   await act(async () => {
     worker.emit(message);
+    await Promise.resolve();
+  });
+}
+
+async function crashAndFlush(worker: MockWorker) {
+  await act(async () => {
+    worker.crash();
     await Promise.resolve();
   });
 }
@@ -226,6 +240,27 @@ describe("ImageResizerBatchApp", () => {
     expect(screen.getByText("Started in 1.4 seconds")).toBeInTheDocument();
   });
 
+  it("enters a terminal runtime error when the worker crashes while idle", async () => {
+    const { worker, unmount } = renderApp();
+    emitReady(worker);
+
+    await crashAndFlush(worker);
+
+    expect(screen.getByText("Unable to initialise image tools")).toBeInTheDocument();
+    expect(
+      screen.getByText(
+        "The browser image worker stopped unexpectedly. Reload the page to try again.",
+      ),
+    ).toBeInTheDocument();
+    expect(worker.terminated).toBe(true);
+    expect(worker.terminateCount).toBe(1);
+
+    await expect(crashAndFlush(worker)).resolves.toBeUndefined();
+    expect(worker.terminateCount).toBe(1);
+    expect(() => unmount()).not.toThrow();
+    expect(worker.terminateCount).toBe(1);
+  });
+
   it("selects and inspects multiple files in selection order", async () => {
     const { worker } = renderApp();
     emitReady(worker);
@@ -350,6 +385,48 @@ describe("ImageResizerBatchApp", () => {
 
     await waitFor(() => expect(screen.getByText("2 images complete.")).toBeInTheDocument());
     expect(screen.getAllByRole("link", { name: "Download" })).toHaveLength(2);
+  });
+
+  it("recovers batch state when the worker crashes during processing", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("complete.jpg", "image/jpeg"), imageFile("active.jpg", "image/jpeg")],
+      ["JPEG", "JPEG"],
+    );
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const firstProcess = await respondToProcessSelection(worker, inspectionCount);
+    await emitProcessed(worker, firstProcess);
+    await waitFor(() =>
+      expect(requestsOfType(worker, "select-image")).toHaveLength(
+        inspectionCount + 2,
+      ),
+    );
+
+    await crashAndFlush(worker);
+
+    await waitFor(() =>
+      expect(screen.getByText("Unable to initialise image tools")).toBeInTheDocument(),
+    );
+    expect(screen.getByRole("button", { name: "Process batch" })).not.toHaveTextContent(
+      "Processing batch…",
+    );
+    expect(screen.getByLabelText("Preset")).toBeEnabled();
+    const completedArticle = screen.getByRole("article", { name: "complete.jpg" });
+    expect(within(completedArticle).getByText("Complete")).toBeInTheDocument();
+    expect(within(completedArticle).getByRole("link", { name: "Download" })).toBeInTheDocument();
+    const activeArticle = screen.getByRole("article", { name: "active.jpg" });
+    expect(within(activeArticle).queryByText("Processing")).not.toBeInTheDocument();
+    expect(within(activeArticle).getByText("Failed")).toBeInTheDocument();
+    expect(
+      within(activeArticle).getByText(
+        "The browser image worker stopped unexpectedly. Reload the page to try again.",
+      ),
+    ).toBeInTheDocument();
+    expect(requestsOfType(worker, "process-image")).toHaveLength(1);
   });
 
   it("continues after a partial failure and keeps the failed image retryable", async () => {
@@ -618,6 +695,44 @@ describe("ImageResizerBatchApp", () => {
     ).toHaveAttribute("role", "alert");
     expect(screen.getByRole("link", { name: "Download" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Download all as ZIP (1)" })).toBeEnabled();
+  });
+
+  it("clears ZIP creation and fails future requests immediately after a worker crash", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const processRequest = await respondToProcessSelection(worker, inspectionCount);
+    await emitProcessed(worker, processRequest);
+    const zipButton = await screen.findByRole("button", {
+      name: "Download all as ZIP (1)",
+    });
+
+    await user.click(zipButton);
+    await waitFor(() => expect(requestsOfType(worker, "create-zip")).toHaveLength(1));
+    expect(screen.getByRole("button", { name: "Creating ZIP…" })).toBeDisabled();
+    await crashAndFlush(worker);
+
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Download all as ZIP (1)" })).toBeEnabled(),
+    );
+    expect(screen.queryByRole("button", { name: "Creating ZIP…" })).not.toBeInTheDocument();
+    expect(
+      screen.getAllByText(
+        "The browser image worker stopped unexpectedly. Reload the page to try again.",
+      ).length,
+    ).toBeGreaterThanOrEqual(2);
+
+    await user.click(screen.getByRole("button", { name: "Download all as ZIP (1)" }));
+    await waitFor(() =>
+      expect(screen.getByRole("button", { name: "Download all as ZIP (1)" })).toBeEnabled(),
+    );
+    expect(requestsOfType(worker, "create-zip")).toHaveLength(1);
   });
 
   it("ignores stale worker responses", async () => {
