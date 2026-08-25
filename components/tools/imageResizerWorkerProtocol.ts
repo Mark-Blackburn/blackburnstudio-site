@@ -30,12 +30,27 @@ export type ImageResizerWorkerRequest =
       neverEnlarge: boolean;
       outputFormat: ImageResizerOutputFormat;
       quality: number;
+      outputFilename: string;
+      title: string;
+      altText: string;
+      creator: string;
+      copyright: string;
+      stripMetadata: boolean;
+    }
+  | {
+      type: "create-zip";
+      requestId: string;
+      entries: Array<{
+        fileName: string;
+        bytes: ArrayBuffer;
+      }>;
     };
 
 export type ImageResizerWorkerErrorStage =
   | "initialization"
   | "selection"
   | "processing"
+  | "zip"
   | "protocol";
 
 export type ImageResizerWorkerResponse =
@@ -74,6 +89,12 @@ export type ImageResizerWorkerResponse =
       processingMs: number;
     }
   | {
+      type: "zip-created";
+      requestId: string;
+      bytes: ArrayBuffer;
+      fileCount: number;
+    }
+  | {
       type: "error";
       requestId: string;
       stage: ImageResizerWorkerErrorStage;
@@ -90,6 +111,31 @@ const PROCESS_IMAGE_OUTPUT_FORMATS = new Set<string>([
 const MIN_LONG_EDGE = 1;
 const MIN_QUALITY = 1;
 const MAX_QUALITY = 100;
+const MAX_REQUEST_ID_LENGTH = 100;
+const MAX_FILENAME_LENGTH = 255;
+const MAX_METADATA_LENGTH = 2_000;
+
+function isBoundedString(
+  value: unknown,
+  maximumLength: number,
+  allowEmpty = true,
+) {
+  return (
+    typeof value === "string" &&
+    (allowEmpty || value.trim().length > 0) &&
+    value.length <= maximumLength
+  );
+}
+
+function isSafeArchiveFilename(value: unknown) {
+  return (
+    isBoundedString(value, MAX_FILENAME_LENGTH, false) &&
+    typeof value === "string" &&
+    value !== "." &&
+    value !== ".." &&
+    !/[\\/\u0000-\u001f]/.test(value)
+  );
+}
 
 export function isProcessImageWorkerRequest(
   value: unknown,
@@ -104,8 +150,7 @@ export function isProcessImageWorkerRequest(
   const candidate = value as Record<string, unknown>;
   return (
     candidate.type === "process-image" &&
-    typeof candidate.requestId === "string" &&
-    candidate.requestId.length > 0 &&
+    isBoundedString(candidate.requestId, MAX_REQUEST_ID_LENGTH, false) &&
     typeof candidate.imageId === "string" &&
     candidate.imageId.trim().length > 0 &&
     typeof candidate.longEdge === "number" &&
@@ -117,7 +162,45 @@ export function isProcessImageWorkerRequest(
     typeof candidate.quality === "number" &&
     Number.isSafeInteger(candidate.quality) &&
     candidate.quality >= MIN_QUALITY &&
-    candidate.quality <= MAX_QUALITY
+    candidate.quality <= MAX_QUALITY &&
+    isBoundedString(
+      candidate.outputFilename,
+      MAX_FILENAME_LENGTH,
+      false,
+    ) &&
+    isBoundedString(candidate.title, MAX_METADATA_LENGTH) &&
+    isBoundedString(candidate.altText, MAX_METADATA_LENGTH) &&
+    isBoundedString(candidate.creator, MAX_METADATA_LENGTH) &&
+    isBoundedString(candidate.copyright, MAX_METADATA_LENGTH) &&
+    typeof candidate.stripMetadata === "boolean"
+  );
+}
+
+export function isCreateZipWorkerRequest(
+  value: unknown,
+): value is Extract<ImageResizerWorkerRequest, { type: "create-zip" }> {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    candidate.type === "create-zip" &&
+    isBoundedString(candidate.requestId, MAX_REQUEST_ID_LENGTH, false) &&
+    Array.isArray(candidate.entries) &&
+    candidate.entries.length > 0 &&
+    candidate.entries.every((entry) => {
+      if (typeof entry !== "object" || entry === null) {
+        return false;
+      }
+
+      const zipEntry = entry as Record<string, unknown>;
+      return (
+        isSafeArchiveFilename(zipEntry.fileName) &&
+        zipEntry.bytes instanceof ArrayBuffer &&
+        zipEntry.bytes.byteLength > 0
+      );
+    })
   );
 }
 
@@ -126,6 +209,7 @@ const RESPONSE_TYPES = new Set([
   "ready",
   "image-selected",
   "processed",
+  "zip-created",
   "error",
 ]);
 
