@@ -755,6 +755,197 @@ describe("ImageResizerBatchApp", () => {
     await waitFor(() => expect(requestsOfType(worker, "process-image")).toHaveLength(1));
   });
 
+  it("defaults to Resize only and reveals accessible crop controls when enabled", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    expect(screen.getByLabelText("Resize only")).toBeChecked();
+    expect(screen.queryByLabelText("Crop ratio")).not.toBeInTheDocument();
+
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Crop & resize"));
+
+    expect(screen.getByLabelText("Crop ratio")).toHaveValue("original");
+    expect(screen.getByLabelText(/Zoom/)).toHaveValue("1");
+    expect(screen.getByRole("button", { name: "Reset crop" })).toBeEnabled();
+    expect(screen.getByText("1 / 1")).toBeInTheDocument();
+  });
+
+  it("blocks an undecodable crop preview and revokes its local Object URL", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Crop & resize"));
+    const preview = screen.getByLabelText(/Interactive crop preview for one\.jpg/);
+    fireEvent.error(preview.querySelector("img")!);
+
+    expect(
+      screen.getByText("This image could not be decoded for crop preview."),
+    ).toHaveAttribute("role", "alert");
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
+
+    await user.click(screen.getByLabelText("Resize only"));
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:result-1");
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+  });
+
+  it("changes ratios and restores independent crop state with Previous and Next", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg"), imageFile("two.jpg", "image/jpeg")],
+      ["JPEG", "JPEG"],
+    );
+
+    await user.click(screen.getByLabelText("Crop & resize"));
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "1:1");
+    expect(
+      within(screen.getByRole("article", { name: "one.jpg" })).getByText(
+        "1:1 crop",
+      ),
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByLabelText("Resize only")).toBeChecked();
+    await user.click(screen.getByLabelText("Crop & resize"));
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "4:5");
+    expect(screen.getByLabelText("Crop ratio")).toHaveValue("4:5");
+
+    await user.click(screen.getByRole("button", { name: "Previous" }));
+    expect(screen.getByLabelText("Crop & resize")).toBeChecked();
+    expect(screen.getByLabelText("Crop ratio")).toHaveValue("1:1");
+  });
+
+  it("invalidates and revokes a completed cropped result after a crop edit", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Crop & resize"));
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "1:1");
+
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const processRequest = await respondToProcessSelection(worker, inspectionCount);
+    expect(processRequest.crop).toMatchObject({
+      x: expect.any(Number),
+      y: 0,
+      width: expect.any(Number),
+      height: 1,
+    });
+    await emitProcessed(worker, processRequest);
+    const download = await screen.findByRole("link", { name: "Download" });
+    const staleUrl = download.getAttribute("href");
+    expect(
+      within(screen.getByRole("article", { name: "one.jpg" })).getByText(
+        "1:1 crop",
+      ),
+    ).toBeInTheDocument();
+
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "16:9");
+    expect(screen.queryByRole("link", { name: "Download" })).not.toBeInTheDocument();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(staleUrl);
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+  });
+
+  it("reset restores minimum zoom and Apply ratio to all recenters each image", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg"), imageFile("two.jpg", "image/jpeg")],
+      ["JPEG", "JPEG"],
+    );
+    await user.click(screen.getByLabelText("Crop & resize"));
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "1:1");
+    fireEvent.change(screen.getByLabelText(/Zoom/), { target: { value: "2" } });
+    expect(screen.getByLabelText(/Zoom/)).toHaveValue("2");
+    await user.click(screen.getByRole("button", { name: "Reset crop" }));
+    expect(screen.getByLabelText(/Zoom/)).toHaveValue("1");
+
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "4:5");
+    await user.click(screen.getByRole("button", { name: "Apply ratio to all" }));
+    await user.click(screen.getByRole("button", { name: "Next" }));
+    expect(screen.getByLabelText("Resize only")).toBeChecked();
+    await user.click(screen.getByLabelText("Crop & resize"));
+    expect(screen.getByLabelText("Crop ratio")).toHaveValue("4:5");
+    expect(screen.getByLabelText(/Zoom/)).toHaveValue("1");
+  });
+
+  it("sends per-image crops only for cropped images in a mixed sequential batch", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("cropped.jpg", "image/jpeg"), imageFile("resize.jpg", "image/jpeg")],
+      ["JPEG", "JPEG"],
+    );
+    await user.click(screen.getByLabelText("Crop & resize"));
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "1:1");
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const firstRequest = await respondToProcessSelection(worker, inspectionCount);
+    expect(firstRequest.crop).toBeDefined();
+    await emitProcessed(worker, firstRequest);
+    await waitFor(() =>
+      expect(requestsOfType(worker, "select-image")).toHaveLength(
+        inspectionCount + 2,
+      ),
+    );
+    const secondSelection = requestsOfType(worker, "select-image").at(-1)!;
+    await emitAndFlush(worker, {
+      type: "image-selected",
+      requestId: secondSelection.requestId,
+      imageId: secondSelection.imageId,
+      width: 2000,
+      height: 1300,
+      sourceFormat: "JPEG",
+    });
+    await waitFor(() =>
+      expect(requestsOfType(worker, "process-image")).toHaveLength(2),
+    );
+    expect(requestsOfType(worker, "process-image")[1].crop).toBeUndefined();
+  });
+
+  it("shows shared predicted crop and output dimensions", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Crop & resize"));
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "1:1");
+    await waitFor(() =>
+      expect(requestsOfType(worker, "predict-crop")).toHaveLength(1),
+    );
+    const prediction = requestsOfType(worker, "predict-crop")[0];
+    await emitAndFlush(worker, {
+      type: "crop-predicted",
+      requestId: prediction.requestId,
+      imageId: prediction.imageId,
+      cropWidth: 1600,
+      cropHeight: 1600,
+      outputWidth: 1600,
+      outputHeight: 1600,
+    });
+
+    expect(screen.getAllByText("1600 × 1600")).toHaveLength(2);
+  });
+
   it("revokes result URLs and terminates the worker on teardown", async () => {
     const { worker, unmount } = renderApp();
     emitReady(worker);

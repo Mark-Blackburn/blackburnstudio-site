@@ -2,7 +2,9 @@ import { describe, expect, it } from "vitest";
 
 import {
   isCreateZipWorkerRequest,
+  isImageResizerCropRect,
   isImageResizerWorkerResponse,
+  isPredictCropWorkerRequest,
   isProcessImageWorkerRequest,
 } from "@/components/tools/imageResizerWorkerProtocol";
 
@@ -24,6 +26,16 @@ const validProcessImageRequest = {
 
 describe("isProcessImageWorkerRequest", () => {
   it("accepts a valid process-image request", () => {
+    expect(isProcessImageWorkerRequest(validProcessImageRequest)).toBe(true);
+  });
+
+  it("accepts a valid normalized crop and accepts an omitted crop", () => {
+    expect(
+      isProcessImageWorkerRequest({
+        ...validProcessImageRequest,
+        crop: { x: 0.1, y: 0.2, width: 0.5, height: 0.6 },
+      }),
+    ).toBe(true);
     expect(isProcessImageWorkerRequest(validProcessImageRequest)).toBe(true);
   });
 
@@ -182,5 +194,62 @@ describe("isImageResizerWorkerResponse", () => {
     { type: "ready", requestId: 1 },
   ])("rejects an unknown or malformed response: %j", (value) => {
     expect(isImageResizerWorkerResponse(value)).toBe(false);
+  });
+});
+
+describe("isImageResizerCropRect", () => {
+  it("accepts a valid crop", () => {
+    expect(
+      isImageResizerCropRect({ x: 0, y: 0.25, width: 1, height: 0.5 }),
+    ).toBe(true);
+  });
+
+  it.each([
+    { x: -0.1, y: 0, width: 0.5, height: 0.5 },
+    { x: 0, y: -0.1, width: 0.5, height: 0.5 },
+    { x: 0, y: 0, width: 0, height: 0.5 },
+    { x: 0, y: 0, width: 0.5, height: 0 },
+    { x: 0.6, y: 0, width: 0.5, height: 1 },
+    { x: 0, y: 0.6, width: 1, height: 0.5 },
+    { x: Number.NaN, y: 0, width: 1, height: 1 },
+    { x: 0, y: 0, width: Number.POSITIVE_INFINITY, height: 1 },
+    { x: 0, y: 0, width: 1 },
+    { x: 0, y: 0, width: 1, height: 1, left: 0 },
+    null,
+    [],
+  ])("rejects malformed crop %#", (crop) => {
+    expect(isImageResizerCropRect(crop)).toBe(false);
+    expect(
+      isProcessImageWorkerRequest({ ...validProcessImageRequest, crop }),
+    ).toBe(false);
+  });
+});
+
+describe("isPredictCropWorkerRequest", () => {
+  const validRequest = {
+    type: "predict-crop",
+    requestId: "predict-1",
+    imageId: "image-1",
+    sourceWidth: 2400,
+    sourceHeight: 1600,
+    longEdge: 1600,
+    neverEnlarge: true,
+    crop: { x: 1 / 6, y: 0, width: 2 / 3, height: 1 },
+  };
+
+  it("accepts a valid crop prediction request", () => {
+    expect(isPredictCropWorkerRequest(validRequest)).toBe(true);
+  });
+
+  it.each([
+    { sourceWidth: 0 },
+    { sourceHeight: Number.NaN },
+    { longEdge: 1.5 },
+    { neverEnlarge: "true" },
+    { crop: { x: 0.8, y: 0, width: 0.5, height: 1 } },
+  ])("rejects malformed prediction fields: %j", (override) => {
+    expect(isPredictCropWorkerRequest({ ...validRequest, ...override })).toBe(
+      false,
+    );
   });
 });

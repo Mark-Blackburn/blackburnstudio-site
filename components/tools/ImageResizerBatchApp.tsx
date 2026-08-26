@@ -10,6 +10,9 @@ import {
 
 import { SectionEyebrow, StudioButton } from "@/components/studio";
 
+import ImageResizerCropEditor, {
+  type CropEditorItem,
+} from "./ImageResizerCropEditor";
 import {
   defaultOutputFilename,
   effectiveOutputFormat,
@@ -18,6 +21,16 @@ import {
   type ConcreteImageFormat,
   uniqueOutputFilenames,
 } from "./imageResizerBatch";
+import {
+  cropAspectForRatio,
+  cropRatioLabel,
+  cropRectForZoom,
+  parseCustomCropAspect,
+  resetCropPreview,
+  zoomForCropRect,
+  type CropRatio,
+  type CropRect,
+} from "./imageResizerCropGeometry";
 import {
   isImageResizerWorkerResponse,
   type ImageResizerCapabilities,
@@ -63,6 +76,20 @@ type QueueItem = {
   outputFilenameEdited: boolean;
   title: string;
   altText: string;
+  cropEnabled: boolean;
+  cropRatio: CropRatio;
+  cropCustomWidth: string;
+  cropCustomHeight: string;
+  cropRect?: CropRect;
+  cropZoom: number;
+  cropPrediction?: {
+    cropWidth: number;
+    cropHeight: number;
+    outputWidth: number;
+    outputHeight: number;
+  };
+  cropPredictionError?: string;
+  cropPreviewError?: string;
   error?: string;
   result?: ProcessedResult;
   copyStatus?: string;
@@ -164,6 +191,10 @@ export default function ImageResizerBatchApp({
   const batchProcessingRef = useRef(false);
   const zipCreatingRef = useRef(false);
   const zipUrlRef = useRef<string | null>(null);
+  const cropPredictionTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
+  const cropPredictionRequestsRef = useRef(new Map<string, string>());
 
   const [runtimeState, setRuntimeState] =
     useState<RuntimeState>("preparing");
@@ -172,6 +203,7 @@ export default function ImageResizerBatchApp({
   const [capabilities, setCapabilities] =
     useState<ImageResizerCapabilities>();
   const [queue, setQueue] = useState<QueueItem[]>([]);
+  const [selectedPreviewId, setSelectedPreviewId] = useState<string>();
   const [preset, setPreset] = useState("1600");
   const [customLongEdge, setCustomLongEdge] = useState("1200");
   const [neverEnlarge, setNeverEnlarge] = useState(true);
@@ -324,6 +356,10 @@ export default function ImageResizerBatchApp({
       );
       if (response.type === "image-selected" && response.imageId === item.id) {
         const latestSettings = settingsRef.current;
+        const initialCrop = resetCropPreview(response.width, response.height, {
+          width: response.width,
+          height: response.height,
+        });
         updateQueueItem(item.id, (current) => ({
           ...current,
           sourceFormat: response.sourceFormat,
@@ -340,8 +376,11 @@ export default function ImageResizerBatchApp({
                 response.sourceFormat,
               ),
           status: "queued",
+          cropRect: current.cropRect ?? initialCrop.rect,
+          cropZoom: current.cropRect ? current.cropZoom : initialCrop.zoom,
           error: undefined,
         }));
+        setSelectedPreviewId((current) => current ?? item.id);
       } else if (response.type === "error") {
         updateQueueItem(item.id, (current) => ({
           ...current,
@@ -392,6 +431,11 @@ export default function ImageResizerBatchApp({
         outputFilenameEdited: false,
         title: titleFromFilename(file.name),
         altText: "",
+        cropEnabled: false,
+        cropRatio: "original",
+        cropCustomWidth: "1",
+        cropCustomHeight: "1",
+        cropZoom: 1,
         error: supported
           ? undefined
           : "Choose a JPEG, PNG or WebP image.",
@@ -407,6 +451,7 @@ export default function ImageResizerBatchApp({
     mountedRef.current = true;
     const worker = workerFactory();
     const pendingRequests = pendingRequestsRef.current;
+    const cropPredictionRequests = cropPredictionRequestsRef.current;
     workerRef.current = worker;
 
     const handleMessage = (event: MessageEvent<unknown>) => {
@@ -481,6 +526,10 @@ export default function ImageResizerBatchApp({
         pending.reject(new Error("The image resizer was closed.")),
       );
       pendingRequests.clear();
+      if (cropPredictionTimerRef.current) {
+        clearTimeout(cropPredictionTimerRef.current);
+      }
+      cropPredictionRequests.clear();
       queueRef.current.forEach((item) => revokeResult(item.result));
       if (zipUrlRef.current) URL.revokeObjectURL(zipUrlRef.current);
       if (workerRef.current === worker) {
@@ -505,15 +554,37 @@ export default function ImageResizerBatchApp({
   function removeItem(imageId: string) {
     if (batchProcessingRef.current || zipCreatingRef.current) return;
     const item = queueRef.current.find((candidate) => candidate.id === imageId);
+    if (cropPredictionTimerRef.current) {
+      clearTimeout(cropPredictionTimerRef.current);
+      cropPredictionTimerRef.current = null;
+    }
+    cropPredictionRequestsRef.current.delete(imageId);
     revokeResult(item?.result);
-    replaceQueue(queueRef.current.filter((candidate) => candidate.id !== imageId));
+    const remaining = queueRef.current.filter(
+      (candidate) => candidate.id !== imageId,
+    );
+    replaceQueue(remaining);
+    setSelectedPreviewId((current) =>
+      current === imageId
+        ? remaining.find(
+            (candidate) =>
+              candidate.width && candidate.height && candidate.sourceFormat,
+          )?.id
+        : current,
+    );
     revokeZipUrl();
   }
 
   function clearBatch() {
     if (batchProcessingRef.current || zipCreatingRef.current) return;
     queueRef.current.forEach((item) => revokeResult(item.result));
+    if (cropPredictionTimerRef.current) {
+      clearTimeout(cropPredictionTimerRef.current);
+      cropPredictionTimerRef.current = null;
+    }
+    cropPredictionRequestsRef.current.clear();
     replaceQueue([]);
+    setSelectedPreviewId(undefined);
     setBatchStatus("");
     revokeZipUrl();
   }
@@ -558,6 +629,10 @@ export default function ImageResizerBatchApp({
     } else {
       invalidateAllResults();
     }
+    const selected = queueRef.current.find(
+      (item) => item.id === selectedPreviewId,
+    );
+    if (selected) scheduleCropPrediction(selected, nextLongEdge);
   }
 
   function handleCustomLongEdgeChange(value: string) {
@@ -568,6 +643,19 @@ export default function ImageResizerBatchApp({
     } else {
       invalidateAllResults();
     }
+    const selected = queueRef.current.find(
+      (item) => item.id === selectedPreviewId,
+    );
+    if (selected) scheduleCropPrediction(selected, nextLongEdge);
+  }
+
+  function handleNeverEnlargeChange(value: boolean) {
+    setNeverEnlarge(value);
+    invalidateAllResults();
+    const selected = queueRef.current.find(
+      (item) => item.id === selectedPreviewId,
+    );
+    if (selected) scheduleCropPrediction(selected, longEdge, value);
   }
 
   function handleOutputFormatChange(value: ImageResizerOutputFormat) {
@@ -627,6 +715,292 @@ export default function ImageResizerBatchApp({
       ...current,
       detailsExpanded: !current.detailsExpanded,
     }));
+  }
+
+  function cropAspect(item: QueueItem, ratio = item.cropRatio) {
+    if (!item.width || !item.height) return null;
+    return cropAspectForRatio(
+      ratio,
+      item.width,
+      item.height,
+      item.cropCustomWidth,
+      item.cropCustomHeight,
+    );
+  }
+
+  function cropRectsMatch(left?: CropRect, right?: CropRect) {
+    if (!left || !right) return left === right;
+    return (
+      Math.abs(left.x - right.x) < 1e-12 &&
+      Math.abs(left.y - right.y) < 1e-12 &&
+      Math.abs(left.width - right.width) < 1e-12 &&
+      Math.abs(left.height - right.height) < 1e-12
+    );
+  }
+
+  function scheduleCropPrediction(
+    item: QueueItem,
+    predictionLongEdge = longEdge,
+    predictionNeverEnlarge = neverEnlarge,
+  ) {
+    if (cropPredictionTimerRef.current) {
+      clearTimeout(cropPredictionTimerRef.current);
+    }
+    if (
+      !item.cropEnabled ||
+      !item.cropRect ||
+      !item.width ||
+      !item.height ||
+      !Number.isSafeInteger(predictionLongEdge) ||
+      predictionLongEdge <= 0 ||
+      !workerRef.current
+    ) {
+      return;
+    }
+
+    cropPredictionTimerRef.current = setTimeout(async () => {
+      const requestId = nextId("predict");
+      cropPredictionRequestsRef.current.set(item.id, requestId);
+      try {
+        const response = await sendWorkerRequest({
+          type: "predict-crop",
+          requestId,
+          imageId: item.id,
+          sourceWidth: item.width!,
+          sourceHeight: item.height!,
+          longEdge: predictionLongEdge,
+          neverEnlarge: predictionNeverEnlarge,
+          crop: item.cropRect!,
+        });
+        if (cropPredictionRequestsRef.current.get(item.id) !== requestId) {
+          return;
+        }
+        if (response.type === "crop-predicted") {
+          updateQueueItem(item.id, (current) => ({
+            ...current,
+            cropPrediction: {
+              cropWidth: response.cropWidth,
+              cropHeight: response.cropHeight,
+              outputWidth: response.outputWidth,
+              outputHeight: response.outputHeight,
+            },
+            cropPredictionError: undefined,
+          }));
+        } else if (response.type === "error") {
+          updateQueueItem(item.id, (current) => ({
+            ...current,
+            cropPrediction: undefined,
+            cropPredictionError: response.message,
+          }));
+        }
+      } catch (error) {
+        if (cropPredictionRequestsRef.current.get(item.id) === requestId) {
+          updateQueueItem(item.id, (current) => ({
+            ...current,
+            cropPrediction: undefined,
+            cropPredictionError:
+              error instanceof Error
+                ? error.message
+                : "Crop dimensions could not be predicted.",
+          }));
+        }
+      }
+    }, 180);
+  }
+
+  function commitCropChange(
+    imageId: string,
+    transform: (item: QueueItem) => QueueItem,
+  ) {
+    const current = queueRef.current.find((item) => item.id === imageId);
+    if (!current) return;
+    const transformed = transform(current);
+    if (
+      transformed.cropEnabled === current.cropEnabled &&
+      transformed.cropRatio === current.cropRatio &&
+      transformed.cropZoom === current.cropZoom &&
+      cropRectsMatch(transformed.cropRect, current.cropRect)
+    ) {
+      return;
+    }
+    const next = invalidateItemResult({
+      ...transformed,
+      cropPrediction: undefined,
+      cropPredictionError: undefined,
+    });
+    replaceQueue(
+      queueRef.current.map((item) => (item.id === imageId ? next : item)),
+    );
+    revokeZipUrl();
+    scheduleCropPrediction(next);
+  }
+
+  function setCropMode(enabled: boolean) {
+    if (!selectedPreviewId) return;
+    commitCropChange(selectedPreviewId, (item) => ({
+      ...item,
+      cropEnabled: enabled,
+    }));
+  }
+
+  function setCropRatio(ratio: CropRatio) {
+    if (!selectedPreviewId) return;
+    commitCropChange(selectedPreviewId, (item) => {
+      const aspect = cropAspect(item, ratio);
+      if (!aspect || !item.width || !item.height) return item;
+      const reset = resetCropPreview(item.width, item.height, aspect);
+      return {
+        ...item,
+        cropRatio: ratio,
+        cropRect: reset.rect,
+        cropZoom: reset.zoom,
+      };
+    });
+  }
+
+  function setCustomCropRatio(dimension: "width" | "height", value: string) {
+    if (!selectedPreviewId) return;
+    const current = queueRef.current.find(
+      (item) => item.id === selectedPreviewId,
+    );
+    if (!current) return;
+    const nextValues = {
+      width: dimension === "width" ? value : current.cropCustomWidth,
+      height: dimension === "height" ? value : current.cropCustomHeight,
+    };
+    const aspect = parseCustomCropAspect(nextValues.width, nextValues.height);
+    if (!aspect || !current.width || !current.height) {
+      updateQueueItem(current.id, (item) => ({
+        ...item,
+        cropCustomWidth: nextValues.width,
+        cropCustomHeight: nextValues.height,
+        cropPrediction: undefined,
+        cropPredictionError: undefined,
+      }));
+      return;
+    }
+    commitCropChange(current.id, (item) => {
+      const reset = resetCropPreview(item.width!, item.height!, aspect);
+      return {
+        ...item,
+        cropCustomWidth: nextValues.width,
+        cropCustomHeight: nextValues.height,
+        cropRect: reset.rect,
+        cropZoom: reset.zoom,
+      };
+    });
+  }
+
+  function setCropRect(rect: CropRect) {
+    if (!selectedPreviewId) return;
+    commitCropChange(selectedPreviewId, (item) => {
+      const aspect = cropAspect(item);
+      if (!aspect || !item.width || !item.height) return item;
+      const baseRect = resetCropPreview(item.width, item.height, aspect).rect;
+      return {
+        ...item,
+        cropRect: rect,
+        cropZoom: zoomForCropRect(baseRect, rect),
+      };
+    });
+  }
+
+  function setCropZoom(zoom: number) {
+    if (!selectedPreviewId) return;
+    commitCropChange(selectedPreviewId, (item) => {
+      const aspect = cropAspect(item);
+      if (!aspect || !item.width || !item.height || !item.cropRect) return item;
+      const baseRect = resetCropPreview(item.width, item.height, aspect).rect;
+      const cropRect = cropRectForZoom(
+        baseRect,
+        zoom,
+        item.cropRect.x + item.cropRect.width / 2,
+        item.cropRect.y + item.cropRect.height / 2,
+      );
+      return {
+        ...item,
+        cropRect,
+        cropZoom: zoomForCropRect(baseRect, cropRect),
+      };
+    });
+  }
+
+  function resetSelectedCrop() {
+    if (!selectedPreviewId) return;
+    commitCropChange(selectedPreviewId, (item) => {
+      const aspect = cropAspect(item);
+      if (!aspect || !item.width || !item.height) return item;
+      const reset = resetCropPreview(item.width, item.height, aspect);
+      return { ...item, cropRect: reset.rect, cropZoom: reset.zoom };
+    });
+  }
+
+  function applySelectedRatioToAll() {
+    const selected = queueRef.current.find(
+      (item) => item.id === selectedPreviewId,
+    );
+    if (!selected) return;
+    const customAspect = parseCustomCropAspect(
+      selected.cropCustomWidth,
+      selected.cropCustomHeight,
+    );
+    if (selected.cropRatio === "custom" && !customAspect) return;
+
+    const nextQueue = queueRef.current.map((item) => {
+      if (!item.width || !item.height || !item.sourceFormat) return item;
+      const aspect = cropAspectForRatio(
+        selected.cropRatio,
+        item.width,
+        item.height,
+        selected.cropCustomWidth,
+        selected.cropCustomHeight,
+      );
+      if (!aspect) return item;
+      const reset = resetCropPreview(item.width, item.height, aspect);
+      if (
+        item.cropRatio === selected.cropRatio &&
+        item.cropCustomWidth === selected.cropCustomWidth &&
+        item.cropCustomHeight === selected.cropCustomHeight &&
+        item.cropZoom === reset.zoom &&
+        cropRectsMatch(item.cropRect, reset.rect)
+      ) {
+        return item;
+      }
+      return invalidateItemResult({
+        ...item,
+        cropRatio: selected.cropRatio,
+        cropCustomWidth: selected.cropCustomWidth,
+        cropCustomHeight: selected.cropCustomHeight,
+        cropRect: reset.rect,
+        cropZoom: reset.zoom,
+        cropPrediction: undefined,
+        cropPredictionError: undefined,
+      });
+    });
+    replaceQueue(nextQueue);
+    revokeZipUrl();
+    const nextSelected = nextQueue.find((item) => item.id === selected.id);
+    if (nextSelected) scheduleCropPrediction(nextSelected);
+  }
+
+  function selectPreviewImage(imageId: string) {
+    const item = queueRef.current.find(
+      (candidate) => candidate.id === imageId,
+    );
+    if (!item?.width || !item.height || !item.sourceFormat) return;
+    setSelectedPreviewId(imageId);
+    scheduleCropPrediction(item);
+  }
+
+  function navigatePreview(direction: -1 | 1) {
+    const readable = queueRef.current.filter(
+      (item) => item.width && item.height && item.sourceFormat,
+    );
+    const currentIndex = readable.findIndex(
+      (item) => item.id === selectedPreviewId,
+    );
+    const next = readable[currentIndex + direction];
+    if (next) selectPreviewImage(next.id);
   }
 
   async function processBatch() {
@@ -730,6 +1104,9 @@ export default function ImageResizerBatchApp({
           creator,
           copyright,
           stripMetadata,
+          ...(current.cropEnabled && current.cropRect
+            ? { crop: current.cropRect }
+            : {}),
         });
         if (
           processingResponse.type !== "processed" ||
@@ -862,6 +1239,32 @@ export default function ImageResizerBatchApp({
     }
   }
 
+  const previewItems = queue.filter(
+    (item) => item.width && item.height && item.sourceFormat && item.cropRect,
+  );
+  const selectedPreviewItem = previewItems.find(
+    (item) => item.id === selectedPreviewId,
+  );
+  const cropEditorItem: CropEditorItem | undefined = selectedPreviewItem
+    ? {
+        id: selectedPreviewItem.id,
+        file: selectedPreviewItem.file,
+        width: selectedPreviewItem.width!,
+        height: selectedPreviewItem.height!,
+        cropEnabled: selectedPreviewItem.cropEnabled,
+        cropRatio: selectedPreviewItem.cropRatio,
+        cropCustomWidth: selectedPreviewItem.cropCustomWidth,
+        cropCustomHeight: selectedPreviewItem.cropCustomHeight,
+        cropRect: selectedPreviewItem.cropRect!,
+        cropZoom: selectedPreviewItem.cropZoom,
+        cropPrediction: selectedPreviewItem.cropPrediction,
+        cropPredictionError: selectedPreviewItem.cropPredictionError,
+        cropPreviewError: selectedPreviewItem.cropPreviewError,
+      }
+    : undefined;
+  const previewPosition = selectedPreviewItem
+    ? previewItems.findIndex((item) => item.id === selectedPreviewItem.id) + 1
+    : 0;
   const completedCount = queue.filter((item) => item.result).length;
   const completedSize = queue.reduce(
     (total, item) => total + (item.result?.blob.size ?? 0),
@@ -875,6 +1278,13 @@ export default function ImageResizerBatchApp({
       item.height &&
       item.sourceFormat,
   ).length;
+  const hasInvalidCrop = queue.some(
+    (item) =>
+      item.cropEnabled &&
+      ((item.cropRatio === "custom" &&
+        !parseCustomCropAspect(item.cropCustomWidth, item.cropCustomHeight)) ||
+        Boolean(item.cropPreviewError)),
+  );
   const showQuality = outputFormat !== "PNG";
   const isLargeBatch = queue.some(
     (item) => item.width && item.height && item.width * item.height > 24_000_000,
@@ -886,6 +1296,7 @@ export default function ImageResizerBatchApp({
     !inspecting &&
     !controlsLocked &&
     longEdgeIsValid &&
+    !hasInvalidCrop &&
     (outputFormat !== "WebP" || capabilities?.WebP === true);
 
   return (
@@ -963,9 +1374,31 @@ export default function ImageResizerBatchApp({
               ) : null}
             </div>
             <label className="mt-6 flex w-fit items-start gap-3 text-sm text-studio-muted">
-              <input type="checkbox" checked={neverEnlarge} onChange={(event) => { setNeverEnlarge(event.target.checked); invalidateAllResults(); }} disabled={controlsLocked} className="mt-0.5 h-4 w-4 accent-white" />
+              <input type="checkbox" checked={neverEnlarge} onChange={(event) => handleNeverEnlargeChange(event.target.checked)} disabled={controlsLocked} className="mt-0.5 h-4 w-4 accent-white" />
               <span><span className="font-medium text-studio-text">Never enlarge</span><span className="mt-1 block text-studio-dim">Keep smaller source images at their original dimensions.</span></span>
             </label>
+            <ImageResizerCropEditor
+              item={cropEditorItem}
+              position={previewPosition}
+              total={previewItems.length}
+              disabled={controlsLocked}
+              onModeChange={setCropMode}
+              onRatioChange={setCropRatio}
+              onCustomRatioChange={setCustomCropRatio}
+              onZoomChange={setCropZoom}
+              onRectChange={setCropRect}
+              onReset={resetSelectedCrop}
+              onApplyRatioToAll={applySelectedRatioToAll}
+              onPrevious={() => navigatePreview(-1)}
+              onNext={() => navigatePreview(1)}
+              onPreviewError={(message) => {
+                if (!selectedPreviewId) return;
+                updateQueueItem(selectedPreviewId, (item) => ({
+                  ...item,
+                  cropPreviewError: message,
+                }));
+              }}
+            />
           </section>
 
           <section aria-labelledby="metadata-heading" className="rounded-2xl border border-studio-border/70 bg-studio-surface/65 p-6 md:p-8">
@@ -1044,10 +1477,12 @@ export default function ImageResizerBatchApp({
                           <div><dt className="sr-only">Source format</dt><dd>{item.sourceFormat ?? "Reading format…"}</dd></div>
                           <div><dt className="sr-only">Original dimensions</dt><dd>{item.width && item.height ? `${item.width} × ${item.height} px` : "Dimensions unavailable"}</dd></div>
                           <div><dt className="sr-only">Original file size</dt><dd>{formatFileSize(item.file.size)}</dd></div>
+                          {item.cropEnabled ? <div><dt className="sr-only">Crop setting</dt><dd>{cropRatioLabel(item.cropRatio, item.cropCustomWidth, item.cropCustomHeight)} crop</dd></div> : null}
                         </dl>
                       </div>
                       <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
                         <span className={`rounded-full border px-3 py-1 text-xs ${item.status === "complete" ? "border-emerald-300/25 text-emerald-200" : item.status === "failed" ? "border-red-300/25 text-red-200" : "border-studio-border text-studio-muted"}`}>{statusLabel(item.status)}</span>
+                        {item.width && item.height && item.sourceFormat ? <button type="button" onClick={() => selectPreviewImage(item.id)} disabled={controlsLocked} aria-pressed={selectedPreviewId === item.id} aria-label={`Edit crop for ${item.file.name}`} className="min-h-11 text-sm text-studio-text underline decoration-studio-border underline-offset-4 disabled:opacity-45">{selectedPreviewId === item.id ? "Crop selected" : "Edit crop"}</button> : null}
                         {item.status !== "failed" ? <button type="button" onClick={() => toggleItemDetails(item)} disabled={controlsLocked} aria-expanded={item.detailsExpanded} aria-controls={`${item.id}-details`} aria-label={`${item.detailsExpanded ? "Hide details for" : "Edit details for"} ${item.file.name}`} className="min-h-11 text-sm text-studio-text underline decoration-studio-border underline-offset-4 disabled:opacity-45">{item.detailsExpanded ? "Hide details" : "Edit details"}</button> : null}
                         <button type="button" onClick={() => removeItem(item.id)} disabled={controlsLocked} aria-label={`Remove ${item.file.name}`} className="min-h-11 text-sm text-studio-muted underline decoration-studio-border underline-offset-4 disabled:opacity-45">Remove</button>
                       </div>

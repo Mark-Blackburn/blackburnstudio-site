@@ -10,6 +10,13 @@ export type ImageResizerCapabilities = {
   WebP: boolean;
 };
 
+export type ImageResizerCropRect = {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+
 export type ImageResizerWorkerRequest =
   | {
       type: "initialize";
@@ -36,6 +43,17 @@ export type ImageResizerWorkerRequest =
       creator: string;
       copyright: string;
       stripMetadata: boolean;
+      crop?: ImageResizerCropRect;
+    }
+  | {
+      type: "predict-crop";
+      requestId: string;
+      imageId: string;
+      sourceWidth: number;
+      sourceHeight: number;
+      longEdge: number;
+      neverEnlarge: boolean;
+      crop: ImageResizerCropRect;
     }
   | {
       type: "create-zip";
@@ -49,6 +67,7 @@ export type ImageResizerWorkerRequest =
 export type ImageResizerWorkerErrorStage =
   | "initialization"
   | "selection"
+  | "prediction"
   | "processing"
   | "zip"
   | "protocol";
@@ -74,6 +93,15 @@ export type ImageResizerWorkerResponse =
       width: number;
       height: number;
       sourceFormat: "JPEG" | "PNG" | "WebP";
+    }
+  | {
+      type: "crop-predicted";
+      requestId: string;
+      imageId: string;
+      cropWidth: number;
+      cropHeight: number;
+      outputWidth: number;
+      outputHeight: number;
     }
   | {
       type: "processed";
@@ -114,6 +142,7 @@ const MAX_QUALITY = 100;
 const MAX_REQUEST_ID_LENGTH = 100;
 const MAX_FILENAME_LENGTH = 255;
 const MAX_METADATA_LENGTH = 2_000;
+const CROP_BOUNDARY_TOLERANCE = 1e-12;
 
 function isBoundedString(
   value: unknown,
@@ -134,6 +163,41 @@ function isSafeArchiveFilename(value: unknown) {
     value !== "." &&
     value !== ".." &&
     !/[\\/\u0000-\u001f]/.test(value)
+  );
+}
+
+export function isImageResizerCropRect(
+  value: unknown,
+): value is ImageResizerCropRect {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const keys = Object.keys(candidate);
+  if (
+    keys.length !== 4 ||
+    !["x", "y", "width", "height"].every((key) => keys.includes(key))
+  ) {
+    return false;
+  }
+
+  const { x, y, width, height } = candidate;
+  return (
+    typeof x === "number" &&
+    Number.isFinite(x) &&
+    typeof y === "number" &&
+    Number.isFinite(y) &&
+    typeof width === "number" &&
+    Number.isFinite(width) &&
+    typeof height === "number" &&
+    Number.isFinite(height) &&
+    x >= 0 &&
+    y >= 0 &&
+    width > 0 &&
+    height > 0 &&
+    x + width <= 1 + CROP_BOUNDARY_TOLERANCE &&
+    y + height <= 1 + CROP_BOUNDARY_TOLERANCE
   );
 }
 
@@ -172,7 +236,37 @@ export function isProcessImageWorkerRequest(
     isBoundedString(candidate.altText, MAX_METADATA_LENGTH) &&
     isBoundedString(candidate.creator, MAX_METADATA_LENGTH) &&
     isBoundedString(candidate.copyright, MAX_METADATA_LENGTH) &&
-    typeof candidate.stripMetadata === "boolean"
+    typeof candidate.stripMetadata === "boolean" &&
+    (candidate.crop === undefined || isImageResizerCropRect(candidate.crop))
+  );
+}
+
+export function isPredictCropWorkerRequest(
+  value: unknown,
+): value is Extract<
+  ImageResizerWorkerRequest,
+  { type: "predict-crop" }
+> {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  return (
+    candidate.type === "predict-crop" &&
+    isBoundedString(candidate.requestId, MAX_REQUEST_ID_LENGTH, false) &&
+    isBoundedString(candidate.imageId, MAX_REQUEST_ID_LENGTH, false) &&
+    typeof candidate.sourceWidth === "number" &&
+    Number.isSafeInteger(candidate.sourceWidth) &&
+    candidate.sourceWidth > 0 &&
+    typeof candidate.sourceHeight === "number" &&
+    Number.isSafeInteger(candidate.sourceHeight) &&
+    candidate.sourceHeight > 0 &&
+    typeof candidate.longEdge === "number" &&
+    Number.isSafeInteger(candidate.longEdge) &&
+    candidate.longEdge >= MIN_LONG_EDGE &&
+    typeof candidate.neverEnlarge === "boolean" &&
+    isImageResizerCropRect(candidate.crop)
   );
 }
 
@@ -208,6 +302,7 @@ const RESPONSE_TYPES = new Set([
   "initializing",
   "ready",
   "image-selected",
+  "crop-predicted",
   "processed",
   "zip-created",
   "error",
