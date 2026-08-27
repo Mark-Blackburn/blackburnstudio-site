@@ -862,6 +862,8 @@ export default function ImageResizerBatchApp({
     if (
       transformed.cropEnabled === current.cropEnabled &&
       transformed.cropRatio === current.cropRatio &&
+      transformed.cropCustomWidth === current.cropCustomWidth &&
+      transformed.cropCustomHeight === current.cropCustomHeight &&
       transformed.cropZoom === current.cropZoom &&
       cropRectsMatch(transformed.cropRect, current.cropRect)
     ) {
@@ -914,18 +916,19 @@ export default function ImageResizerBatchApp({
     };
     const aspect = parseCustomCropAspect(nextValues.width, nextValues.height);
     if (!aspect || !current.width || !current.height) {
-      const next = {
+      const next = invalidateItemResult({
         ...current,
         cropCustomWidth: nextValues.width,
         cropCustomHeight: nextValues.height,
         cropPrediction: undefined,
         cropPredictionError: undefined,
-      };
+      });
       replaceQueue(
         queueRef.current.map((item) =>
           item.id === current.id ? next : item,
         ),
       );
+      revokeZipUrl();
       scheduleCropPrediction(next);
       return;
     }

@@ -1151,6 +1151,88 @@ describe("ImageResizerBatchApp", () => {
     expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
   });
 
+  it("invalidates completed output and ZIP while a custom crop ratio is invalid", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Crop & resize"));
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "custom");
+    fireEvent.change(screen.getByLabelText("Custom ratio width"), {
+      target: { value: "4" },
+    });
+    fireEvent.change(screen.getByLabelText("Custom ratio height"), {
+      target: { value: "5" },
+    });
+    fireEvent.change(screen.getByLabelText(/Zoom/), {
+      target: { value: "1.25" },
+    });
+
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const processRequest = await respondToProcessSelection(worker, inspectionCount);
+    await emitProcessed(worker, processRequest);
+    const download = await screen.findByRole("link", { name: "Download" });
+    const staleResultUrl = download.getAttribute("href");
+
+    await user.click(
+      screen.getByRole("button", { name: "Download all as ZIP (1)" }),
+    );
+    await waitFor(() =>
+      expect(requestsOfType(worker, "create-zip")).toHaveLength(1),
+    );
+    const zipRequest = requestsOfType(worker, "create-zip")[0];
+    await emitAndFlush(worker, {
+      type: "zip-created",
+      requestId: zipRequest.requestId,
+      bytes: new Uint8Array([80, 75]).buffer,
+      fileCount: 1,
+    });
+    const zipDownload = await screen.findByRole("link", {
+      name: "Download ZIP again",
+    });
+    const staleZipUrl = zipDownload.getAttribute("href");
+    vi.mocked(URL.revokeObjectURL).mockClear();
+
+    await user.clear(screen.getByLabelText("Custom ratio width"));
+
+    const article = screen.getByRole("article", { name: "one.jpg" });
+    expect(screen.queryByRole("link", { name: "Download" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Download ZIP again" }),
+    ).not.toBeInTheDocument();
+    expect(within(article).getByText("Queued")).toBeInTheDocument();
+    expect(
+      within(article).getByRole("button", { name: "Hide details for one.jpg" }),
+    ).toBeInTheDocument();
+    expect(screen.getByLabelText("Crop & resize")).toBeChecked();
+    expect(screen.getByLabelText("Custom ratio width")).toHaveValue(null);
+    expect(screen.getByLabelText("Custom ratio height")).toHaveValue(5);
+    expect(screen.getByLabelText(/Zoom/)).toHaveValue("1.25");
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
+
+    const revokedUrls = vi
+      .mocked(URL.revokeObjectURL)
+      .mock.calls.map(([url]) => url);
+    expect(revokedUrls.filter((url) => url === staleResultUrl)).toHaveLength(1);
+    expect(revokedUrls.filter((url) => url === staleZipUrl)).toHaveLength(1);
+
+    const predictionCount = requestsOfType(worker, "predict-crop").length;
+    fireEvent.change(screen.getByLabelText("Custom ratio width"), {
+      target: { value: "4" },
+    });
+    expect(screen.getByLabelText("Custom ratio width")).toHaveValue(4);
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+    await waitFor(() =>
+      expect(requestsOfType(worker, "predict-crop").length).toBeGreaterThan(
+        predictionCount,
+      ),
+    );
+  });
+
   it("reset restores minimum zoom and Apply ratio to all recenters each image", async () => {
     const { worker } = renderApp();
     emitReady(worker);
