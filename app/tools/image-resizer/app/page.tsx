@@ -15,7 +15,7 @@ export default function OnlineImageResizerPage() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
+      <main className="mx-auto w-full max-w-280 flex-1 px-6 pt-16 md:px-8 md:pt-24">
         <ImageResizerBatchApp />
       </main>
 

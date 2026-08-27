@@ -10,11 +10,16 @@ import {
 
 import {
   isCreateZipWorkerRequest,
+  isPredictCropWorkerRequest,
   isProcessImageWorkerRequest,
   type ImageResizerCapabilities,
   type ImageResizerWorkerRequest,
   type ImageResizerWorkerResponse,
 } from "./imageResizerWorkerProtocol";
+import {
+  cropArguments,
+  IMAGE_RESIZER_PYTHON_ADAPTER,
+} from "./imageResizerPythonAdapter";
 import { createImageZip } from "./imageResizerZip";
 
 type PyProxy = {
@@ -57,6 +62,7 @@ type Runtime = {
   manifest: ImageResizerBrowserManifest;
   capabilities: ImageResizerCapabilities;
   inspectImage: PyProxy;
+  predictCrop: PyProxy;
   processImage: PyProxy;
 };
 
@@ -82,120 +88,6 @@ const workerScope = self as unknown as DedicatedWorkerGlobalScope;
 let runtimePromise: Promise<Runtime> | null = null;
 let selectedImage: SelectedImage | null = null;
 let processing = false;
-
-const PYTHON_ADAPTER = String.raw`
-import sys
-from io import BytesIO
-
-sys.path.insert(0, "/image-resizer-runtime")
-
-from PIL import Image
-from image_resizer import (
-  ImageMetadata,
-    ProcessingOptions,
-    ResizeOptions,
-  filename_stem_from_input,
-    get_image_dimensions,
-    process_image,
-)
-
-
-def _browser_bytes(value):
-    try:
-        value = value.to_py()
-    except AttributeError:
-        pass
-    return bytes(value)
-
-
-def _browser_capabilities():
-    results = {}
-    for output_format, pillow_format in (
-        ("JPEG", "JPEG"),
-        ("PNG", "PNG"),
-        ("WebP", "WEBP"),
-    ):
-        output = BytesIO()
-        image = Image.new("RGB", (2, 2), "white")
-        try:
-            image.save(output, pillow_format)
-            results[output_format] = len(output.getvalue()) > 0
-        except Exception:
-            results[output_format] = False
-        finally:
-            image.close()
-    return results
-
-
-def _browser_inspect(input_value):
-    data = _browser_bytes(input_value)
-    with Image.open(BytesIO(data)) as image:
-        source_format = image.format
-        image.verify()
-
-    canonical = {
-        "JPG": "JPEG",
-        "JPEG": "JPEG",
-        "PNG": "PNG",
-        "WEBP": "WebP",
-    }.get(source_format)
-    if canonical is None:
-        raise ValueError("Only JPEG, PNG and WebP images are supported.")
-
-    width, height = get_image_dimensions(data)
-    return {
-        "sourceFormat": canonical,
-        "width": width,
-        "height": height,
-    }
-
-
-def _browser_process(
-    input_value,
-    source_filename,
-    long_edge,
-    never_enlarge,
-    output_format,
-    quality,
-    output_filename,
-    title,
-    alt_text,
-    creator,
-    copyright_text,
-    strip_metadata,
-):
-    data = _browser_bytes(input_value)
-    resize = ResizeOptions(
-        mode="Long edge",
-        primary_value=int(long_edge),
-        never_enlarge=bool(never_enlarge),
-    )
-    options = ProcessingOptions(
-        resize=resize,
-        output_format=output_format,
-        quality=int(quality),
-        strip_metadata=bool(strip_metadata),
-        web_filenames=True,
-        source_filename=source_filename,
-        custom_output_stem=filename_stem_from_input(output_filename),
-    )
-    metadata = ImageMetadata(
-        title=title,
-        alt_text=alt_text,
-        creator=creator,
-        copyright=copyright_text,
-    )
-    processed = process_image(data, options, metadata)
-    return {
-        "data": processed.data,
-        "suggestedFilename": processed.suggested_filename,
-        "originalWidth": processed.original_width,
-        "originalHeight": processed.original_height,
-        "width": processed.width,
-        "height": processed.height,
-        "outputFormat": processed.output_format,
-    }
-`;
 
 function postMessage(
   response: ImageResizerWorkerResponse,
@@ -224,6 +116,14 @@ function fromPython(proxy: PyProxy): Record<string, unknown> {
   }
 }
 
+function requirePositiveInteger(value: unknown) {
+  if (typeof value !== "number" || !Number.isSafeInteger(value) || value <= 0) {
+    throw new Error("The image runtime returned invalid dimensions.");
+  }
+
+  return value;
+}
+
 function workerFailure(
   error: unknown,
   fallback: Pick<WorkerFailureOptions, "code" | "userMessage">,
@@ -240,6 +140,7 @@ function reportError(
   stage:
     | "initialization"
     | "selection"
+    | "prediction"
     | "processing"
     | "zip"
     | "protocol",
@@ -392,7 +293,7 @@ async function initializeRuntime(): Promise<Runtime> {
     pyodide.unpackArchive(bundle, "zip", {
       extractDir: "/image-resizer-runtime",
     });
-    pyodide.runPython(PYTHON_ADAPTER);
+    pyodide.runPython(IMAGE_RESIZER_PYTHON_ADAPTER);
 
     const capabilityProxy = pyodide.globals.get("_browser_capabilities")();
     const rawCapabilities = fromPython(capabilityProxy);
@@ -401,6 +302,7 @@ async function initializeRuntime(): Promise<Runtime> {
       PNG: rawCapabilities.PNG === true,
       WebP: rawCapabilities.WebP === true,
     };
+    const predictCrop = pyodide.globals.get("_browser_predict");
 
     if (!capabilities.JPEG || !capabilities.PNG) {
       throw new Error("Required image formats are unavailable.");
@@ -412,6 +314,7 @@ async function initializeRuntime(): Promise<Runtime> {
       capabilities,
       inspectImage: pyodide.globals.get("_browser_inspect"),
       processImage: pyodide.globals.get("_browser_process"),
+      predictCrop,
     };
   } catch (error) {
     throw new WorkerFailure({
@@ -503,6 +406,45 @@ async function handleSelectImage(
   }
 }
 
+async function handlePredictCrop(
+  request: Extract<ImageResizerWorkerRequest, { type: "predict-crop" }>,
+) {
+  try {
+    const runtime = await runtimePromise;
+    if (!runtime) {
+      throw new WorkerFailure({
+        code: "RUNTIME_NOT_READY",
+        userMessage: "The image tools are not ready yet.",
+      });
+    }
+    const crop = cropArguments(request.crop);
+    const rawPrediction = fromPython(
+      runtime.predictCrop(
+        request.sourceWidth,
+        request.sourceHeight,
+        request.longEdge,
+        request.neverEnlarge,
+        ...crop,
+      ),
+    );
+
+    postMessage({
+      type: "crop-predicted",
+      requestId: request.requestId,
+      imageId: request.imageId,
+      cropWidth: requirePositiveInteger(rawPrediction.cropWidth),
+      cropHeight: requirePositiveInteger(rawPrediction.cropHeight),
+      outputWidth: requirePositiveInteger(rawPrediction.outputWidth),
+      outputHeight: requirePositiveInteger(rawPrediction.outputHeight),
+    });
+  } catch (error) {
+    reportError(request.requestId, "prediction", error, {
+      code: "PREDICTION_FAILED",
+      userMessage: "The crop dimensions could not be predicted.",
+    });
+  }
+}
+
 async function handleProcessImage(
   request: Extract<ImageResizerWorkerRequest, { type: "process-image" }>,
 ) {
@@ -545,6 +487,7 @@ async function handleProcessImage(
       });
     }
 
+    const crop = cropArguments(request.crop);
     const rawResult = fromPython(
       runtime.processImage(
         selectedImage.bytes,
@@ -559,6 +502,7 @@ async function handleProcessImage(
         request.creator,
         request.copyright,
         request.stripMetadata,
+        ...crop,
       ),
     );
     const outputBytes = rawResult.data;
@@ -645,6 +589,13 @@ workerScope.addEventListener("message", (event: MessageEvent<unknown>) => {
         { type: "select-image" }
       >,
     );
+  } else if (isPredictCropWorkerRequest(request)) {
+    void handlePredictCrop(request);
+  } else if (request.type === "predict-crop") {
+    reportError(request.requestId, "protocol", null, {
+      code: "INVALID_REQUEST",
+      userMessage: "The image tool received an invalid request.",
+    });
   } else if (isProcessImageWorkerRequest(request)) {
     void handleProcessImage(request);
   } else if (request.type === "process-image") {
@@ -670,6 +621,7 @@ workerScope.addEventListener("message", (event: MessageEvent<unknown>) => {
 workerScope.addEventListener("unload", () => {
   void runtimePromise?.then((runtime) => {
     runtime.inspectImage.destroy();
+    runtime.predictCrop.destroy();
     runtime.processImage.destroy();
   });
 });
