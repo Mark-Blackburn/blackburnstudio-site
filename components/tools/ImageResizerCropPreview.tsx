@@ -36,13 +36,30 @@ export default function ImageResizerCropPreview({
 }: ImageResizerCropPreviewProps) {
   const frameRef = useRef<HTMLDivElement>(null);
   const dragRef = useRef<DragState | null>(null);
-  const [previewUrl] = useState(() => URL.createObjectURL(file));
+  const activePreviewUrlRef = useRef<string | undefined>(undefined);
+  const [previewUrl, setPreviewUrl] = useState<string>();
   const [previewReady, setPreviewReady] = useState(false);
   const [previewFailed, setPreviewFailed] = useState(false);
 
   useEffect(() => {
-    return () => URL.revokeObjectURL(previewUrl);
-  }, [previewUrl]);
+    const url = URL.createObjectURL(file);
+    activePreviewUrlRef.current = url;
+    /* eslint-disable react-hooks/set-state-in-effect -- A new external Object URL starts a new preview decode lifecycle. */
+    setPreviewReady(false);
+    setPreviewFailed(false);
+    setPreviewUrl(url);
+    /* eslint-enable react-hooks/set-state-in-effect */
+    onPreviewError(undefined);
+
+    return () => {
+      if (activePreviewUrlRef.current === url) {
+        activePreviewUrlRef.current = undefined;
+      }
+      URL.revokeObjectURL(url);
+    };
+    // The URL lifecycle belongs to the file; callback identity must not recreate it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [file]);
 
   const frameAspect =
     (sourceWidth * rect.width) / (sourceHeight * rect.height);
@@ -125,10 +142,12 @@ export default function ImageResizerCropPreview({
         // always produced by Pillow in the worker, never from this preview.
         // eslint-disable-next-line @next/next/no-img-element
         <img
+          key={previewUrl}
           src={previewUrl}
           alt=""
           draggable={false}
           onLoad={(event) => {
+            if (activePreviewUrlRef.current !== previewUrl) return;
             const image = event.currentTarget;
             const dimensionsMatch =
               image.naturalWidth === sourceWidth &&
@@ -142,6 +161,7 @@ export default function ImageResizerCropPreview({
             );
           }}
           onError={() => {
+            if (activePreviewUrlRef.current !== previewUrl) return;
             setPreviewReady(false);
             setPreviewFailed(true);
             onPreviewError("This image could not be decoded for crop preview.");

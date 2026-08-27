@@ -81,44 +81,50 @@ export default function ImageResizerCropEditor({
     : true;
 
   return (
-    <div className="mt-8 border-t border-studio-border/60 pt-7">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <h3 className="text-lg font-medium text-studio-text">Crop editor</h3>
-          <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-studio-dim">
-            Crop coordinates stay in this browser. Final output is produced by
-            the shared Python and Pillow processor, not from this preview.
-          </p>
-        </div>
-        {item ? (
-          <div className="flex items-center gap-3" aria-label="Crop preview image navigation">
-            <button
-              type="button"
-              onClick={onPrevious}
-              disabled={disabled || position <= 1}
-              className="min-h-11 rounded-lg border border-studio-border px-3 text-sm text-studio-text disabled:opacity-40"
-            >
-              Previous
-            </button>
-            <span className="min-w-16 text-center text-xs text-studio-dim" aria-live="polite">
-              {position} / {total}
-            </span>
-            <button
-              type="button"
-              onClick={onNext}
-              disabled={disabled || position >= total}
-              className="min-h-11 rounded-lg border border-studio-border px-3 text-sm text-studio-text disabled:opacity-40"
-            >
-              Next
-            </button>
-          </div>
-        ) : null}
+    <div className="mt-8 border-t border-white/10 pt-7">
+      <div>
+        <h3 id="image-resizer-crop-editor-heading" className="text-lg font-medium text-studio-text">Crop editor</h3>
+        <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-studio-muted">
+          Drag the image to reposition it, then use Zoom to adjust the framing.
+        </p>
       </div>
+
+      {item ? (
+        <div
+          className="mt-5 grid grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-3 rounded-xl bg-studio-surface-raised p-3 shadow-inner shadow-black/15"
+          aria-label="Crop preview image navigation"
+        >
+          <button
+            type="button"
+            onClick={onPrevious}
+            disabled={disabled || position <= 1}
+            className="min-h-11 rounded-lg border border-white/15 bg-studio-surface-soft px-3 text-sm font-medium text-studio-text transition hover:border-white/35 disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            Previous
+          </button>
+          <div className="min-w-0 text-center" aria-live="polite">
+            <p className="text-xs font-medium uppercase tracking-[0.14em] text-studio-dim">
+              Image {position} of {total}
+            </p>
+            <p className="mt-1 truncate text-sm font-medium text-studio-text">
+              {item.file.name}
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={onNext}
+            disabled={disabled || position >= total}
+            className="min-h-11 rounded-lg border border-white/15 bg-studio-surface-soft px-3 text-sm font-medium text-studio-text transition hover:border-white/35 disabled:cursor-not-allowed disabled:opacity-35"
+          >
+            Next
+          </button>
+        </div>
+      ) : null}
 
       <fieldset className="mt-6" disabled={!item || disabled}>
         <legend className="text-sm font-medium text-studio-text">Mode</legend>
         <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3">
-          <label className="flex min-h-11 items-center gap-3 text-sm text-studio-muted">
+          <label className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition ${!item?.cropEnabled ? "bg-studio-surface-raised text-studio-text ring-1 ring-white/10" : "text-studio-muted"}`}>
             <input
               type="radio"
               name="image-resizer-crop-mode"
@@ -128,7 +134,7 @@ export default function ImageResizerCropEditor({
             />
             Resize only
           </label>
-          <label className="flex min-h-11 items-center gap-3 text-sm text-studio-muted">
+          <label className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition ${item?.cropEnabled ? "bg-studio-surface-raised text-studio-text ring-1 ring-white/10" : "text-studio-muted"}`}>
             <input
               type="radio"
               name="image-resizer-crop-mode"
@@ -142,15 +148,12 @@ export default function ImageResizerCropEditor({
       </fieldset>
 
       {!item ? (
-        <p className="mt-5 rounded-lg border border-studio-border/70 bg-studio-surface-soft/45 px-4 py-3 text-sm text-studio-dim">
+        <p className="mt-5 rounded-lg bg-studio-surface-raised px-4 py-3 text-sm text-studio-muted">
           Add a readable image to start a crop preview.
         </p>
       ) : item.cropEnabled ? (
-        <div className="mt-6 grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.55fr)_minmax(16rem,0.65fr)] xl:items-start">
+        <div className="mt-6 grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.7fr)] lg:items-start">
           <div className="min-w-0">
-            <p className="mb-3 truncate text-sm font-medium text-studio-text">
-              {item.file.name}
-            </p>
             <ImageResizerCropPreview
               key={item.id}
               file={item.file}
@@ -161,7 +164,7 @@ export default function ImageResizerCropEditor({
               onRectChange={onRectChange}
               onPreviewError={onPreviewError}
             />
-            <p className="mt-3 text-xs leading-relaxed text-studio-dim">
+            <p className="mt-3 text-xs leading-relaxed text-studio-muted">
               Drag with a mouse, pen or one finger. Arrow keys nudge the image;
               hold Shift for a larger step.
             </p>
@@ -172,7 +175,7 @@ export default function ImageResizerCropEditor({
             ) : null}
           </div>
 
-          <div className="min-w-0 space-y-6">
+          <div className="min-w-0 space-y-6 rounded-xl bg-studio-surface-raised p-4 sm:p-5">
             <div>
               <label htmlFor="image-resizer-crop-ratio" className="text-sm font-medium text-studio-text">
                 Crop ratio
@@ -182,7 +185,7 @@ export default function ImageResizerCropEditor({
                 value={item.cropRatio}
                 onChange={(event) => onRatioChange(event.target.value as CropRatio)}
                 disabled={disabled}
-                className="mt-2 min-h-11 w-full rounded-lg border border-studio-border bg-studio-surface-soft px-3 py-2 text-sm text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:opacity-55"
+                className="mt-2 min-h-11 w-full rounded-lg border border-white/20 bg-studio-surface-soft px-3 py-2 text-sm text-studio-text shadow-inner shadow-black/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {RATIOS.map((ratio) => (
                   <option key={ratio.value} value={ratio.value}>
@@ -216,7 +219,7 @@ export default function ImageResizerCropEditor({
                       onChange={(event) => onCustomRatioChange("width", event.target.value)}
                       aria-invalid={!customRatioValid}
                       disabled={disabled}
-                      className="min-h-11 w-full rounded-lg border border-studio-border bg-studio-surface-soft px-3 py-2 text-sm text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:opacity-55"
+                      className="min-h-11 w-full rounded-lg border border-white/20 bg-studio-surface-soft px-3 py-2 text-sm text-studio-text shadow-inner shadow-black/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </label>
                   <span aria-hidden="true" className="text-studio-dim">:</span>
@@ -232,7 +235,7 @@ export default function ImageResizerCropEditor({
                       onChange={(event) => onCustomRatioChange("height", event.target.value)}
                       aria-invalid={!customRatioValid}
                       disabled={disabled}
-                      className="min-h-11 w-full rounded-lg border border-studio-border bg-studio-surface-soft px-3 py-2 text-sm text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:opacity-55"
+                      className="min-h-11 w-full rounded-lg border border-white/20 bg-studio-surface-soft px-3 py-2 text-sm text-studio-text shadow-inner shadow-black/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 disabled:cursor-not-allowed disabled:opacity-50"
                     />
                   </label>
                 </div>
@@ -271,20 +274,20 @@ export default function ImageResizerCropEditor({
             <dl
               aria-live="polite"
               aria-busy={!item.cropPrediction && !item.cropPredictionError}
-              className="grid grid-cols-3 gap-3 rounded-lg border border-studio-border/70 bg-studio-surface-soft/45 p-4 text-xs"
+              className="grid grid-cols-3 gap-3 rounded-lg bg-studio-surface-soft p-4 text-xs shadow-inner shadow-black/15"
             >
               <div>
-                <dt className="text-studio-dim">Source</dt>
+                <dt className="text-studio-muted">Source</dt>
                 <dd className="mt-1 text-studio-text">{item.width} × {item.height}</dd>
               </div>
               <div>
-                <dt className="text-studio-dim">Crop</dt>
+                <dt className="text-studio-muted">Crop</dt>
                 <dd className="mt-1 text-studio-text">
                   {item.cropPrediction ? `${item.cropPrediction.cropWidth} × ${item.cropPrediction.cropHeight}` : "…"}
                 </dd>
               </div>
               <div>
-                <dt className="text-studio-dim">Output</dt>
+                <dt className="text-studio-muted">Output</dt>
                 <dd className="mt-1 text-studio-text">
                   {item.cropPrediction ? `${item.cropPrediction.outputWidth} × ${item.cropPrediction.outputHeight}` : "…"}
                 </dd>
@@ -298,7 +301,7 @@ export default function ImageResizerCropEditor({
           </div>
         </div>
       ) : (
-        <p className="mt-5 text-sm leading-relaxed text-studio-dim">
+        <p className="mt-5 text-sm leading-relaxed text-studio-muted">
           This image will use the existing resize-only workflow.
         </p>
       )}

@@ -6,6 +6,7 @@
   --studio-base: #0d0c0a;
   --studio-surface: #13110f;
   --studio-surface-soft: #191712;
+  --studio-surface-raised: #211e19;
   --studio-text: #ede7dc;
   --studio-muted: #c4bcae;
   --studio-dim: #a89f90;
@@ -18,6 +19,7 @@
   --color-studio-base: var(--studio-base);
   --color-studio-surface: var(--studio-surface);
   --color-studio-surface-soft: var(--studio-surface-soft);
+  --color-studio-surface-raised: var(--studio-surface-raised);
   --color-studio-text: var(--studio-text);
   --color-studio-muted: var(--studio-muted);
   --color-studio-dim: var(--studio-dim);
@@ -128,7 +130,7 @@ select:-webkit-autofill,
 select:-webkit-autofill:hover,
 select:-webkit-autofill:focus {
   -webkit-text-fill-color: var(--studio-text);
-  box-shadow: 0 0 0 1000px rgb(13 12 10 / 0.35) inset;
+  box-shadow: 0 0 0 1000px var(--studio-surface-raised) inset;
   border-color: var(--studio-border);
   caret-color: var(--studio-text);
   transition: background-color 9999s ease-out;
