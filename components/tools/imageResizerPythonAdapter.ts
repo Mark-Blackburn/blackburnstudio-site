@@ -1,42 +1,42 @@
 import type {
-    ImageResizerCropRect,
-    ImageResizerWatermark,
+  ImageResizerCropRect,
+  ImageResizerWatermark,
 } from "./imageResizerWorkerProtocol";
 
 export function cropArguments(crop?: ImageResizerCropRect) {
   return crop
-        ? [true, crop.x, crop.y, crop.width, crop.height]
-        : [false, 0, 0, 0, 0];
+    ? [true, crop.x, crop.y, crop.width, crop.height]
+    : [false, 0, 0, 0, 0];
 }
 
 export function watermarkArguments(watermark?: ImageResizerWatermark) {
-    if (!watermark) {
-        return ["none", "", "bottom-right", 0.5, 0.05, 0.03, "#FFFFFF", null, 0.2];
-    }
-    if (watermark.type === "text") {
-        return [
-            "text",
-            watermark.text,
-            watermark.position,
-            watermark.opacity,
-            watermark.size,
-            watermark.margin,
-            watermark.colour,
-            null,
-            0.2,
-        ];
-    }
+  if (!watermark) {
+    return ["none", "", "bottom-right", 0.5, 0.05, 0.03, "#FFFFFF", null, 0.2];
+  }
+  if (watermark.type === "text") {
     return [
-        "image",
-        "",
-        watermark.position,
-        watermark.opacity,
-        0.05,
-        watermark.margin,
-        "#FFFFFF",
-        new Uint8Array(watermark.bytes),
-        watermark.scale,
+      "text",
+      watermark.text,
+      watermark.position,
+      watermark.opacity,
+      watermark.size,
+      watermark.margin,
+      watermark.colour,
+      null,
+      0.2,
     ];
+  }
+  return [
+    "image",
+    "",
+    watermark.position,
+    watermark.opacity,
+    0.05,
+    watermark.margin,
+    "#FFFFFF",
+    new Uint8Array(watermark.bytes),
+    watermark.scale,
+  ];
 }
 
 export const IMAGE_RESIZER_PYTHON_ADAPTER = String.raw`
