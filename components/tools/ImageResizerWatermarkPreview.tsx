@@ -78,6 +78,7 @@ export default function ImageResizerWatermarkPreview({
     const measure = (fontSize: number) => {
       if (
         typeof document === "undefined" ||
+        typeof navigator === "undefined" ||
         navigator.userAgent.includes("jsdom")
       ) {
         return {
