@@ -7,13 +7,18 @@ import {
   panCropRect,
   type CropRect,
 } from "./imageResizerCropGeometry";
+import ImageResizerWatermarkPreview, {
+  type ImageResizerWatermarkPreviewSettings,
+} from "./ImageResizerWatermarkPreview";
 
 type ImageResizerCropPreviewProps = {
   file: File;
   sourceWidth: number;
   sourceHeight: number;
   rect: CropRect;
+  interactive: boolean;
   disabled: boolean;
+  watermark?: ImageResizerWatermarkPreviewSettings;
   onRectChange: (rect: CropRect) => void;
   onPreviewError: (message?: string) => void;
 };
@@ -30,7 +35,9 @@ export default function ImageResizerCropPreview({
   sourceWidth,
   sourceHeight,
   rect,
+  interactive,
   disabled,
+  watermark,
   onRectChange,
   onPreviewError,
 }: ImageResizerCropPreviewProps) {
@@ -72,7 +79,7 @@ export default function ImageResizerCropPreview({
   } as const;
 
   function beginDrag(event: PointerEvent<HTMLDivElement>) {
-    if (disabled || !previewReady || !frameRef.current) return;
+    if (!interactive || disabled || !previewReady || !frameRef.current) return;
     dragRef.current = {
       pointerId: event.pointerId,
       startX: event.clientX,
@@ -117,8 +124,12 @@ export default function ImageResizerCropPreview({
   return (
     <div
       ref={frameRef}
-      tabIndex={disabled ? -1 : 0}
-      aria-label={`Interactive crop preview for ${file.name}. Drag to reposition. Use arrow keys to nudge the image.`}
+      tabIndex={!interactive || disabled ? -1 : 0}
+      aria-label={
+        interactive
+          ? `Interactive crop preview for ${file.name}. Drag to reposition. Use arrow keys to nudge the image.`
+          : `Image preview for ${file.name}.`
+      }
       onKeyDown={(event) => {
         const direction = {
           ArrowLeft: "left",
@@ -126,7 +137,7 @@ export default function ImageResizerCropPreview({
           ArrowUp: "up",
           ArrowDown: "down",
         }[event.key] as "left" | "right" | "up" | "down" | undefined;
-        if (!direction || disabled || !previewReady) return;
+        if (!direction || !interactive || disabled || !previewReady) return;
         event.preventDefault();
         onRectChange(nudgeCropRect(rect, direction, event.shiftKey ? 5 : 1));
       }}
@@ -134,7 +145,7 @@ export default function ImageResizerCropPreview({
       onPointerMove={moveDrag}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
-      className="relative mx-auto w-full max-w-3xl touch-none select-none overflow-hidden rounded-xl border border-white/20 bg-black shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+      className={`relative mx-auto w-full max-w-3xl select-none overflow-hidden rounded-xl border border-white/20 bg-black shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${interactive ? "touch-none" : ""}`}
       style={{ aspectRatio: frameAspect }}
     >
       {previewUrl ? (
@@ -164,11 +175,14 @@ export default function ImageResizerCropPreview({
             if (activePreviewUrlRef.current !== previewUrl) return;
             setPreviewReady(false);
             setPreviewFailed(true);
-            onPreviewError("This image could not be decoded for crop preview.");
+            onPreviewError("This image could not be decoded for preview.");
           }}
           className="pointer-events-none absolute block h-auto max-w-none"
           style={imageStyle}
         />
+      ) : null}
+      {previewReady ? (
+        <ImageResizerWatermarkPreview watermark={watermark} />
       ) : null}
       <div
         aria-hidden="true"
@@ -177,7 +191,7 @@ export default function ImageResizerCropPreview({
       {!previewReady ? (
         <div className="absolute inset-0 grid place-items-center bg-black/70 px-6 text-center text-sm text-studio-muted">
           {previewFailed
-            ? "Crop preview unavailable."
+            ? "Image preview unavailable."
             : "Preparing orientation-corrected preview…"}
         </div>
       ) : null}

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   isCreateZipWorkerRequest,
   isImageResizerCropRect,
+  isImageResizerWatermark,
   isImageResizerWorkerResponse,
   isPredictCropWorkerRequest,
   isProcessImageWorkerRequest,
@@ -241,6 +242,13 @@ describe("isPredictCropWorkerRequest", () => {
     expect(isPredictCropWorkerRequest(validRequest)).toBe(true);
   });
 
+  it("accepts resize-only output prediction without a crop", () => {
+    const resizeOnlyRequest = Object.fromEntries(
+      Object.entries(validRequest).filter(([key]) => key !== "crop"),
+    );
+    expect(isPredictCropWorkerRequest(resizeOnlyRequest)).toBe(true);
+  });
+
   it.each([
     { sourceWidth: 0 },
     { sourceHeight: Number.NaN },
@@ -251,5 +259,123 @@ describe("isPredictCropWorkerRequest", () => {
     expect(isPredictCropWorkerRequest({ ...validRequest, ...override })).toBe(
       false,
     );
+  });
+});
+
+describe("isImageResizerWatermark", () => {
+  const textWatermark = {
+    type: "text",
+    text: "Blackburn Studio",
+    position: "bottom-right",
+    opacity: 0.5,
+    size: 0.05,
+    margin: 0.03,
+    colour: "#FFFFFF",
+  };
+  const imageWatermark = {
+    type: "image",
+    bytes: new Uint8Array([1, 2, 3]).buffer,
+    position: "center",
+    opacity: 1,
+    scale: 0.2,
+    margin: 0,
+  };
+
+  it("accepts no watermark and valid text and image watermarks", () => {
+    expect(isProcessImageWorkerRequest(validProcessImageRequest)).toBe(true);
+    expect(
+      isProcessImageWorkerRequest({
+        ...validProcessImageRequest,
+        watermark: textWatermark,
+      }),
+    ).toBe(true);
+    expect(
+      isProcessImageWorkerRequest({
+        ...validProcessImageRequest,
+        watermark: imageWatermark,
+      }),
+    ).toBe(true);
+  });
+
+  it.each([
+    { opacity: 0 },
+    { opacity: 1.01 },
+    { opacity: Number.NaN },
+    { opacity: Number.POSITIVE_INFINITY },
+    { size: 0.009 },
+    { size: 0.251 },
+    { size: Number.NaN },
+    { margin: -0.001 },
+    { margin: 0.251 },
+    { margin: Number.NEGATIVE_INFINITY },
+  ])("rejects an invalid text numeric boundary: %j", (override) => {
+    expect(isImageResizerWatermark({ ...textWatermark, ...override })).toBe(
+      false,
+    );
+  });
+
+  it.each([
+    { opacity: 0 },
+    { opacity: 1.01 },
+    { opacity: Number.NaN },
+    { scale: 0.009 },
+    { scale: 1.01 },
+    { scale: Number.POSITIVE_INFINITY },
+    { margin: -0.001 },
+    { margin: 0.251 },
+  ])("rejects an invalid image numeric boundary: %j", (override) => {
+    expect(isImageResizerWatermark({ ...imageWatermark, ...override })).toBe(
+      false,
+    );
+  });
+
+  it.each([
+    { text: "" },
+    { text: "   " },
+    { text: "two\nlines" },
+    { text: "x".repeat(201) },
+    { colour: "white" },
+    { colour: "#FFF" },
+    { colour: "#GG0000" },
+    { position: "middle" },
+    { type: "logo" },
+    { extra: true },
+  ])("rejects malformed text watermark data: %j", (override) => {
+    expect(isImageResizerWatermark({ ...textWatermark, ...override })).toBe(
+      false,
+    );
+  });
+
+  it.each([
+    { bytes: new ArrayBuffer(0) },
+    { bytes: new Uint8Array([1]) },
+    { position: "middle" },
+    { type: "logo" },
+    { extra: true },
+  ])("rejects malformed image watermark data: %j", (override) => {
+    expect(isImageResizerWatermark({ ...imageWatermark, ...override })).toBe(
+      false,
+    );
+  });
+
+  it("accepts all inclusive shared-core boundaries", () => {
+    expect(
+      isImageResizerWatermark({
+        ...textWatermark,
+        opacity: Number.MIN_VALUE,
+        size: 0.01,
+        margin: 0.25,
+        text: "x".repeat(200),
+        colour: "#a1B2c3",
+      }),
+    ).toBe(true);
+    expect(
+      isImageResizerWatermark({
+        ...imageWatermark,
+        opacity: 1,
+        scale: 1,
+        margin: 0.25,
+      }),
+    ).toBe(true);
   });
 });

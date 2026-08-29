@@ -20,6 +20,10 @@ import {
   cropArguments,
   IMAGE_RESIZER_PYTHON_ADAPTER,
 } from "./imageResizerPythonAdapter";
+import {
+  capabilitiesFromPython,
+  prepareWorkerWatermark,
+} from "./imageResizerWorkerBridge";
 import { createImageZip } from "./imageResizerZip";
 
 type PyProxy = {
@@ -297,11 +301,7 @@ async function initializeRuntime(): Promise<Runtime> {
 
     const capabilityProxy = pyodide.globals.get("_browser_capabilities")();
     const rawCapabilities = fromPython(capabilityProxy);
-    const capabilities: ImageResizerCapabilities = {
-      JPEG: rawCapabilities.JPEG === true,
-      PNG: rawCapabilities.PNG === true,
-      WebP: rawCapabilities.WebP === true,
-    };
+    const capabilities = capabilitiesFromPython(rawCapabilities);
     const predictCrop = pyodide.globals.get("_browser_predict");
 
     if (!capabilities.JPEG || !capabilities.PNG) {
@@ -487,6 +487,18 @@ async function handleProcessImage(
       });
     }
 
+    const watermark = prepareWorkerWatermark(
+      request.watermark,
+      runtime.capabilities,
+    );
+    if (!watermark) {
+      throw new WorkerFailure({
+        code: "WATERMARK_UNAVAILABLE",
+        userMessage:
+          "Watermarking is unavailable in the loaded browser processor.",
+      });
+    }
+
     const crop = cropArguments(request.crop);
     const rawResult = fromPython(
       runtime.processImage(
@@ -503,6 +515,7 @@ async function handleProcessImage(
         request.copyright,
         request.stripMetadata,
         ...crop,
+        ...watermark,
       ),
     );
     const outputBytes = rawResult.data;

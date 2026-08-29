@@ -18,6 +18,7 @@ function previewProps(file: File, onPreviewError = vi.fn()) {
     sourceWidth: 1200,
     sourceHeight: 800,
     rect,
+    interactive: true,
     disabled: false,
     onRectChange: vi.fn(),
     onPreviewError,
@@ -78,7 +79,7 @@ describe("ImageResizerCropPreview Object URL lifecycle", () => {
     expect(
       screen.queryByText("Preparing orientation-corrected preview…"),
     ).not.toBeInTheDocument();
-    expect(screen.queryByText("Crop preview unavailable.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Image preview unavailable.")).not.toBeInTheDocument();
   });
 
   it("revokes the previous file URL and renders a fresh URL when the file changes", async () => {
@@ -132,9 +133,9 @@ describe("ImageResizerCropPreview Object URL lifecycle", () => {
     );
     const firstImage = await currentPreviewImage();
     fireEvent.error(firstImage);
-    expect(screen.getByText("Crop preview unavailable.")).toBeInTheDocument();
+    expect(screen.getByText("Image preview unavailable.")).toBeInTheDocument();
     expect(onPreviewError).toHaveBeenLastCalledWith(
-      "This image could not be decoded for crop preview.",
+      "This image could not be decoded for preview.",
     );
 
     rerender(
@@ -148,17 +149,84 @@ describe("ImageResizerCropPreview Object URL lifecycle", () => {
       ),
     );
 
-    expect(screen.queryByText("Crop preview unavailable.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Image preview unavailable.")).not.toBeInTheDocument();
     expect(
       screen.getByText("Preparing orientation-corrected preview…"),
     ).toBeInTheDocument();
     expect(onPreviewError).toHaveBeenLastCalledWith(undefined);
 
     fireEvent.error(firstImage);
-    expect(screen.queryByText("Crop preview unavailable.")).not.toBeInTheDocument();
+    expect(screen.queryByText("Image preview unavailable.")).not.toBeInTheDocument();
     loadPreview(document.querySelector("img")!);
     expect(
       screen.queryByText("Preparing orientation-corrected preview…"),
     ).not.toBeInTheDocument();
+  });
+
+  it("renders resize-only preview without drag or keyboard crop interaction", async () => {
+    const file = imageFile("resize-only.jpg");
+    const onRectChange = vi.fn();
+    render(
+      <ImageResizerCropPreview
+        {...previewProps(file)}
+        interactive={false}
+        onRectChange={onRectChange}
+      />,
+    );
+    const preview = screen.getByLabelText("Image preview for resize-only.jpg.");
+    loadPreview(await currentPreviewImage());
+
+    fireEvent.keyDown(preview, { key: "ArrowRight" });
+    fireEvent.pointerDown(preview, { pointerId: 1, clientX: 10, clientY: 10 });
+    fireEvent.pointerMove(preview, { pointerId: 1, clientX: 30, clientY: 30 });
+
+    expect(preview).toHaveAttribute("tabindex", "-1");
+    expect(onRectChange).not.toHaveBeenCalled();
+  });
+
+  it("retains keyboard crop interaction when crop mode is active", async () => {
+    const onRectChange = vi.fn();
+    render(
+      <ImageResizerCropPreview
+        {...previewProps(imageFile("crop.jpg"))}
+        onRectChange={onRectChange}
+      />,
+    );
+    const preview = screen.getByLabelText(/Interactive crop preview for crop\.jpg/);
+    loadPreview(await currentPreviewImage());
+
+    fireEvent.keyDown(preview, { key: "ArrowRight" });
+
+    expect(onRectChange).toHaveBeenCalledTimes(1);
+  });
+
+  it("renders a pointer-transparent watermark overlay on the shared preview", async () => {
+    render(
+      <ImageResizerCropPreview
+        {...previewProps(imageFile("watermarked.jpg"))}
+        interactive={false}
+        watermark={{
+          type: "text",
+          text: "Blackburn Studio",
+          position: "bottom-right",
+          opacity: 0.6,
+          size: 0.05,
+          margin: 0.03,
+          colour: "#FFFFFF",
+        }}
+      />,
+    );
+    loadPreview(await currentPreviewImage());
+
+    expect(screen.getByText("Blackburn Studio")).toHaveAttribute(
+      "data-watermark-preview",
+      "text",
+    );
+    expect(
+      screen.getByText("Blackburn Studio").parentElement,
+    ).toHaveClass("pointer-events-none");
+    expect(
+      screen.getAllByLabelText("Image preview for watermarked.jpg."),
+    ).toHaveLength(1);
   });
 });

@@ -8,7 +8,42 @@ export type ImageResizerCapabilities = {
   JPEG: boolean;
   PNG: boolean;
   WebP: boolean;
+  watermark: boolean;
 };
+
+export type ImageResizerWatermarkPosition =
+  | "top-left"
+  | "top-center"
+  | "top-right"
+  | "center-left"
+  | "center"
+  | "center-right"
+  | "bottom-left"
+  | "bottom-center"
+  | "bottom-right";
+
+export type ImageResizerTextWatermark = {
+  type: "text";
+  text: string;
+  position: ImageResizerWatermarkPosition;
+  opacity: number;
+  size: number;
+  margin: number;
+  colour: string;
+};
+
+export type ImageResizerImageWatermark = {
+  type: "image";
+  bytes: ArrayBuffer;
+  position: ImageResizerWatermarkPosition;
+  opacity: number;
+  scale: number;
+  margin: number;
+};
+
+export type ImageResizerWatermark =
+  | ImageResizerTextWatermark
+  | ImageResizerImageWatermark;
 
 export type ImageResizerCropRect = {
   x: number;
@@ -44,6 +79,7 @@ export type ImageResizerWorkerRequest =
       copyright: string;
       stripMetadata: boolean;
       crop?: ImageResizerCropRect;
+      watermark?: ImageResizerWatermark;
     }
   | {
       type: "predict-crop";
@@ -53,7 +89,7 @@ export type ImageResizerWorkerRequest =
       sourceHeight: number;
       longEdge: number;
       neverEnlarge: boolean;
-      crop: ImageResizerCropRect;
+      crop?: ImageResizerCropRect;
     }
   | {
       type: "create-zip";
@@ -143,6 +179,25 @@ const MAX_REQUEST_ID_LENGTH = 100;
 const MAX_FILENAME_LENGTH = 255;
 const MAX_METADATA_LENGTH = 2_000;
 const CROP_BOUNDARY_TOLERANCE = 1e-12;
+export const IMAGE_RESIZER_WATERMARK_POSITIONS = [
+  "top-left",
+  "top-center",
+  "top-right",
+  "center-left",
+  "center",
+  "center-right",
+  "bottom-left",
+  "bottom-center",
+  "bottom-right",
+] as const satisfies readonly ImageResizerWatermarkPosition[];
+const WATERMARK_POSITIONS = new Set<string>(IMAGE_RESIZER_WATERMARK_POSITIONS);
+const WATERMARK_COLOUR_PATTERN = /^#[0-9A-Fa-f]{6}$/;
+const MAX_WATERMARK_TEXT_LENGTH = 200;
+const MIN_TEXT_WATERMARK_SIZE = 0.01;
+const MAX_TEXT_WATERMARK_SIZE = 0.25;
+const MIN_IMAGE_WATERMARK_SCALE = 0.01;
+const MAX_IMAGE_WATERMARK_SCALE = 1;
+const MAX_WATERMARK_MARGIN = 0.25;
 
 function isBoundedString(
   value: unknown,
@@ -201,6 +256,91 @@ export function isImageResizerCropRect(
   );
 }
 
+function isFiniteNumberInRange(
+  value: unknown,
+  minimum: number,
+  maximum: number,
+  minimumExclusive = false,
+) {
+  return (
+    typeof value === "number" &&
+    Number.isFinite(value) &&
+    (minimumExclusive ? value > minimum : value >= minimum) &&
+    value <= maximum
+  );
+}
+
+function hasExactKeys(candidate: Record<string, unknown>, keys: string[]) {
+  const candidateKeys = Object.keys(candidate);
+  return (
+    candidateKeys.length === keys.length &&
+    keys.every((key) => candidateKeys.includes(key))
+  );
+}
+
+export function isImageResizerWatermark(
+  value: unknown,
+): value is ImageResizerWatermark {
+  if (typeof value !== "object" || value === null || Array.isArray(value)) {
+    return false;
+  }
+
+  const candidate = value as Record<string, unknown>;
+  const commonValid =
+    typeof candidate.position === "string" &&
+    WATERMARK_POSITIONS.has(candidate.position) &&
+    isFiniteNumberInRange(candidate.opacity, 0, 1, true) &&
+    isFiniteNumberInRange(candidate.margin, 0, MAX_WATERMARK_MARGIN);
+  if (!commonValid) return false;
+
+  if (candidate.type === "text") {
+    return (
+      hasExactKeys(candidate, [
+        "type",
+        "text",
+        "position",
+        "opacity",
+        "size",
+        "margin",
+        "colour",
+      ]) &&
+      typeof candidate.text === "string" &&
+      candidate.text.trim().length > 0 &&
+      candidate.text.length <= MAX_WATERMARK_TEXT_LENGTH &&
+      !/[\r\n]/.test(candidate.text) &&
+      isFiniteNumberInRange(
+        candidate.size,
+        MIN_TEXT_WATERMARK_SIZE,
+        MAX_TEXT_WATERMARK_SIZE,
+      ) &&
+      typeof candidate.colour === "string" &&
+      WATERMARK_COLOUR_PATTERN.test(candidate.colour)
+    );
+  }
+
+  if (candidate.type === "image") {
+    return (
+      hasExactKeys(candidate, [
+        "type",
+        "bytes",
+        "position",
+        "opacity",
+        "scale",
+        "margin",
+      ]) &&
+      candidate.bytes instanceof ArrayBuffer &&
+      candidate.bytes.byteLength > 0 &&
+      isFiniteNumberInRange(
+        candidate.scale,
+        MIN_IMAGE_WATERMARK_SCALE,
+        MAX_IMAGE_WATERMARK_SCALE,
+      )
+    );
+  }
+
+  return false;
+}
+
 export function isProcessImageWorkerRequest(
   value: unknown,
 ): value is Extract<
@@ -237,7 +377,9 @@ export function isProcessImageWorkerRequest(
     isBoundedString(candidate.creator, MAX_METADATA_LENGTH) &&
     isBoundedString(candidate.copyright, MAX_METADATA_LENGTH) &&
     typeof candidate.stripMetadata === "boolean" &&
-    (candidate.crop === undefined || isImageResizerCropRect(candidate.crop))
+    (candidate.crop === undefined || isImageResizerCropRect(candidate.crop)) &&
+    (candidate.watermark === undefined ||
+      isImageResizerWatermark(candidate.watermark))
   );
 }
 
@@ -266,7 +408,7 @@ export function isPredictCropWorkerRequest(
     Number.isSafeInteger(candidate.longEdge) &&
     candidate.longEdge >= MIN_LONG_EDGE &&
     typeof candidate.neverEnlarge === "boolean" &&
-    isImageResizerCropRect(candidate.crop)
+    (candidate.crop === undefined || isImageResizerCropRect(candidate.crop))
   );
 }
 
