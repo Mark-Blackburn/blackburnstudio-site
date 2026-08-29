@@ -14,11 +14,11 @@ export const metadata = createPageMetadata({
 
 const imageResizerFeatures = [
   "Batch resizing",
-  "Website and ecommerce presets",
-  "Custom dimensions",
-  "JPEG, WebP and PNG",
-  "Metadata support",
-  "Local processing",
+  "Crop & aspect ratios",
+  "Text & logo watermarks",
+  "Website & ecommerce presets",
+  "JPEG, WebP & PNG",
+  "Local browser processing",
 ];
 
 export default function ToolsPage() {
@@ -62,7 +62,7 @@ export default function ToolsPage() {
           <div className="mt-10 grid max-w-3xl gap-6">
             <ToolCard
               title="Web Image Resizer"
-              summary="Resize one image online in your browser, or download the Windows application for batch preparation, web-friendly filenames and metadata."
+              summary="Resize, crop and watermark single images or batches directly in your browser, with consistent filenames, metadata and ZIP downloads. Processing happens locally on your device, or use the Windows application for a dedicated desktop workflow."
               href="/tools/image-resizer"
               ctaLabel="View Image Resizer"
               imageSrc={imageResizerApp}

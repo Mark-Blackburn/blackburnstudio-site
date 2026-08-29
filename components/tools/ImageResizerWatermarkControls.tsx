@@ -21,15 +21,12 @@ export type WatermarkSettings = {
 };
 
 type ImageResizerWatermarkControlsProps = {
-  supported: boolean;
-  enabled: boolean;
   settings: WatermarkSettings;
   imageFile?: File;
   imagePreviewUrl?: string;
   imageError?: string;
   imageFitError?: string;
   disabled: boolean;
-  onEnabledChange: (enabled: boolean) => void;
   onSettingsChange: (settings: Partial<WatermarkSettings>) => void;
   onImageChange: (file?: File) => void;
   onImageLoad: (previewUrl: string, width: number, height: number) => void;
@@ -53,15 +50,12 @@ function percent(value: number) {
 }
 
 export default function ImageResizerWatermarkControls({
-  supported,
-  enabled,
   settings,
   imageFile,
   imagePreviewUrl,
   imageError,
   imageFitError,
   disabled,
-  onEnabledChange,
   onSettingsChange,
   onImageChange,
   onImageLoad,
@@ -73,31 +67,15 @@ export default function ImageResizerWatermarkControls({
   }
 
   return (
-    <section aria-labelledby="image-resizer-watermark-heading" className="mt-8 border-t border-white/10 pt-7">
-      <div>
-        <h3 id="image-resizer-watermark-heading" className="text-lg font-medium text-studio-text">
-          Watermark <span className="text-sm font-normal text-studio-dim">Optional</span>
-        </h3>
-        {!supported ? (
-          <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-studio-muted">
-            Watermarking will be available when the updated browser processor is loaded.
-          </p>
-        ) : null}
-      </div>
+    <section aria-labelledby="image-resizer-watermark-heading" className="border-t border-white/10 pt-7">
+      <h3 id="image-resizer-watermark-heading" className="text-lg font-medium text-studio-text">
+        Batch watermark
+      </h3>
+      <p className="mt-2 text-sm leading-relaxed text-studio-muted">
+        These settings apply to every image in this batch.
+      </p>
 
-      <label className="mt-5 flex w-fit min-h-11 items-center gap-3 rounded-lg px-3 text-sm text-studio-text">
-        <input
-          type="checkbox"
-          checked={enabled}
-          onChange={(event) => onEnabledChange(event.target.checked)}
-          disabled={!supported || disabled}
-          className="h-4 w-4 accent-white disabled:opacity-45"
-        />
-        Add watermark
-      </label>
-
-      {supported && enabled ? (
-        <div className="mt-5 rounded-xl bg-studio-surface-raised p-4 sm:p-5">
+      <div className="mt-5 rounded-xl bg-studio-surface-raised p-4 sm:p-5">
           <fieldset disabled={disabled}>
             <legend className="text-sm font-medium text-studio-text">Watermark type</legend>
             <div className="mt-3 flex flex-wrap gap-3">
@@ -208,8 +186,7 @@ export default function ImageResizerWatermarkControls({
               ))}
             </div>
           </fieldset>
-        </div>
-      ) : null}
+      </div>
     </section>
   );
 }
