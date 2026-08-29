@@ -3,6 +3,7 @@
 import { StudioButton } from "@/components/studio";
 
 import ImageResizerCropPreview from "./ImageResizerCropPreview";
+import type { ImageResizerWatermarkPreviewSettings } from "./ImageResizerWatermarkPreview";
 import {
   MAX_CROP_ZOOM,
   MIN_CROP_ZOOM,
@@ -39,6 +40,7 @@ type ImageResizerCropEditorProps = {
   position: number;
   total: number;
   disabled: boolean;
+  watermark?: ImageResizerWatermarkPreviewSettings;
   onModeChange: (enabled: boolean) => void;
   onRatioChange: (ratio: CropRatio) => void;
   onCustomRatioChange: (dimension: "width" | "height", value: string) => void;
@@ -65,6 +67,7 @@ export default function ImageResizerCropEditor({
   position,
   total,
   disabled,
+  watermark,
   onModeChange,
   onRatioChange,
   onCustomRatioChange,
@@ -83,9 +86,11 @@ export default function ImageResizerCropEditor({
   return (
     <div className="mt-8 border-t border-white/10 pt-7">
       <div>
-        <h3 id="image-resizer-crop-editor-heading" className="text-lg font-medium text-studio-text">Crop editor</h3>
+        <h3 id="image-resizer-crop-editor-heading" className="text-lg font-medium text-studio-text">Image preview</h3>
         <p className="mt-2 max-w-[65ch] text-sm leading-relaxed text-studio-muted">
-          Drag the image to reposition it, then use Zoom to adjust the framing.
+          {item?.cropEnabled
+            ? "Drag the image to reposition it, then use Zoom to adjust the framing."
+            : "Review the selected image before processing."}
         </p>
       </div>
 
@@ -149,25 +154,33 @@ export default function ImageResizerCropEditor({
 
       {!item ? (
         <p className="mt-5 rounded-lg bg-studio-surface-raised px-4 py-3 text-sm text-studio-muted">
-          Add a readable image to start a crop preview.
+          Add a readable image to start a preview.
         </p>
-      ) : item.cropEnabled ? (
-        <div className="mt-6 grid min-w-0 gap-7 lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.7fr)] lg:items-start">
+      ) : (
+        <div className={`mt-6 grid min-w-0 gap-7 ${item.cropEnabled ? "lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.7fr)] lg:items-start" : ""}`}>
           <div className="min-w-0">
             <ImageResizerCropPreview
               key={item.id}
               file={item.file}
               sourceWidth={item.width}
               sourceHeight={item.height}
-              rect={item.cropRect}
+              rect={
+                item.cropEnabled
+                  ? item.cropRect
+                  : { x: 0, y: 0, width: 1, height: 1 }
+              }
+              interactive={item.cropEnabled}
               disabled={disabled}
+              watermark={watermark}
               onRectChange={onRectChange}
               onPreviewError={onPreviewError}
             />
-            <p className="mt-3 text-xs leading-relaxed text-studio-muted">
-              Drag with a mouse, pen or one finger. Arrow keys nudge the image;
-              hold Shift for a larger step.
-            </p>
+            {item.cropEnabled ? (
+              <p className="mt-3 text-xs leading-relaxed text-studio-muted">
+                Drag with a mouse, pen or one finger. Arrow keys nudge the image;
+                hold Shift for a larger step.
+              </p>
+            ) : null}
             {item.cropPreviewError ? (
               <p role="alert" className="mt-3 text-sm text-red-300">
                 {item.cropPreviewError}
@@ -175,6 +188,7 @@ export default function ImageResizerCropEditor({
             ) : null}
           </div>
 
+          {item.cropEnabled ? (
           <div className="min-w-0 space-y-6 rounded-xl bg-studio-surface-raised p-4 sm:p-5">
             <div>
               <label htmlFor="image-resizer-crop-ratio" className="text-sm font-medium text-studio-text">
@@ -299,11 +313,8 @@ export default function ImageResizerCropEditor({
               </p>
             ) : null}
           </div>
+          ) : null}
         </div>
-      ) : (
-        <p className="mt-5 text-sm leading-relaxed text-studio-muted">
-          This image will use the existing resize-only workflow.
-        </p>
       )}
     </div>
   );

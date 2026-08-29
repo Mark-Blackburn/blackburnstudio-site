@@ -11,12 +11,23 @@ import type {
 class MockWorker {
   messages: ImageResizerWorkerRequest[] = [];
   transfers: Transferable[][] = [];
+  structuredCloneTransfers = false;
   terminated = false;
   terminateCount = 0;
   private messageListeners = new Set<(event: MessageEvent<unknown>) => void>();
   private errorListeners = new Set<(event: Event) => void>();
 
   postMessage(message: ImageResizerWorkerRequest, transfer: Transferable[] = []) {
+    if (this.structuredCloneTransfers && transfer.length > 0) {
+      const cloned = structuredClone(message, { transfer });
+      this.messages.push(cloned);
+      this.transfers.push(
+        cloned.type === "process-image" && cloned.watermark?.type === "image"
+          ? [cloned.watermark.bytes]
+          : [],
+      );
+      return;
+    }
     this.messages.push(message);
     this.transfers.push(transfer);
   }
@@ -75,13 +86,13 @@ function requestsOfType<T extends ImageResizerWorkerRequest["type"]>(
   );
 }
 
-function emitReady(worker: MockWorker, webp = true) {
+function emitReady(worker: MockWorker, webp = true, watermark = false) {
   const request = requestsOfType(worker, "initialize").at(-1)!;
   act(() => {
     worker.emit({
       type: "ready",
       requestId: request.requestId,
-      capabilities: { JPEG: true, PNG: true, WebP: webp },
+      capabilities: { JPEG: true, PNG: true, WebP: webp, watermark },
       pyodideVersion: "0.28.3",
       pillowVersion: "11.3.0",
       coreVersion: "0.1.2",
@@ -195,6 +206,27 @@ async function emitProcessed(
       request.outputFormat === "original" ? "JPEG" : request.outputFormat,
     processingMs: 410,
   });
+}
+
+async function respondToWatermarkPredictions(worker: MockWorker) {
+  await waitFor(() => {
+    expect(requestsOfType(worker, "predict-crop").length).toBeGreaterThan(0);
+  });
+  const predictions = requestsOfType(worker, "predict-crop");
+  for (const request of predictions) {
+    await emitAndFlush(worker, {
+      type: "crop-predicted",
+      requestId: request.requestId,
+      imageId: request.imageId,
+      cropWidth: request.sourceWidth,
+      cropHeight: request.sourceHeight,
+      outputWidth: Math.min(request.sourceWidth, request.longEdge),
+      outputHeight: Math.round(
+        (request.sourceHeight * Math.min(request.sourceWidth, request.longEdge)) /
+          request.sourceWidth,
+      ),
+    });
+  }
 }
 
 describe("ImageResizerBatchApp", () => {
@@ -916,6 +948,467 @@ describe("ImageResizerBatchApp", () => {
     expect(screen.getByText("Image 1 of 1")).toBeInTheDocument();
   });
 
+  it("keeps resize and crop available when the published runtime lacks watermark support", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, false);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+
+    expect(screen.getByLabelText("Add watermark")).not.toBeChecked();
+    expect(screen.getByLabelText("Add watermark")).toBeDisabled();
+    expect(
+      screen.getByText(
+        "Watermarking will be available when the updated browser processor is loaded.",
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+
+    await user.click(screen.getByLabelText("Crop & resize"));
+    expect(screen.getByLabelText("Crop & resize")).toBeChecked();
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+  });
+
+  it("enables valid text watermarking in v2 and previews it in resize and crop modes", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    const resizePreview = screen.getByLabelText("Image preview for one.jpg.");
+    const sourceImage = resizePreview.querySelector("img")!;
+    Object.defineProperties(sourceImage, {
+      naturalWidth: { configurable: true, value: 2400 },
+      naturalHeight: { configurable: true, value: 1600 },
+    });
+    fireEvent.load(sourceImage);
+
+    await user.click(screen.getByLabelText("Add watermark"));
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
+    await user.type(
+      screen.getByLabelText("Watermark text"),
+      "Blackburn Studio",
+    );
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+    expect(screen.getByText("Blackburn Studio")).toHaveAttribute(
+      "data-watermark-preview",
+      "text",
+    );
+    expect(screen.getAllByLabelText(/preview for one\.jpg/i)).toHaveLength(1);
+
+    await user.click(screen.getByLabelText("Crop & resize"));
+    expect(
+      screen.getByLabelText(/Interactive crop preview for one\.jpg/),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Blackburn Studio")).toBeInTheDocument();
+
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const processRequest = await respondToProcessSelection(worker, inspectionCount);
+    expect(processRequest.crop).toBeDefined();
+    expect(processRequest.watermark).toEqual({
+      type: "text",
+      text: "Blackburn Studio",
+      position: "bottom-right",
+      opacity: 0.5,
+      size: 0.05,
+      margin: 0.03,
+      colour: "#FFFFFF",
+    });
+  });
+
+  it("invalidates processed output and ZIP after an effective watermark change", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Add watermark"));
+    await user.type(screen.getByLabelText("Watermark text"), "Studio");
+
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const processRequest = await respondToProcessSelection(worker, inspectionCount);
+    await emitProcessed(worker, processRequest);
+    const staleResultUrl = (
+      await screen.findByRole("link", { name: "Download" })
+    ).getAttribute("href");
+    await user.click(
+      screen.getByRole("button", { name: "Download all as ZIP (1)" }),
+    );
+    await waitFor(() =>
+      expect(requestsOfType(worker, "create-zip")).toHaveLength(1),
+    );
+    const zipRequest = requestsOfType(worker, "create-zip")[0];
+    await emitAndFlush(worker, {
+      type: "zip-created",
+      requestId: zipRequest.requestId,
+      bytes: new Uint8Array([80, 75]).buffer,
+      fileCount: 1,
+    });
+    const staleZipUrl = (
+      await screen.findByRole("link", { name: "Download ZIP again" })
+    ).getAttribute("href");
+    vi.mocked(URL.revokeObjectURL).mockClear();
+
+    fireEvent.change(screen.getByLabelText(/Opacity/), {
+      target: { value: "0.6" },
+    });
+
+    expect(screen.queryByRole("link", { name: "Download" })).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Download ZIP again" }),
+    ).not.toBeInTheDocument();
+    const revokedUrls = vi.mocked(URL.revokeObjectURL).mock.calls.flat();
+    expect(revokedUrls.filter((url) => url === staleResultUrl)).toHaveLength(1);
+    expect(revokedUrls.filter((url) => url === staleZipUrl)).toHaveLength(1);
+    expect(screen.getByText("Queued")).toBeInTheDocument();
+  });
+
+  it("owns logo preview URLs across replacement, removal and unmount", async () => {
+    const { worker, unmount } = renderApp();
+    emitReady(worker, true, true);
+    const user = userEvent.setup();
+    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Logo / image"));
+    const first = imageFile("first-logo.png", "image/png");
+    const second = imageFile("second-logo.webp", "image/webp");
+
+    await user.upload(screen.getByLabelText("Logo image"), first);
+    const firstUrl = screen
+      .getByAltText("Selected watermark logo preview")
+      .getAttribute("src");
+    await user.upload(screen.getByLabelText("Logo image"), second);
+    const secondUrl = screen
+      .getByAltText("Selected watermark logo preview")
+      .getAttribute("src");
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(firstUrl);
+
+    await user.click(screen.getByRole("button", { name: "Remove logo" }));
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(secondUrl);
+
+    await user.upload(screen.getByLabelText("Logo image"), first);
+    const activeUrl = screen
+      .getByAltText("Selected watermark logo preview")
+      .getAttribute("src");
+    unmount();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith(activeUrl);
+  });
+
+  it("reads a logo once and transfers an independent copy for each batch image", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const firstSource = imageFile("one.jpg", "image/jpeg");
+    const secondSource = imageFile("two.jpg", "image/jpeg");
+    const user = await uploadAndInspect(
+      worker,
+      [firstSource, secondSource],
+      ["JPEG", "JPEG"],
+    );
+    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Logo / image"));
+    const logo = imageFile("logo.png", "image/png");
+    const logoArrayBuffer = vi.mocked(logo.arrayBuffer);
+    await user.upload(screen.getByLabelText("Logo image"), logo);
+    const logoPreview = screen.getByAltText("Selected watermark logo preview");
+    Object.defineProperties(logoPreview, {
+      naturalWidth: { configurable: true, value: 400 },
+      naturalHeight: { configurable: true, value: 200 },
+    });
+    fireEvent.load(logoPreview);
+    await respondToWatermarkPredictions(worker);
+
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+    worker.structuredCloneTransfers = true;
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const firstProcess = await respondToProcessSelection(worker, inspectionCount);
+    await emitProcessed(worker, firstProcess);
+    await waitFor(() =>
+      expect(requestsOfType(worker, "select-image")).toHaveLength(
+        inspectionCount + 2,
+      ),
+    );
+    const secondSelection = requestsOfType(worker, "select-image").at(-1)!;
+    await emitAndFlush(worker, {
+      type: "image-selected",
+      requestId: secondSelection.requestId,
+      imageId: secondSelection.imageId,
+      width: 2000,
+      height: 1300,
+      sourceFormat: "JPEG",
+    });
+    await waitFor(() =>
+      expect(requestsOfType(worker, "process-image")).toHaveLength(2),
+    );
+
+    const [firstWatermark, secondWatermark] = requestsOfType(
+      worker,
+      "process-image",
+    ).map((request) => request.watermark);
+    expect(firstWatermark).toMatchObject({ type: "image", scale: 0.2 });
+    expect(secondWatermark).toMatchObject({ type: "image", scale: 0.2 });
+    if (firstWatermark?.type !== "image" || secondWatermark?.type !== "image") {
+      throw new Error("Expected image watermark requests.");
+    }
+    expect(firstWatermark.bytes).not.toBe(secondWatermark.bytes);
+    expect(Array.from(new Uint8Array(firstWatermark.bytes))).toEqual([1, 2, 3, 4]);
+    expect(Array.from(new Uint8Array(secondWatermark.bytes))).toEqual([1, 2, 3, 4]);
+    expect(logoArrayBuffer).toHaveBeenCalledTimes(1);
+
+    const processMessageIndexes = worker.messages
+      .map((message, index) => ({ message, index }))
+      .filter(({ message }) => message.type === "process-image")
+      .map(({ index }) => index);
+    expect(worker.transfers[processMessageIndexes[0]]).toEqual([
+      firstWatermark.bytes,
+    ]);
+    expect(worker.transfers[processMessageIndexes[1]]).toEqual([
+      secondWatermark.bytes,
+    ]);
+  });
+
+  it("locks synchronously before reading a logo and processes one immutable snapshot", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.selectOptions(screen.getByLabelText("Preset"), "1000");
+    await user.selectOptions(screen.getByLabelText("Output format"), "WebP");
+    fireEvent.change(screen.getByRole("slider", { name: /JPEG \/ WebP quality/ }), {
+      target: { value: "72" },
+    });
+    await user.type(
+      screen.getByLabelText("Creator / Business"),
+      "Snapshot creator",
+    );
+    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Logo / image"));
+
+    let resolveLogo!: (value: ArrayBuffer) => void;
+    const logo = imageFile("logo.png", "image/png");
+    const logoRead = vi.fn(
+      () =>
+        new Promise<ArrayBuffer>((resolve) => {
+          resolveLogo = resolve;
+        }),
+    );
+    Object.defineProperty(logo, "arrayBuffer", {
+      configurable: true,
+      value: logoRead,
+    });
+    await user.upload(screen.getByLabelText("Logo image"), logo);
+    const logoPreview = screen.getByAltText("Selected watermark logo preview");
+    Object.defineProperties(logoPreview, {
+      naturalWidth: { configurable: true, value: 400 },
+      naturalHeight: { configurable: true, value: 200 },
+    });
+    fireEvent.load(logoPreview);
+    await respondToWatermarkPredictions(worker);
+
+    const button = screen.getByRole("button", { name: "Process batch" });
+    const selectionsBefore = requestsOfType(worker, "select-image").length;
+    fireEvent.click(button);
+    fireEvent.click(button);
+
+    expect(button).toBeDisabled();
+    expect(screen.getByLabelText("Preset")).toBeDisabled();
+    expect(screen.getByLabelText("Logo image")).toBeDisabled();
+    expect(logoRead).toHaveBeenCalledTimes(1);
+    expect(requestsOfType(worker, "select-image")).toHaveLength(selectionsBefore);
+
+    await act(async () => {
+      resolveLogo(new Uint8Array([1, 2, 3, 4]).buffer);
+      await Promise.resolve();
+    });
+    const request = await respondToProcessSelection(worker, selectionsBefore);
+    expect(request).toMatchObject({
+      longEdge: 1000,
+      outputFormat: "WebP",
+      quality: 72,
+      creator: "Snapshot creator",
+      watermark: {
+        type: "image",
+        scale: 0.2,
+      },
+    });
+    expect(logoRead).toHaveBeenCalledTimes(1);
+  });
+
+  it("ignores stale load and error events from a replaced logo URL", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Logo / image"));
+    await user.upload(
+      screen.getByLabelText("Logo image"),
+      imageFile("logo-a.png", "image/png"),
+    );
+    const stalePreview = screen.getByAltText("Selected watermark logo preview");
+
+    await user.upload(
+      screen.getByLabelText("Logo image"),
+      imageFile("logo-b.png", "image/png"),
+    );
+    const activePreview = screen.getByAltText("Selected watermark logo preview");
+    Object.defineProperties(activePreview, {
+      naturalWidth: { configurable: true, value: 400 },
+      naturalHeight: { configurable: true, value: 200 },
+    });
+    fireEvent.load(activePreview);
+    await respondToWatermarkPredictions(worker);
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+
+    fireEvent.error(stalePreview);
+    expect(screen.queryByText(/could not be decoded/)).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+
+    fireEvent.error(activePreview);
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
+    fireEvent.load(stalePreview);
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
+  });
+
+  it("blocks a logo that cannot fit every output and recovers at a smaller scale", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Logo / image"));
+    await user.upload(
+      screen.getByLabelText("Logo image"),
+      imageFile("logo.png", "image/png"),
+    );
+    const logoPreview = screen.getByAltText("Selected watermark logo preview");
+    Object.defineProperties(logoPreview, {
+      naturalWidth: { configurable: true, value: 400 },
+      naturalHeight: { configurable: true, value: 200 },
+    });
+    fireEvent.load(logoPreview);
+    await respondToWatermarkPredictions(worker);
+
+    fireEvent.change(screen.getByLabelText(/Logo scale/), {
+      target: { value: "1" },
+    });
+    expect(screen.getByText(/Logo is too large/)).toHaveAttribute(
+      "role",
+      "alert",
+    );
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
+
+    fireEvent.change(screen.getByLabelText(/Logo scale/), {
+      target: { value: "0.2" },
+    });
+    expect(
+      screen.queryByText(/Logo is too large/),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+  });
+
+  it("uses only the active watermark mode and preserves an inactive logo", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Logo / image"));
+    const logo = imageFile("logo.png", "image/png");
+    const logoArrayBuffer = vi.mocked(logo.arrayBuffer);
+    await user.upload(screen.getByLabelText("Logo image"), logo);
+    const logoPreview = screen.getByAltText("Selected watermark logo preview");
+    Object.defineProperties(logoPreview, {
+      naturalWidth: { configurable: true, value: 200 },
+      naturalHeight: { configurable: true, value: 100 },
+    });
+    fireEvent.load(logoPreview);
+    await respondToWatermarkPredictions(worker);
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+
+    await user.click(screen.getByLabelText("Text"));
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
+    await user.type(screen.getByLabelText("Watermark text"), "Text only");
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const processRequest = await respondToProcessSelection(worker, inspectionCount);
+
+    expect(processRequest.watermark).toMatchObject({
+      type: "text",
+      text: "Text only",
+    });
+    expect(logoArrayBuffer).not.toHaveBeenCalled();
+
+    await emitProcessed(worker, processRequest);
+    await user.click(screen.getByLabelText("Logo / image"));
+    expect(screen.getByText("logo.png")).toBeInTheDocument();
+    await respondToWatermarkPredictions(worker);
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+    await user.click(screen.getByLabelText("Add watermark"));
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+  });
+
+  it("associates the visible blank-text error with the watermark input", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Add watermark"));
+
+    const input = screen.getByLabelText("Watermark text");
+    const error = screen.getByText("Enter watermark text.");
+    expect(input).toHaveAttribute("aria-invalid", "true");
+    expect(input).toHaveAttribute("aria-describedby", error.id);
+    expect(error.id).toBe("image-resizer-watermark-text-error");
+  });
+
+  it("blocks image watermark processing when the logo preview cannot decode", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Logo / image"));
+    await user.upload(
+      screen.getByLabelText("Logo image"),
+      imageFile("broken.png", "image/png"),
+    );
+    fireEvent.error(screen.getByAltText("Selected watermark logo preview"));
+
+    expect(
+      screen.getByText(/This logo could not be decoded for preview/),
+    ).toHaveAttribute("role", "alert");
+    expect(screen.getByLabelText("Logo image")).toHaveAttribute(
+      "aria-invalid",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
+  });
+
   it("enables queue crops, navigates to the editor and preserves existing crop state", async () => {
     const { worker } = renderApp();
     emitReady(worker);
@@ -924,7 +1417,7 @@ describe("ImageResizerBatchApp", () => {
       [imageFile("one.jpg", "image/jpeg"), imageFile("two.jpg", "image/jpeg")],
       ["JPEG", "JPEG"],
     );
-    const cropEditor = screen.getByRole("region", { name: "Crop editor" });
+    const cropEditor = screen.getByRole("region", { name: "Image preview" });
     const firstArticle = screen.getByRole("article", { name: "one.jpg" });
     const secondArticle = screen.getByRole("article", { name: "two.jpg" });
 
@@ -990,7 +1483,7 @@ describe("ImageResizerBatchApp", () => {
       [imageFile("one.jpg", "image/jpeg"), imageFile("two.jpg", "image/jpeg")],
       ["JPEG", "JPEG"],
     );
-    const cropEditor = screen.getByRole("region", { name: "Crop editor" });
+    const cropEditor = screen.getByRole("region", { name: "Image preview" });
     const firstAction = within(
       screen.getByRole("article", { name: "one.jpg" }),
     ).getByRole("button", { name: "Set crop for one.jpg" });
@@ -1054,8 +1547,8 @@ describe("ImageResizerBatchApp", () => {
     expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
   });
 
-  it("blocks an undecodable crop preview and revokes its local Object URL", async () => {
-    const { worker } = renderApp();
+  it("blocks an undecodable crop preview while crop is active", async () => {
+    const { worker, unmount } = renderApp();
     emitReady(worker);
     const user = await uploadAndInspect(
       worker,
@@ -1067,13 +1560,15 @@ describe("ImageResizerBatchApp", () => {
     fireEvent.error(preview.querySelector("img")!);
 
     expect(
-      screen.getByText("This image could not be decoded for crop preview."),
+      screen.getByText("This image could not be decoded for preview."),
     ).toHaveAttribute("role", "alert");
     expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
 
     await user.click(screen.getByLabelText("Resize only"));
-    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:result-1");
+    expect(URL.revokeObjectURL).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
+    unmount();
+    expect(URL.revokeObjectURL).toHaveBeenCalledWith("blob:result-1");
   });
 
   it("changes ratios and restores independent crop state with Previous and Next", async () => {
@@ -1114,6 +1609,70 @@ describe("ImageResizerBatchApp", () => {
     await user.click(screen.getByRole("button", { name: "Previous" }));
     expect(screen.getByLabelText("Crop & resize")).toBeChecked();
     expect(screen.getByLabelText("Crop ratio")).toHaveValue("1:1");
+  });
+
+  it("preserves but ignores a non-full stored crop in Resize only mode", async () => {
+    const { worker } = renderApp();
+    emitReady(worker);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Crop & resize"));
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "1:1");
+    await waitFor(() =>
+      expect(requestsOfType(worker, "predict-crop").length).toBeGreaterThan(0),
+    );
+    const storedCrop = requestsOfType(worker, "predict-crop").at(-1)!.crop!;
+    expect(storedCrop.x).toBeCloseTo(1 / 6);
+    expect(storedCrop.y).toBe(0);
+    expect(storedCrop.width).toBeCloseTo(2 / 3);
+    expect(storedCrop.height).toBe(1);
+
+    const cropPreview = screen.getByLabelText(
+      /Interactive crop preview for one\.jpg/,
+    );
+    const cropPreviewImage = cropPreview.querySelector("img")!;
+    const storedFrameAspect =
+      (2400 * storedCrop.width) / (1600 * storedCrop.height);
+    const storedLeft = `${(-storedCrop.x / storedCrop.width) * 100}%`;
+    const storedTop = `${(-storedCrop.y / storedCrop.height) * 100}%`;
+    const storedWidth = `${100 / storedCrop.width}%`;
+    expect(cropPreview.style.aspectRatio).toBe(String(storedFrameAspect));
+    expect(cropPreviewImage.style.left).toBe(storedLeft);
+    expect(cropPreviewImage.style.top).toBe(storedTop);
+    expect(cropPreviewImage.style.width).toBe(storedWidth);
+
+    await user.click(screen.getByLabelText("Resize only"));
+    const resizePreview = screen.getByLabelText("Image preview for one.jpg.");
+    const resizePreviewImage = resizePreview.querySelector("img")!;
+    expect(resizePreview.style.aspectRatio).toBe("1.5");
+    expect(resizePreviewImage.style.left).toBe("0%");
+    expect(resizePreviewImage.style.top).toBe("0%");
+    expect(resizePreviewImage.style.width).toBe("100%");
+    expect(resizePreviewImage.style.left).not.toBe(storedLeft);
+    expect(resizePreviewImage.style.width).not.toBe(storedWidth);
+    expect(resizePreview).toHaveAttribute("tabindex", "-1");
+    expect(resizePreview).not.toHaveClass("touch-none");
+
+    const inspectionCount = requestsOfType(worker, "select-image").length;
+    await user.click(screen.getByRole("button", { name: "Process batch" }));
+    const processRequest = await respondToProcessSelection(worker, inspectionCount);
+
+    expect(processRequest.crop).toBeUndefined();
+    await emitProcessed(worker, processRequest);
+
+    await user.click(screen.getByLabelText("Crop & resize"));
+    expect(screen.getByLabelText("Crop ratio")).toHaveValue("1:1");
+    const restoredPreview = screen.getByLabelText(
+      /Interactive crop preview for one\.jpg/,
+    );
+    const restoredPreviewImage = restoredPreview.querySelector("img")!;
+    expect(restoredPreview.style.aspectRatio).toBe(String(storedFrameAspect));
+    expect(restoredPreviewImage.style.left).toBe(storedLeft);
+    expect(restoredPreviewImage.style.top).toBe(storedTop);
+    expect(restoredPreviewImage.style.width).toBe(storedWidth);
   });
 
   it("invalidates and revokes a completed cropped result after a crop edit", async () => {
@@ -1503,7 +2062,7 @@ describe("ImageResizerBatchApp", () => {
     expect(requestsOfType(worker, "predict-crop")).toHaveLength(0);
     expect(screen.getByText("0 files")).toBeInTheDocument();
     expect(
-      screen.getByText("Add a readable image to start a crop preview."),
+      screen.getByText("Add a readable image to start a preview."),
     ).toBeInTheDocument();
   });
 

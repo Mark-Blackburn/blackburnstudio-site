@@ -13,6 +13,10 @@ import { SectionEyebrow, StudioButton } from "@/components/studio";
 import ImageResizerCropEditor, {
   type CropEditorItem,
 } from "./ImageResizerCropEditor";
+import ImageResizerWatermarkControls, {
+  type WatermarkSettings,
+} from "./ImageResizerWatermarkControls";
+import type { ImageResizerWatermarkPreviewSettings } from "./ImageResizerWatermarkPreview";
 import {
   defaultOutputFilename,
   effectiveOutputFormat,
@@ -31,10 +35,12 @@ import {
   type CropRatio,
   type CropRect,
 } from "./imageResizerCropGeometry";
+import { imageWatermarkFitsAllOutputs } from "./imageResizerWatermarkGeometry";
 import {
   isImageResizerWorkerResponse,
   type ImageResizerCapabilities,
   type ImageResizerOutputFormat,
+  type ImageResizerWatermark,
   type ImageResizerWorkerRequest,
   type ImageResizerWorkerResponse,
 } from "./imageResizerWorkerProtocol";
@@ -105,6 +111,21 @@ type CropPredictionTimer = {
   timer: ReturnType<typeof setTimeout>;
 };
 
+type WatermarkOutputPrediction = {
+  outputWidth: number;
+  outputHeight: number;
+};
+
+type WatermarkPredictionState = {
+  signature: string;
+  pending: boolean;
+  outputs: Record<string, WatermarkOutputPrediction>;
+};
+
+type BatchWatermarkSnapshot =
+  | { type: "text"; settings: WatermarkSettings }
+  | { type: "image"; settings: WatermarkSettings; file: File };
+
 const PRESETS = [
   { label: "Product Large — 2000 px long edge", value: "2000" },
   { label: "Standard — 1600 px long edge", value: "1600" },
@@ -122,6 +143,16 @@ const CREATOR_STORAGE_KEY = "blackburn-image-resizer-creator";
 const COPYRIGHT_STORAGE_KEY = "blackburn-image-resizer-copyright";
 const WORKER_FAILURE_MESSAGE =
   "The browser image worker stopped unexpectedly. Reload the page to try again.";
+const DEFAULT_WATERMARK_SETTINGS: WatermarkSettings = {
+  type: "text",
+  text: "",
+  position: "bottom-right",
+  opacity: 0.5,
+  textSize: 0.05,
+  imageScale: 0.2,
+  margin: 0.03,
+  colour: "#FFFFFF",
+};
 
 function defaultWorkerFactory() {
   return new Worker(new URL("./imageResizer.worker.ts", import.meta.url), {
@@ -202,6 +233,8 @@ export default function ImageResizerBatchApp({
   const cropEditorHighlightTimerRef = useRef<ReturnType<
     typeof setTimeout
   > | null>(null);
+  const watermarkPreviewUrlRef = useRef<string | null>(null);
+  const watermarkPredictionGenerationRef = useRef(0);
 
   const [runtimeState, setRuntimeState] =
     useState<RuntimeState>("preparing");
@@ -222,6 +255,24 @@ export default function ImageResizerBatchApp({
   const [creator, setCreator] = useState("");
   const [copyright, setCopyright] = useState("");
   const [stripMetadata, setStripMetadata] = useState(true);
+  const [watermarkEnabled, setWatermarkEnabled] = useState(false);
+  const [watermarkSettings, setWatermarkSettings] = useState(
+    DEFAULT_WATERMARK_SETTINGS,
+  );
+  const [watermarkImageFile, setWatermarkImageFile] = useState<File>();
+  const [watermarkImagePreviewUrl, setWatermarkImagePreviewUrl] = useState("");
+  const [watermarkImageReady, setWatermarkImageReady] = useState(false);
+  const [watermarkImageDimensions, setWatermarkImageDimensions] = useState({
+    width: 0,
+    height: 0,
+  });
+  const [watermarkImageError, setWatermarkImageError] = useState("");
+  const [watermarkPredictions, setWatermarkPredictions] =
+    useState<WatermarkPredictionState>({
+      signature: "",
+      pending: false,
+      outputs: {},
+    });
   const [batchProcessing, setBatchProcessing] = useState(false);
   const [batchStatus, setBatchStatus] = useState("");
   const [zipState, setZipState] = useState<
@@ -234,6 +285,93 @@ export default function ImageResizerBatchApp({
   const longEdgeIsValid = Number.isSafeInteger(longEdge) && longEdge > 0;
   const settingsRef = useRef({ longEdge, longEdgeIsValid, outputFormat });
   settingsRef.current = { longEdge, longEdgeIsValid, outputFormat };
+  const textWatermarkValid =
+    watermarkSettings.text.trim().length > 0 &&
+    watermarkSettings.text.length <= 200 &&
+    !/[\r\n]/.test(watermarkSettings.text) &&
+    /^#[0-9A-Fa-f]{6}$/.test(watermarkSettings.colour);
+  const imageWatermarkValid =
+    Boolean(watermarkImageFile?.size) &&
+    watermarkImageReady &&
+    !watermarkImageError;
+  const watermarkPredictionInputs = queue
+    .filter((item) => item.width && item.height && item.sourceFormat)
+    .map((item) => ({
+      id: item.id,
+      sourceWidth: item.width!,
+      sourceHeight: item.height!,
+      crop:
+        item.cropEnabled && item.cropRect && cropAspect(item)
+          ? item.cropRect
+          : undefined,
+    }));
+  const watermarkPredictionSignature = JSON.stringify({
+    longEdge: longEdgeIsValid ? longEdge : null,
+    neverEnlarge,
+    items: watermarkPredictionInputs,
+  });
+  const currentWatermarkOutputs =
+    watermarkPredictions.signature === watermarkPredictionSignature &&
+    !watermarkPredictions.pending &&
+    watermarkPredictionInputs.every(
+      (item) => watermarkPredictions.outputs[item.id],
+    )
+      ? watermarkPredictionInputs.map((item) => ({
+          width: watermarkPredictions.outputs[item.id].outputWidth,
+          height: watermarkPredictions.outputs[item.id].outputHeight,
+        }))
+      : undefined;
+  const imageWatermarkFits =
+    !imageWatermarkValid ||
+    (currentWatermarkOutputs !== undefined &&
+      imageWatermarkFitsAllOutputs(
+        currentWatermarkOutputs,
+        watermarkImageDimensions,
+        watermarkSettings.imageScale,
+        watermarkSettings.margin,
+        watermarkSettings.position,
+      ));
+  const imageWatermarkFitError =
+    watermarkEnabled &&
+    watermarkSettings.type === "image" &&
+    imageWatermarkValid &&
+    currentWatermarkOutputs !== undefined &&
+    !imageWatermarkFits
+      ? "Logo is too large for one or more images. Reduce the logo size or edge spacing."
+      : "";
+  const watermarkInputsValid =
+    !watermarkEnabled ||
+    (capabilities?.watermark === true &&
+      (watermarkSettings.type === "text"
+        ? textWatermarkValid
+        : imageWatermarkValid &&
+          currentWatermarkOutputs !== undefined &&
+          imageWatermarkFits));
+  const watermarkPreview: ImageResizerWatermarkPreviewSettings | undefined =
+    watermarkEnabled && capabilities?.watermark
+      ? watermarkSettings.type === "text"
+        ? {
+            type: "text",
+            text: watermarkSettings.text,
+            position: watermarkSettings.position,
+            opacity: watermarkSettings.opacity,
+            size: watermarkSettings.textSize,
+            margin: watermarkSettings.margin,
+            colour: watermarkSettings.colour,
+          }
+        : watermarkImagePreviewUrl && watermarkImageReady
+          ? {
+              type: "image",
+              previewUrl: watermarkImagePreviewUrl,
+              sourceWidth: watermarkImageDimensions.width,
+              sourceHeight: watermarkImageDimensions.height,
+              position: watermarkSettings.position,
+              opacity: watermarkSettings.opacity,
+              scale: watermarkSettings.imageScale,
+              margin: watermarkSettings.margin,
+            }
+          : undefined
+      : undefined;
 
   function nextId(prefix: string) {
     sequenceRef.current += 1;
@@ -292,6 +430,50 @@ export default function ImageResizerBatchApp({
       queueRef.current.map((item) => transform(invalidateItemResult(item))),
     );
     revokeZipUrl();
+  }
+
+  function updateWatermarkEnabled(enabled: boolean) {
+    if (enabled === watermarkEnabled || (enabled && !capabilities?.watermark)) {
+      return;
+    }
+    setWatermarkEnabled(enabled);
+    invalidateAllResults();
+  }
+
+  function updateWatermarkSettings(patch: Partial<WatermarkSettings>) {
+    const changed = Object.entries(patch).some(
+      ([key, value]) =>
+        watermarkSettings[key as keyof WatermarkSettings] !== value,
+    );
+    if (!changed) return;
+    setWatermarkSettings((current) => ({ ...current, ...patch }));
+    invalidateAllResults();
+  }
+
+  function updateWatermarkImage(file?: File) {
+    if (file === watermarkImageFile) return;
+    if (watermarkPreviewUrlRef.current) {
+      URL.revokeObjectURL(watermarkPreviewUrlRef.current);
+      watermarkPreviewUrlRef.current = null;
+    }
+
+    setWatermarkImageReady(false);
+    setWatermarkImageDimensions({ width: 0, height: 0 });
+    setWatermarkImageError("");
+    setWatermarkImagePreviewUrl("");
+    setWatermarkImageFile(undefined);
+
+    if (file) {
+      if (!fileLooksSupported(file)) {
+        setWatermarkImageError("Choose a PNG, JPEG or WebP logo image.");
+      } else {
+        const previewUrl = URL.createObjectURL(file);
+        watermarkPreviewUrlRef.current = previewUrl;
+        setWatermarkImageFile(file);
+        setWatermarkImagePreviewUrl(previewUrl);
+      }
+    }
+    invalidateAllResults();
   }
 
   function sendWorkerRequest(
@@ -543,6 +725,10 @@ export default function ImageResizerBatchApp({
         clearTimeout(cropEditorHighlightTimerRef.current);
         cropEditorHighlightTimerRef.current = null;
       }
+      if (watermarkPreviewUrlRef.current) {
+        URL.revokeObjectURL(watermarkPreviewUrlRef.current);
+        watermarkPreviewUrlRef.current = null;
+      }
       cropPredictionRequests.clear();
       queueRef.current.forEach((item) => revokeResult(item.result));
       if (zipUrlRef.current) URL.revokeObjectURL(zipUrlRef.current);
@@ -554,6 +740,94 @@ export default function ImageResizerBatchApp({
     // The worker factory is intentionally fixed for this page session.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const predictionInputs = (
+      JSON.parse(watermarkPredictionSignature) as {
+        items: typeof watermarkPredictionInputs;
+      }
+    ).items;
+    const shouldPredict =
+      runtimeState === "ready" &&
+      watermarkEnabled &&
+      watermarkSettings.type === "image" &&
+      imageWatermarkValid &&
+      longEdgeIsValid &&
+      predictionInputs.length > 0;
+    const generation = ++watermarkPredictionGenerationRef.current;
+
+    if (!shouldPredict) {
+      setWatermarkPredictions({
+        signature: watermarkPredictionSignature,
+        pending: false,
+        outputs: {},
+      });
+      return;
+    }
+
+    setWatermarkPredictions({
+      signature: watermarkPredictionSignature,
+      pending: true,
+      outputs: {},
+    });
+    void Promise.all(
+      predictionInputs.map(async (item) => {
+        const response = await sendWorkerRequest({
+          type: "predict-crop",
+          requestId: nextId("watermark-fit"),
+          imageId: item.id,
+          sourceWidth: item.sourceWidth,
+          sourceHeight: item.sourceHeight,
+          longEdge,
+          neverEnlarge,
+          ...(item.crop ? { crop: item.crop } : {}),
+        });
+        return response.type === "crop-predicted"
+          ? {
+              id: item.id,
+              outputWidth: response.outputWidth,
+              outputHeight: response.outputHeight,
+            }
+          : null;
+      }),
+    )
+      .then((results) => {
+        if (watermarkPredictionGenerationRef.current !== generation) return;
+        const outputs = Object.fromEntries(
+          results
+            .filter((result) => result !== null)
+            .map((result) => [
+              result.id,
+              {
+                outputWidth: result.outputWidth,
+                outputHeight: result.outputHeight,
+              },
+            ]),
+        );
+        setWatermarkPredictions({
+          signature: watermarkPredictionSignature,
+          pending: false,
+          outputs,
+        });
+      })
+      .catch(() => {
+        if (watermarkPredictionGenerationRef.current !== generation) return;
+        setWatermarkPredictions({
+          signature: watermarkPredictionSignature,
+          pending: false,
+          outputs: {},
+        });
+      });
+  }, [
+    imageWatermarkValid,
+    longEdge,
+    longEdgeIsValid,
+    neverEnlarge,
+    runtimeState,
+    watermarkEnabled,
+    watermarkPredictionSignature,
+    watermarkSettings.type,
+  ]);
 
   function handleFileInput(event: ChangeEvent<HTMLInputElement>) {
     addFiles(Array.from(event.target.files ?? []));
@@ -1080,17 +1354,23 @@ export default function ImageResizerBatchApp({
       batchProcessingRef.current ||
       zipCreatingRef.current ||
       runtimeState !== "ready" ||
-      !longEdgeIsValid
+      !longEdgeIsValid ||
+      !watermarkInputsValid
     ) {
       return;
     }
-    const candidates = queueRef.current.filter(
-      (item) =>
-        item.status !== "complete" &&
-        item.width &&
-        item.height &&
-        item.sourceFormat,
-    );
+    const candidates = queueRef.current
+      .filter(
+        (item) =>
+          item.status !== "complete" &&
+          item.width &&
+          item.height &&
+          item.sourceFormat,
+      )
+      .map((item) => ({
+        ...item,
+        cropRect: item.cropRect ? { ...item.cropRect } : undefined,
+      }));
     if (candidates.length === 0) {
       setBatchStatus("No readable images are ready to process.");
       return;
@@ -1098,144 +1378,213 @@ export default function ImageResizerBatchApp({
 
     batchProcessingRef.current = true;
     setBatchProcessing(true);
-    revokeZipUrl();
+    const watermarkSnapshot: BatchWatermarkSnapshot | undefined =
+      watermarkEnabled
+        ? watermarkSettings.type === "text"
+          ? { type: "text", settings: { ...watermarkSettings } }
+          : {
+              type: "image",
+              settings: { ...watermarkSettings },
+              file: watermarkImageFile!,
+            }
+        : undefined;
+    const batchSnapshot = {
+      longEdge,
+      neverEnlarge,
+      outputFormat,
+      quality,
+      creator,
+      copyright,
+      stripMetadata,
+      watermark: watermarkSnapshot,
+    };
 
-    const normalisedNames = candidates.map((item) =>
-      normaliseOutputFilename(
-        item.outputFilename,
-        outputFormat,
-        item.sourceFormat!,
-        item.file.name,
-        longEdge,
-      ),
-    );
-    const uniqueNames = uniqueOutputFilenames(normalisedNames);
-    const namesById = new Map(
-      candidates.map((item, index) => [item.id, uniqueNames[index]]),
-    );
-    replaceQueue(
-      queueRef.current.map((item) => ({
-        ...item,
-        outputFilename: namesById.get(item.id) ?? item.outputFilename,
-      })),
-    );
-
-    let completed = 0;
-    let failed = queueRef.current.filter(
-      (item) =>
-        item.status === "failed" &&
-        !candidates.some((candidate) => candidate.id === item.id),
-    ).length;
-    for (const [index, candidate] of candidates.entries()) {
-      const current = queueRef.current.find((item) => item.id === candidate.id);
-      if (!current || !current.sourceFormat) continue;
-
-      revokeResult(current.result);
-      updateQueueItem(current.id, (item) => ({
-        ...item,
-        status: "processing",
-        error: undefined,
-        result: undefined,
-      }));
-      setBatchStatus(`Processing ${index + 1} of ${candidates.length}`);
-
-      try {
-        const sourceBytes = await current.file.arrayBuffer();
-        const selectionResponse = await sendWorkerRequest(
-          {
-            type: "select-image",
-            requestId: nextId("select"),
-            imageId: current.id,
-            fileName: current.file.name,
-            bytes: sourceBytes,
-          },
-          [sourceBytes],
-        );
-        if (
-          selectionResponse.type !== "image-selected" ||
-          selectionResponse.imageId !== current.id
-        ) {
-          throw new Error(
-            selectionResponse.type === "error"
-              ? selectionResponse.message
-              : "The image could not be prepared for processing.",
+    try {
+      revokeZipUrl();
+      let watermarkImageBytes: ArrayBuffer | undefined;
+      if (batchSnapshot.watermark?.type === "image") {
+        try {
+          watermarkImageBytes = await batchSnapshot.watermark.file.arrayBuffer();
+          if (watermarkImageBytes.byteLength === 0) throw new Error("Empty logo");
+        } catch {
+          setBatchStatus(
+            "The watermark logo could not be read. Choose it again and retry.",
           );
+          return;
         }
-
-        const processingResponse = await sendWorkerRequest({
-          type: "process-image",
-          requestId: nextId("process"),
-          imageId: current.id,
-          longEdge,
-          neverEnlarge,
-          outputFormat,
-          quality,
-          outputFilename: namesById.get(current.id)!,
-          title: current.title,
-          altText: current.altText,
-          creator,
-          copyright,
-          stripMetadata,
-          ...(current.cropEnabled && current.cropRect
-            ? { crop: current.cropRect }
-            : {}),
-        });
-        if (
-          processingResponse.type !== "processed" ||
-          processingResponse.imageId !== current.id
-        ) {
-          throw new Error(
-            processingResponse.type === "error"
-              ? processingResponse.message
-              : "The image could not be resized.",
-          );
-        }
-
-        const blob = new Blob([processingResponse.bytes], {
-          type: outputMimeType(processingResponse.outputFormat),
-        });
-        const url = URL.createObjectURL(blob);
-        updateQueueItem(current.id, (item) => ({
-          ...item,
-          status: "complete",
-          detailsExpanded: false,
-          outputFilename: processingResponse.suggestedFilename,
-          error: undefined,
-          result: {
-            blob,
-            url,
-            originalWidth: processingResponse.originalWidth,
-            originalHeight: processingResponse.originalHeight,
-            width: processingResponse.width,
-            height: processingResponse.height,
-            outputFormat: processingResponse.outputFormat,
-            processingMs: processingResponse.processingMs,
-          },
-        }));
-        completed += 1;
-      } catch (error) {
-        updateQueueItem(current.id, (item) => ({
-          ...item,
-          status: "failed",
-          detailsExpanded: true,
-          error:
-            error instanceof Error
-              ? error.message
-              : "The image could not be resized.",
-        }));
-        failed += 1;
-        if (!workerRef.current) break;
       }
-    }
 
-    batchProcessingRef.current = false;
-    if (mountedRef.current) {
-      setBatchProcessing(false);
-      setBatchStatus(
-        failed > 0
-          ? `${completed} complete, ${failed} failed. Failed images can be retried.`
-          : `${completed} image${completed === 1 ? "" : "s"} complete.`,
+      const normalisedNames = candidates.map((item) =>
+        normaliseOutputFilename(
+          item.outputFilename,
+          batchSnapshot.outputFormat,
+          item.sourceFormat!,
+          item.file.name,
+          batchSnapshot.longEdge,
+        ),
       );
+      const uniqueNames = uniqueOutputFilenames(normalisedNames);
+      const namesById = new Map(
+        candidates.map((item, index) => [item.id, uniqueNames[index]]),
+      );
+      replaceQueue(
+        queueRef.current.map((item) => ({
+          ...item,
+          outputFilename: namesById.get(item.id) ?? item.outputFilename,
+        })),
+      );
+
+      let completed = 0;
+      let failed = queueRef.current.filter(
+        (item) =>
+          item.status === "failed" &&
+          !candidates.some((candidate) => candidate.id === item.id),
+      ).length;
+      for (const [index, current] of candidates.entries()) {
+        if (!current.sourceFormat) continue;
+
+        revokeResult(current.result);
+        updateQueueItem(current.id, (item) => ({
+          ...item,
+          status: "processing",
+          error: undefined,
+          result: undefined,
+        }));
+        setBatchStatus(`Processing ${index + 1} of ${candidates.length}`);
+
+        try {
+          const sourceBytes = await current.file.arrayBuffer();
+          const selectionResponse = await sendWorkerRequest(
+            {
+              type: "select-image",
+              requestId: nextId("select"),
+              imageId: current.id,
+              fileName: current.file.name,
+              bytes: sourceBytes,
+            },
+            [sourceBytes],
+          );
+          if (
+            selectionResponse.type !== "image-selected" ||
+            selectionResponse.imageId !== current.id
+          ) {
+            throw new Error(
+              selectionResponse.type === "error"
+                ? selectionResponse.message
+                : "The image could not be prepared for processing.",
+            );
+          }
+
+          let watermark: ImageResizerWatermark | undefined;
+          const watermarkTransfer: Transferable[] = [];
+          if (batchSnapshot.watermark?.type === "text") {
+            const settings = batchSnapshot.watermark.settings;
+            watermark = {
+              type: "text",
+              text: settings.text,
+              position: settings.position,
+              opacity: settings.opacity,
+              size: settings.textSize,
+              margin: settings.margin,
+              colour: settings.colour,
+            };
+          } else if (
+            batchSnapshot.watermark?.type === "image" &&
+            watermarkImageBytes
+          ) {
+            const settings = batchSnapshot.watermark.settings;
+            const bytes = watermarkImageBytes.slice(0);
+            watermark = {
+              type: "image",
+              bytes,
+              position: settings.position,
+              opacity: settings.opacity,
+              scale: settings.imageScale,
+              margin: settings.margin,
+            };
+            watermarkTransfer.push(bytes);
+          }
+
+          const processingResponse = await sendWorkerRequest(
+            {
+              type: "process-image",
+              requestId: nextId("process"),
+              imageId: current.id,
+              longEdge: batchSnapshot.longEdge,
+              neverEnlarge: batchSnapshot.neverEnlarge,
+              outputFormat: batchSnapshot.outputFormat,
+              quality: batchSnapshot.quality,
+              outputFilename: namesById.get(current.id)!,
+              title: current.title,
+              altText: current.altText,
+              creator: batchSnapshot.creator,
+              copyright: batchSnapshot.copyright,
+              stripMetadata: batchSnapshot.stripMetadata,
+              ...(current.cropEnabled && current.cropRect
+                ? { crop: current.cropRect }
+                : {}),
+              ...(watermark ? { watermark } : {}),
+            },
+            watermarkTransfer,
+          );
+          if (
+            processingResponse.type !== "processed" ||
+            processingResponse.imageId !== current.id
+          ) {
+            throw new Error(
+              processingResponse.type === "error"
+                ? processingResponse.message
+                : "The image could not be resized.",
+            );
+          }
+
+          const blob = new Blob([processingResponse.bytes], {
+            type: outputMimeType(processingResponse.outputFormat),
+          });
+          const url = URL.createObjectURL(blob);
+          updateQueueItem(current.id, (item) => ({
+            ...item,
+            status: "complete",
+            detailsExpanded: false,
+            outputFilename: processingResponse.suggestedFilename,
+            error: undefined,
+            result: {
+              blob,
+              url,
+              originalWidth: processingResponse.originalWidth,
+              originalHeight: processingResponse.originalHeight,
+              width: processingResponse.width,
+              height: processingResponse.height,
+              outputFormat: processingResponse.outputFormat,
+              processingMs: processingResponse.processingMs,
+            },
+          }));
+          completed += 1;
+        } catch (error) {
+          updateQueueItem(current.id, (item) => ({
+            ...item,
+            status: "failed",
+            detailsExpanded: true,
+            error:
+              error instanceof Error
+                ? error.message
+                : "The image could not be resized.",
+          }));
+          failed += 1;
+          if (!workerRef.current) break;
+        }
+      }
+
+      if (mountedRef.current) {
+        setBatchStatus(
+          failed > 0
+            ? `${completed} complete, ${failed} failed. Failed images can be retried.`
+            : `${completed} image${completed === 1 ? "" : "s"} complete.`,
+        );
+      }
+    } finally {
+      batchProcessingRef.current = false;
+      if (mountedRef.current) setBatchProcessing(false);
     }
   }
 
@@ -1370,6 +1719,7 @@ export default function ImageResizerBatchApp({
     !controlsLocked &&
     longEdgeIsValid &&
     !hasInvalidCrop &&
+    watermarkInputsValid &&
     (outputFormat !== "WebP" || capabilities?.WebP === true);
   const fileSummaryItems = fileSummaryExpanded ? queue : queue.slice(0, 3);
 
@@ -1525,7 +1875,7 @@ export default function ImageResizerBatchApp({
 
           <section aria-labelledby="batch-settings-heading" className="rounded-2xl border border-white/10 bg-studio-surface-soft p-6 shadow-xl shadow-black/15 md:p-8">
             <p className="text-xs uppercase tracking-[0.2em] text-studio-dim">Step 2</p>
-            <h2 id="batch-settings-heading" className="mt-2 text-2xl font-medium tracking-tight text-studio-text">Resize &amp; crop</h2>
+            <h2 id="batch-settings-heading" className="mt-2 text-2xl font-medium tracking-tight text-studio-text">Resize, crop &amp; watermark</h2>
             <div className="mt-6 grid gap-6 md:grid-cols-2">
               <div>
                 <label htmlFor="image-resizer-preset" className="text-sm font-medium text-studio-text">Preset</label>
@@ -1576,6 +1926,7 @@ export default function ImageResizerBatchApp({
                 position={previewPosition}
                 total={previewItems.length}
                 disabled={controlsLocked}
+                watermark={watermarkPreview}
                 onModeChange={setCropMode}
                 onRatioChange={setCropRatio}
                 onCustomRatioChange={setCustomCropRatio}
@@ -1594,6 +1945,37 @@ export default function ImageResizerBatchApp({
                 }}
               />
             </div>
+            <ImageResizerWatermarkControls
+              supported={capabilities?.watermark === true}
+              enabled={watermarkEnabled}
+              settings={watermarkSettings}
+              imageFile={watermarkImageFile}
+              imagePreviewUrl={watermarkImagePreviewUrl}
+              imageError={watermarkImageError}
+              imageFitError={imageWatermarkFitError}
+              disabled={controlsLocked}
+              onEnabledChange={updateWatermarkEnabled}
+              onSettingsChange={updateWatermarkSettings}
+              onImageChange={updateWatermarkImage}
+              onImageLoad={(previewUrl, width, height) => {
+                if (previewUrl !== watermarkPreviewUrlRef.current) return;
+                setWatermarkImageDimensions({ width, height });
+                setWatermarkImageReady(width > 0 && height > 0);
+                setWatermarkImageError(
+                  width > 0 && height > 0
+                    ? ""
+                    : "This logo could not be decoded for preview.",
+                );
+              }}
+              onImageError={(previewUrl) => {
+                if (previewUrl !== watermarkPreviewUrlRef.current) return;
+                setWatermarkImageReady(false);
+                setWatermarkImageDimensions({ width: 0, height: 0 });
+                setWatermarkImageError(
+                  "This logo could not be decoded for preview. Choose another PNG, JPEG or WebP image.",
+                );
+              }}
+            />
           </section>
 
           <section aria-labelledby="metadata-heading" className="rounded-2xl border border-white/10 bg-studio-surface-soft p-6 shadow-xl shadow-black/15 md:p-8">
