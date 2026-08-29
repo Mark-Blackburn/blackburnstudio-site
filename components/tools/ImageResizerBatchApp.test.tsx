@@ -945,7 +945,7 @@ describe("ImageResizerBatchApp", () => {
     expect(screen.getByLabelText("Crop ratio")).toHaveValue("original");
     expect(screen.getByLabelText(/Zoom/)).toHaveValue("1");
     expect(screen.getByRole("button", { name: "Reset crop" })).toBeEnabled();
-    expect(screen.getByText("Image 1 of 1")).toBeInTheDocument();
+    expect(screen.getByText("Previewing image 1 of 1")).toBeInTheDocument();
   });
 
   it("keeps resize and crop available when the published runtime lacks watermark support", async () => {
@@ -957,8 +957,8 @@ describe("ImageResizerBatchApp", () => {
       ["JPEG"],
     );
 
-    expect(screen.getByLabelText("Add watermark")).not.toBeChecked();
-    expect(screen.getByLabelText("Add watermark")).toBeDisabled();
+    expect(screen.getByLabelText("Watermark all images")).not.toBeChecked();
+    expect(screen.getByLabelText("Watermark all images")).toBeDisabled();
     expect(
       screen.getByText(
         "Watermarking will be available when the updated browser processor is loaded.",
@@ -980,6 +980,24 @@ describe("ImageResizerBatchApp", () => {
       ["JPEG"],
     );
     const resizePreview = screen.getByLabelText("Image preview for one.jpg.");
+    const addWatermark = screen.getByLabelText("Watermark all images");
+    const editingControls = addWatermark.closest("[data-editing-controls]");
+    const editingWorkspace = screen.getByRole("group", {
+      name: "Image and watermark editing workspace",
+    });
+    const stickyPreview = resizePreview.closest("[data-sticky-preview]");
+
+    expect(editingControls).toContainElement(screen.getByLabelText("Resize only"));
+    expect(editingControls).toContainElement(screen.getByLabelText("Crop & resize"));
+    expect(editingControls).toContainElement(addWatermark);
+    expect(editingControls).toHaveClass("flex", "flex-wrap");
+    expect(editingWorkspace).toHaveClass("grid-cols-1");
+    expect(editingWorkspace).toHaveAttribute("data-layout", "full-width");
+    expect(editingWorkspace).toContainElement(resizePreview);
+    expect(screen.queryByRole("region", { name: "Batch watermark" })).not.toBeInTheDocument();
+    expect(stickyPreview).not.toHaveClass("sticky", "lg:sticky");
+    expect(screen.getAllByLabelText(/preview for one\.jpg/i)).toHaveLength(1);
+
     const sourceImage = resizePreview.querySelector("img")!;
     Object.defineProperties(sourceImage, {
       naturalWidth: { configurable: true, value: 2400 },
@@ -987,23 +1005,47 @@ describe("ImageResizerBatchApp", () => {
     });
     fireEvent.load(sourceImage);
 
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(addWatermark);
+    const watermarkControls = screen.getByRole("region", {
+      name: "Batch watermark",
+    });
+    expect(editingWorkspace).toHaveAttribute("data-layout", "watermark-sidebar");
+    expect(editingWorkspace).toHaveClass(
+      "lg:grid-cols-[minmax(0,1fr)_minmax(22rem,24rem)]",
+    );
+    expect(editingWorkspace).toContainElement(watermarkControls);
+    expect(screen.getByLabelText("Image preview for one.jpg.")).toBe(resizePreview);
+    expect(stickyPreview).toHaveClass(
+      "lg:sticky",
+      "lg:top-6",
+      "lg:z-10",
+      "lg:bg-studio-surface-soft",
+      "lg:pb-4",
+    );
+    expect(screen.getAllByRole("region", { name: "Batch watermark" })).toHaveLength(1);
+    expect(screen.getAllByLabelText("Watermark all images")).toHaveLength(1);
+    expect(
+      screen.getByText("These settings apply to every image in this batch."),
+    ).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Process batch" })).toBeDisabled();
     await user.type(
       screen.getByLabelText("Watermark text"),
       "Blackburn Studio",
     );
     expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
-    expect(screen.getByText("Blackburn Studio")).toHaveAttribute(
+    expect(within(resizePreview).getByText("Blackburn Studio")).toHaveAttribute(
       "data-watermark-preview",
       "text",
     );
     expect(screen.getAllByLabelText(/preview for one\.jpg/i)).toHaveLength(1);
 
     await user.click(screen.getByLabelText("Crop & resize"));
-    expect(
-      screen.getByLabelText(/Interactive crop preview for one\.jpg/),
-    ).toBeInTheDocument();
+    const cropPreview = screen.getByLabelText(
+      /Interactive crop preview for one\.jpg/,
+    );
+    const imageCropColumn = cropPreview.closest("[data-image-crop-column]");
+    expect(imageCropColumn).toContainElement(screen.getByLabelText("Crop ratio"));
+    expect(watermarkControls).not.toContainElement(screen.getByLabelText("Crop ratio"));
     expect(screen.getByText("Blackburn Studio")).toBeInTheDocument();
 
     const inspectionCount = requestsOfType(worker, "select-image").length;
@@ -1021,6 +1063,80 @@ describe("ImageResizerBatchApp", () => {
     });
   });
 
+  it("restores the full-width preview and retains crop and watermark settings after toggling watermark off", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg")],
+      ["JPEG"],
+    );
+    await user.click(screen.getByLabelText("Crop & resize"));
+    await user.selectOptions(screen.getByLabelText("Crop ratio"), "1:1");
+    await user.click(screen.getByLabelText("Watermark all images"));
+    await user.type(screen.getByLabelText("Watermark text"), "Retained mark");
+    fireEvent.change(screen.getByLabelText(/Opacity/), {
+      target: { value: "0.67" },
+    });
+
+    const workspace = screen.getByRole("group", {
+      name: "Image and watermark editing workspace",
+    });
+    const preview = screen.getByLabelText(
+      /Interactive crop preview for one\.jpg/,
+    );
+    expect(workspace).toHaveAttribute("data-layout", "watermark-sidebar");
+
+    await user.click(screen.getByLabelText("Watermark all images"));
+
+    expect(workspace).toHaveAttribute("data-layout", "full-width");
+    expect(screen.queryByRole("region", { name: "Batch watermark" })).not.toBeInTheDocument();
+    expect(screen.getByLabelText("Crop ratio")).toHaveValue("1:1");
+    expect(screen.getByLabelText(/Interactive crop preview for one\.jpg/)).toBe(preview);
+    expect(preview.closest("[data-sticky-preview]")).not.toHaveClass(
+      "lg:sticky",
+      "lg:z-10",
+      "lg:bg-studio-surface-soft",
+      "lg:pb-4",
+    );
+    expect(screen.getAllByLabelText(/preview for one\.jpg/i)).toHaveLength(1);
+
+    await user.click(screen.getByLabelText("Watermark all images"));
+
+    expect(workspace).toHaveAttribute("data-layout", "watermark-sidebar");
+    expect(screen.getByLabelText("Watermark text")).toHaveValue("Retained mark");
+    expect(screen.getByLabelText(/Opacity/)).toHaveValue("0.67");
+    expect(screen.getByLabelText("Crop ratio")).toHaveValue("1:1");
+    expect(screen.getByLabelText(/Interactive crop preview for one\.jpg/)).toBe(preview);
+    expect(screen.getAllByRole("region", { name: "Batch watermark" })).toHaveLength(1);
+  });
+
+  it("keeps batch watermark settings while navigating preview images", async () => {
+    const { worker } = renderApp();
+    emitReady(worker, true, true);
+    const user = await uploadAndInspect(
+      worker,
+      [imageFile("one.jpg", "image/jpeg"), imageFile("two.jpg", "image/jpeg")],
+      ["JPEG", "JPEG"],
+    );
+    await user.click(screen.getByLabelText("Watermark all images"));
+    await user.type(screen.getByLabelText("Watermark text"), "Shared mark");
+    await user.click(screen.getByRole("button", { name: "Top left" }));
+
+    expect(screen.getByText("Previewing image 1 of 2")).toBeInTheDocument();
+    await user.click(screen.getByRole("button", { name: "Next" }));
+
+    expect(screen.getByText("Previewing image 2 of 2")).toBeInTheDocument();
+    expect(screen.getByLabelText("Watermark text")).toHaveValue("Shared mark");
+    expect(screen.getByRole("button", { name: "Top left" })).toHaveAttribute(
+      "aria-pressed",
+      "true",
+    );
+    expect(
+      screen.getByText("These settings apply to every image in this batch."),
+    ).toBeInTheDocument();
+  });
+
   it("invalidates processed output and ZIP after an effective watermark change", async () => {
     const { worker } = renderApp();
     emitReady(worker, true, true);
@@ -1029,7 +1145,7 @@ describe("ImageResizerBatchApp", () => {
       [imageFile("one.jpg", "image/jpeg")],
       ["JPEG"],
     );
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
     await user.type(screen.getByLabelText("Watermark text"), "Studio");
 
     const inspectionCount = requestsOfType(worker, "select-image").length;
@@ -1075,7 +1191,7 @@ describe("ImageResizerBatchApp", () => {
     const { worker, unmount } = renderApp();
     emitReady(worker, true, true);
     const user = userEvent.setup();
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
     await user.click(screen.getByLabelText("Logo / image"));
     const first = imageFile("first-logo.png", "image/png");
     const second = imageFile("second-logo.webp", "image/webp");
@@ -1111,7 +1227,7 @@ describe("ImageResizerBatchApp", () => {
       [firstSource, secondSource],
       ["JPEG", "JPEG"],
     );
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
     await user.click(screen.getByLabelText("Logo / image"));
     const logo = imageFile("logo.png", "image/png");
     const logoArrayBuffer = vi.mocked(logo.arrayBuffer);
@@ -1190,7 +1306,7 @@ describe("ImageResizerBatchApp", () => {
       screen.getByLabelText("Creator / Business"),
       "Snapshot creator",
     );
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
     await user.click(screen.getByLabelText("Logo / image"));
 
     let resolveLogo!: (value: ArrayBuffer) => void;
@@ -1251,7 +1367,7 @@ describe("ImageResizerBatchApp", () => {
       [imageFile("one.jpg", "image/jpeg")],
       ["JPEG"],
     );
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
     await user.click(screen.getByLabelText("Logo / image"));
     await user.upload(
       screen.getByLabelText("Logo image"),
@@ -1290,7 +1406,7 @@ describe("ImageResizerBatchApp", () => {
       [imageFile("one.jpg", "image/jpeg")],
       ["JPEG"],
     );
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
     await user.click(screen.getByLabelText("Logo / image"));
     await user.upload(
       screen.getByLabelText("Logo image"),
@@ -1330,7 +1446,7 @@ describe("ImageResizerBatchApp", () => {
       [imageFile("one.jpg", "image/jpeg")],
       ["JPEG"],
     );
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
     await user.click(screen.getByLabelText("Logo / image"));
     const logo = imageFile("logo.png", "image/png");
     const logoArrayBuffer = vi.mocked(logo.arrayBuffer);
@@ -1362,7 +1478,7 @@ describe("ImageResizerBatchApp", () => {
     expect(screen.getByText("logo.png")).toBeInTheDocument();
     await respondToWatermarkPredictions(worker);
     expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
     expect(screen.getByRole("button", { name: "Process batch" })).toBeEnabled();
   });
 
@@ -1374,7 +1490,7 @@ describe("ImageResizerBatchApp", () => {
       [imageFile("one.jpg", "image/jpeg")],
       ["JPEG"],
     );
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
 
     const input = screen.getByLabelText("Watermark text");
     const error = screen.getByText("Enter watermark text.");
@@ -1391,7 +1507,7 @@ describe("ImageResizerBatchApp", () => {
       [imageFile("one.jpg", "image/jpeg")],
       ["JPEG"],
     );
-    await user.click(screen.getByLabelText("Add watermark"));
+    await user.click(screen.getByLabelText("Watermark all images"));
     await user.click(screen.getByLabelText("Logo / image"));
     await user.upload(
       screen.getByLabelText("Logo image"),
@@ -1580,7 +1696,7 @@ describe("ImageResizerBatchApp", () => {
       ["JPEG", "JPEG"],
     );
 
-    expect(screen.getByText("Image 1 of 2")).toBeInTheDocument();
+    expect(screen.getByText("Previewing image 1 of 2")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Previous" })).toBeDisabled();
     expect(screen.getByRole("button", { name: "Next" })).toBeEnabled();
     await user.click(screen.getByLabelText("Crop & resize"));
@@ -1592,7 +1708,7 @@ describe("ImageResizerBatchApp", () => {
     ).toBeInTheDocument();
 
     await user.click(screen.getByRole("button", { name: "Next" }));
-    expect(screen.getByText("Image 2 of 2")).toBeInTheDocument();
+    expect(screen.getByText("Previewing image 2 of 2")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Previous" })).toBeEnabled();
     expect(screen.getByRole("button", { name: "Next" })).toBeDisabled();
     expect(screen.getByLabelText("Resize only")).toBeChecked();
@@ -1996,7 +2112,7 @@ describe("ImageResizerBatchApp", () => {
     await advanceCropPredictionDebounce();
 
     expect(screen.getByRole("article", { name: "two.jpg" })).toBeInTheDocument();
-    expect(screen.getByText("Image 1 of 1")).toBeInTheDocument();
+    expect(screen.getByText("Previewing image 1 of 1")).toBeInTheDocument();
     expect(screen.getByLabelText("Crop & resize")).toBeChecked();
     const predictions = requestsOfType(worker, "predict-crop");
     expect(predictions).toHaveLength(1);

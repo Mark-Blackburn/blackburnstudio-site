@@ -1,5 +1,7 @@
 "use client";
 
+import type { ReactNode } from "react";
+
 import { StudioButton } from "@/components/studio";
 
 import ImageResizerCropPreview from "./ImageResizerCropPreview";
@@ -41,6 +43,10 @@ type ImageResizerCropEditorProps = {
   total: number;
   disabled: boolean;
   watermark?: ImageResizerWatermarkPreviewSettings;
+  watermarkSupported: boolean;
+  watermarkEnabled: boolean;
+  watermarkControls: ReactNode;
+  onWatermarkEnabledChange: (enabled: boolean) => void;
   onModeChange: (enabled: boolean) => void;
   onRatioChange: (ratio: CropRatio) => void;
   onCustomRatioChange: (dimension: "width" | "height", value: string) => void;
@@ -68,6 +74,10 @@ export default function ImageResizerCropEditor({
   total,
   disabled,
   watermark,
+  watermarkSupported,
+  watermarkEnabled,
+  watermarkControls,
+  onWatermarkEnabledChange,
   onModeChange,
   onRatioChange,
   onCustomRatioChange,
@@ -109,7 +119,7 @@ export default function ImageResizerCropEditor({
           </button>
           <div className="min-w-0 text-center" aria-live="polite">
             <p className="text-xs font-medium uppercase tracking-[0.14em] text-studio-dim">
-              Image {position} of {total}
+              Previewing image {position} of {total}
             </p>
             <p className="mt-1 truncate text-sm font-medium text-studio-text">
               {item.file.name}
@@ -126,70 +136,104 @@ export default function ImageResizerCropEditor({
         </div>
       ) : null}
 
-      <fieldset className="mt-6" disabled={!item || disabled}>
-        <legend className="text-sm font-medium text-studio-text">Mode</legend>
-        <div className="mt-3 flex flex-wrap gap-x-6 gap-y-3">
-          <label className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition ${!item?.cropEnabled ? "bg-studio-surface-raised text-studio-text ring-1 ring-white/10" : "text-studio-muted"}`}>
+      <div className="mt-6">
+        <p className="text-sm font-medium text-studio-text">Mode</p>
+        <div
+          data-editing-controls
+          className="mt-3 flex flex-wrap items-start gap-x-6 gap-y-3"
+        >
+          <fieldset className="min-w-0" disabled={!item || disabled}>
+            <legend className="sr-only">Resize mode</legend>
+            <div className="flex flex-wrap gap-x-3 gap-y-3">
+              <label className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition ${!item?.cropEnabled ? "bg-studio-surface-raised text-studio-text ring-1 ring-white/10" : "text-studio-muted"}`}>
+                <input
+                  type="radio"
+                  name="image-resizer-crop-mode"
+                  checked={!item?.cropEnabled}
+                  onChange={() => onModeChange(false)}
+                  className="h-4 w-4 accent-white"
+                />
+                Resize only
+              </label>
+              <label className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition ${item?.cropEnabled ? "bg-studio-surface-raised text-studio-text ring-1 ring-white/10" : "text-studio-muted"}`}>
+                <input
+                  type="radio"
+                  name="image-resizer-crop-mode"
+                  checked={item?.cropEnabled === true}
+                  onChange={() => onModeChange(true)}
+                  className="h-4 w-4 accent-white"
+                />
+                Crop &amp; resize
+              </label>
+            </div>
+          </fieldset>
+          <label className="flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm text-studio-text sm:border-l sm:border-white/10 sm:pl-6">
             <input
-              type="radio"
-              name="image-resizer-crop-mode"
-              checked={!item?.cropEnabled}
-              onChange={() => onModeChange(false)}
-              className="h-4 w-4 accent-white"
+              type="checkbox"
+              checked={watermarkEnabled}
+              onChange={(event) => onWatermarkEnabledChange(event.target.checked)}
+              aria-describedby={!watermarkSupported ? "image-resizer-watermark-unavailable" : undefined}
+              disabled={!watermarkSupported || disabled}
+              className="h-4 w-4 accent-white disabled:opacity-45"
             />
-            Resize only
-          </label>
-          <label className={`flex min-h-11 items-center gap-3 rounded-lg px-3 text-sm transition ${item?.cropEnabled ? "bg-studio-surface-raised text-studio-text ring-1 ring-white/10" : "text-studio-muted"}`}>
-            <input
-              type="radio"
-              name="image-resizer-crop-mode"
-              checked={item?.cropEnabled === true}
-              onChange={() => onModeChange(true)}
-              className="h-4 w-4 accent-white"
-            />
-            Crop &amp; resize
+            Watermark all images
           </label>
         </div>
-      </fieldset>
+        {!watermarkSupported ? (
+          <p id="image-resizer-watermark-unavailable" className="mt-3 max-w-[65ch] text-sm leading-relaxed text-studio-muted">
+            Watermarking will be available when the updated browser processor is loaded.
+          </p>
+        ) : null}
+      </div>
 
-      {!item ? (
-        <p className="mt-5 rounded-lg bg-studio-surface-raised px-4 py-3 text-sm text-studio-muted">
-          Add a readable image to start a preview.
-        </p>
-      ) : (
-        <div className={`mt-6 grid min-w-0 gap-7 ${item.cropEnabled ? "lg:grid-cols-[minmax(0,1.65fr)_minmax(17rem,0.7fr)] lg:items-start" : ""}`}>
-          <div className="min-w-0">
-            <ImageResizerCropPreview
-              key={item.id}
-              file={item.file}
-              sourceWidth={item.width}
-              sourceHeight={item.height}
-              rect={
-                item.cropEnabled
-                  ? item.cropRect
-                  : { x: 0, y: 0, width: 1, height: 1 }
-              }
-              interactive={item.cropEnabled}
-              disabled={disabled}
-              watermark={watermark}
-              onRectChange={onRectChange}
-              onPreviewError={onPreviewError}
-            />
-            {item.cropEnabled ? (
-              <p className="mt-3 text-xs leading-relaxed text-studio-muted">
-                Drag with a mouse, pen or one finger. Arrow keys nudge the image;
-                hold Shift for a larger step.
-              </p>
-            ) : null}
-            {item.cropPreviewError ? (
-              <p role="alert" className="mt-3 text-sm text-red-300">
-                {item.cropPreviewError}
-              </p>
-            ) : null}
-          </div>
-
-          {item.cropEnabled ? (
-          <div className="min-w-0 space-y-6 rounded-xl bg-studio-surface-raised p-4 sm:p-5">
+      <div
+        role="group"
+        aria-label="Image and watermark editing workspace"
+        data-layout={watermarkEnabled ? "watermark-sidebar" : "full-width"}
+        className={`mt-6 grid min-w-0 grid-cols-1 gap-8 ${watermarkEnabled ? "lg:grid-cols-[minmax(0,1fr)_minmax(22rem,24rem)]" : ""}`}
+      >
+        <div data-image-crop-column className="min-w-0">
+          {!item ? (
+            <p className="rounded-lg bg-studio-surface-raised px-4 py-3 text-sm text-studio-muted">
+              Add a readable image to start a preview.
+            </p>
+          ) : (
+            <div
+              data-sticky-preview
+              className={watermarkEnabled ? "min-w-0 lg:sticky lg:top-6 lg:z-10 lg:self-start lg:bg-studio-surface-soft lg:pb-4" : "min-w-0"}
+            >
+              <ImageResizerCropPreview
+                key={item.id}
+                file={item.file}
+                sourceWidth={item.width}
+                sourceHeight={item.height}
+                rect={
+                  item.cropEnabled
+                    ? item.cropRect
+                    : { x: 0, y: 0, width: 1, height: 1 }
+                }
+                interactive={item.cropEnabled}
+                disabled={disabled}
+                constrainDesktopHeight={watermarkEnabled}
+                watermark={watermark}
+                onRectChange={onRectChange}
+                onPreviewError={onPreviewError}
+              />
+              {item.cropEnabled ? (
+                <p className="mt-3 text-xs leading-relaxed text-studio-muted">
+                  Drag with a mouse, pen or one finger. Arrow keys nudge the image;
+                  hold Shift for a larger step.
+                </p>
+              ) : null}
+              {item.cropPreviewError ? (
+                <p role="alert" className="mt-3 text-sm text-red-300">
+                  {item.cropPreviewError}
+                </p>
+              ) : null}
+            </div>
+          )}
+          {item?.cropEnabled ? (
+          <div className="mt-8 min-w-0 space-y-6 rounded-xl bg-studio-surface-raised p-4 sm:p-5">
             <div>
               <label htmlFor="image-resizer-crop-ratio" className="text-sm font-medium text-studio-text">
                 Crop ratio
@@ -315,7 +359,16 @@ export default function ImageResizerCropEditor({
           </div>
           ) : null}
         </div>
-      )}
+
+        {watermarkEnabled ? (
+          <div
+            data-watermark-sidebar
+            className={`min-w-0 lg:self-start ${item ? "lg:pb-32" : ""}`}
+          >
+            {watermarkControls}
+          </div>
+        ) : null}
+      </div>
     </div>
   );
 }

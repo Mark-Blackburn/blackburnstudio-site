@@ -45,10 +45,12 @@ export default function ImageResizerPage() {
             Prepare website images without the repetitive work
           </h1>
           <p className="mt-7 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Web Image Resizer is a free tool for preparing images for websites
-            and online stores. Use it online for a focused one-image workflow,
-            or download the Windows application for batch resizing, consistent
-            filenames and metadata.
+            Web Image Resizer is a free tool for resizing, cropping and
+            watermarking images for websites and online stores. Process single
+            images or batches, apply consistent sizing, filenames and metadata,
+            and download completed files individually or as a ZIP. Image
+            processing happens locally in your browser, or you can download the
+            Windows application for a dedicated desktop workflow.
           </p>
           <div className="mt-7 flex flex-wrap gap-2.5">
             {workflowTags.map((tag) => (

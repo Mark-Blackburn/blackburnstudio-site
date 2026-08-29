@@ -18,6 +18,7 @@ type ImageResizerCropPreviewProps = {
   rect: CropRect;
   interactive: boolean;
   disabled: boolean;
+  constrainDesktopHeight?: boolean;
   watermark?: ImageResizerWatermarkPreviewSettings;
   onRectChange: (rect: CropRect) => void;
   onPreviewError: (message?: string) => void;
@@ -37,6 +38,7 @@ export default function ImageResizerCropPreview({
   rect,
   interactive,
   disabled,
+  constrainDesktopHeight = false,
   watermark,
   onRectChange,
   onPreviewError,
@@ -145,7 +147,7 @@ export default function ImageResizerCropPreview({
       onPointerMove={moveDrag}
       onPointerUp={endDrag}
       onPointerCancel={endDrag}
-      className={`relative mx-auto w-full max-w-3xl select-none overflow-hidden rounded-xl border border-white/20 bg-black shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${interactive ? "touch-none" : ""}`}
+      className={`relative mx-auto w-full max-w-3xl select-none overflow-hidden rounded-xl border border-white/20 bg-black shadow-2xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 ${constrainDesktopHeight ? "lg:w-auto lg:max-h-[calc(100dvh-20rem)]" : ""} ${interactive ? "touch-none" : ""}`}
       style={{ aspectRatio: frameAspect }}
     >
       {previewUrl ? (

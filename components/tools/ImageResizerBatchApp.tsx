@@ -1722,6 +1722,36 @@ export default function ImageResizerBatchApp({
     watermarkInputsValid &&
     (outputFormat !== "WebP" || capabilities?.WebP === true);
   const fileSummaryItems = fileSummaryExpanded ? queue : queue.slice(0, 3);
+  const watermarkControls = (
+    <ImageResizerWatermarkControls
+      settings={watermarkSettings}
+      imageFile={watermarkImageFile}
+      imagePreviewUrl={watermarkImagePreviewUrl}
+      imageError={watermarkImageError}
+      imageFitError={imageWatermarkFitError}
+      disabled={controlsLocked}
+      onSettingsChange={updateWatermarkSettings}
+      onImageChange={updateWatermarkImage}
+      onImageLoad={(previewUrl, width, height) => {
+        if (previewUrl !== watermarkPreviewUrlRef.current) return;
+        setWatermarkImageDimensions({ width, height });
+        setWatermarkImageReady(width > 0 && height > 0);
+        setWatermarkImageError(
+          width > 0 && height > 0
+            ? ""
+            : "This logo could not be decoded for preview.",
+        );
+      }}
+      onImageError={(previewUrl) => {
+        if (previewUrl !== watermarkPreviewUrlRef.current) return;
+        setWatermarkImageReady(false);
+        setWatermarkImageDimensions({ width: 0, height: 0 });
+        setWatermarkImageError(
+          "This logo could not be decoded for preview. Choose another PNG, JPEG or WebP image.",
+        );
+      }}
+    />
+  );
 
   return (
     <div className={queue.length > 0 ? "mb-6 sm:mb-8" : undefined}>
@@ -1927,6 +1957,10 @@ export default function ImageResizerBatchApp({
                 total={previewItems.length}
                 disabled={controlsLocked}
                 watermark={watermarkPreview}
+                watermarkSupported={capabilities?.watermark === true}
+                watermarkEnabled={watermarkEnabled}
+                watermarkControls={watermarkControls}
+                onWatermarkEnabledChange={updateWatermarkEnabled}
                 onModeChange={setCropMode}
                 onRatioChange={setCropRatio}
                 onCustomRatioChange={setCustomCropRatio}
@@ -1945,37 +1979,6 @@ export default function ImageResizerBatchApp({
                 }}
               />
             </div>
-            <ImageResizerWatermarkControls
-              supported={capabilities?.watermark === true}
-              enabled={watermarkEnabled}
-              settings={watermarkSettings}
-              imageFile={watermarkImageFile}
-              imagePreviewUrl={watermarkImagePreviewUrl}
-              imageError={watermarkImageError}
-              imageFitError={imageWatermarkFitError}
-              disabled={controlsLocked}
-              onEnabledChange={updateWatermarkEnabled}
-              onSettingsChange={updateWatermarkSettings}
-              onImageChange={updateWatermarkImage}
-              onImageLoad={(previewUrl, width, height) => {
-                if (previewUrl !== watermarkPreviewUrlRef.current) return;
-                setWatermarkImageDimensions({ width, height });
-                setWatermarkImageReady(width > 0 && height > 0);
-                setWatermarkImageError(
-                  width > 0 && height > 0
-                    ? ""
-                    : "This logo could not be decoded for preview.",
-                );
-              }}
-              onImageError={(previewUrl) => {
-                if (previewUrl !== watermarkPreviewUrlRef.current) return;
-                setWatermarkImageReady(false);
-                setWatermarkImageDimensions({ width: 0, height: 0 });
-                setWatermarkImageError(
-                  "This logo could not be decoded for preview. Choose another PNG, JPEG or WebP image.",
-                );
-              }}
-            />
           </section>
 
           <section aria-labelledby="metadata-heading" className="rounded-2xl border border-white/10 bg-studio-surface-soft p-6 shadow-xl shadow-black/15 md:p-8">
