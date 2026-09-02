@@ -60,7 +60,12 @@ export default function StudioButton(props: StudioButtonProps) {
     );
   }
 
-  const { type = "button", ...buttonProps } = props;
+  const buttonProps = { ...props };
+  const type = buttonProps.type ?? "button";
+  delete buttonProps.type;
+  delete buttonProps.variant;
+  delete buttonProps.className;
+  delete buttonProps.children;
   return (
     <button type={type} className={classes} {...buttonProps}>
       {children}
