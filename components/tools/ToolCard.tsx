@@ -1,4 +1,5 @@
 import Image, { type StaticImageData } from "next/image";
+import Link from "next/link";
 
 import { StudioButton, StudioTag } from "@/components/studio";
 
@@ -38,12 +39,17 @@ export default function ToolCard({
   return (
     <article className="flex h-full flex-col rounded-2xl border border-studio-border/70 bg-studio-surface/65 p-6 md:p-7">
       {imageSrc ? (
-        <Image
-          src={imageSrc}
-          alt={imageAlt}
-          sizes="(min-width: 768px) 36rem, calc(100vw - 6rem)"
-          className="h-auto w-full max-w-xl rounded-xl border border-studio-border/70"
-        />
+        <Link
+          href={href}
+          className="block max-w-xl rounded-xl outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-4 focus-visible:ring-offset-studio-base"
+        >
+          <Image
+            src={imageSrc}
+            alt={imageAlt}
+            sizes="(min-width: 768px) 36rem, calc(100vw - 6rem)"
+            className="h-auto w-full rounded-xl border border-studio-border/70"
+          />
+        </Link>
       ) : null}
       <div className={`flex flex-wrap gap-2.5${imageSrc ? " mt-6" : ""}`}>
         <StudioTag>{platform}</StudioTag>

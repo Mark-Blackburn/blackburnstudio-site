@@ -4,6 +4,7 @@ import { SectionEyebrow, StudioButton } from "@/components/studio";
 import ToolCard from "@/components/tools/ToolCard";
 import { createPageMetadata } from "@/lib/siteConfig";
 import imageResizerApp from "@/public/tools/image-resizer/image-resizer-app.webp";
+import qrCodeGeneratorApp from "@/public/tools/qr-code-generator/qr-code-generator-app.webp";
 
 export const metadata = createPageMetadata({
   title: "Tools",
@@ -21,12 +22,19 @@ const imageResizerFeatures = [
   "Local browser processing",
 ];
 
+const qrCodeGeneratorFeatures = [
+  "PNG & SVG downloads",
+  "Custom foreground & background",
+  "Error correction controls",
+  "Local browser generation",
+];
+
 export default function ToolsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
+      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-20 md:pb-32">
         <section aria-labelledby="tools-heading" className="max-w-[76ch]">
           <SectionEyebrow>Blackburn Studio Tools</SectionEyebrow>
           <h1
@@ -40,17 +48,12 @@ export default function ToolsPage() {
             common digital tasks. Each tool is built to solve a practical
             problem without adding unnecessary complexity.
           </p>
-          <div className="mt-9">
-            <StudioButton href="#available-tools" variant="secondary">
-              Explore available tools
-            </StudioButton>
-          </div>
         </section>
 
         <section
           id="available-tools"
           aria-labelledby="available-tools-heading"
-          className="mt-20 scroll-mt-28 md:mt-24 md:scroll-mt-32"
+          className="mt-14 scroll-mt-28 md:mt-16 md:scroll-mt-32"
         >
           <SectionEyebrow>Available now</SectionEyebrow>
           <h2
@@ -59,7 +62,7 @@ export default function ToolsPage() {
           >
             Tools built around real digital workflows
           </h2>
-          <div className="mt-10 grid max-w-3xl gap-6">
+          <div className="mt-10 grid max-w-6xl gap-6 lg:grid-cols-2 lg:items-stretch">
             <ToolCard
               title="Web Image Resizer"
               summary="Resize, crop and watermark single images or batches directly in your browser, with consistent filenames, metadata and ZIP downloads. Processing happens locally on your device, or use the Windows application for a dedicated desktop workflow."
@@ -69,6 +72,17 @@ export default function ToolsPage() {
               imageAlt="Blackburn Studio Web Image Resizer showing batch image sizing, output dimensions and metadata options"
               features={imageResizerFeatures}
               platform="Browser + Windows"
+              availability="Free tool"
+            />
+            <ToolCard
+              title="QR Code Generator"
+              summary="Create static QR codes for websites, forms, signage and print. Customise the colours and download PNG or SVG files, with everything generated locally in your browser."
+              href="/tools/qr-code-generator"
+              ctaLabel="View QR Code Generator"
+              imageSrc={qrCodeGeneratorApp}
+              imageAlt="Blackburn Studio QR Code Generator interface showing controls and QR preview"
+              features={qrCodeGeneratorFeatures}
+              platform="Browser"
               availability="Free tool"
             />
           </div>

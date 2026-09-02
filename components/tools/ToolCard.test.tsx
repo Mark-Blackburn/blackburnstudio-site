@@ -23,6 +23,7 @@ describe("ToolCard", () => {
       screen.getByRole("link", { name: "Open example tool" }),
     ).toHaveAttribute("href", "/tools/example");
     expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(screen.getAllByRole("link")).toHaveLength(1);
   });
 
   it("renders an optional image with its supplied alt text", () => {
@@ -41,5 +42,11 @@ describe("ToolCard", () => {
     expect(
       screen.getByRole("img", { name: "Example tool application interface" }),
     ).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "Example tool application interface" }),
+    ).toHaveAttribute("href", "/tools/example");
+    expect(
+      screen.getByRole("link", { name: "Open example tool" }),
+    ).toHaveAttribute("href", "/tools/example");
   });
 });
