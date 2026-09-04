@@ -22,6 +22,8 @@ const routes = [
   "/tools",
   "/tools/image-resizer",
   "/tools/qr-code-generator",
+  "/tools/pdf-reducer",
+  "/tools/pdf-reducer/app",
 ];
 const server = spawn(
   process.execPath,
