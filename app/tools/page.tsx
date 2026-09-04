@@ -29,6 +29,13 @@ const qrCodeGeneratorFeatures = [
   "Local browser generation",
 ];
 
+const pdfReducerFeatures = [
+  "Structural optimisation",
+  "Optional image reduction",
+  "PDF validation",
+  "Local browser processing",
+];
+
 export default function ToolsPage() {
   return (
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
@@ -82,6 +89,15 @@ export default function ToolsPage() {
               imageSrc={qrCodeGeneratorApp}
               imageAlt="Blackburn Studio QR Code Generator interface showing controls and QR preview"
               features={qrCodeGeneratorFeatures}
+              platform="Browser"
+              availability="Free tool"
+            />
+            <ToolCard
+              title="PDF Reducer"
+              summary="Make PDF files smaller directly in your browser, with no upload required. Optimise document structure or reduce oversized images for a larger saving."
+              href="/tools/pdf-reducer"
+              ctaLabel="Reduce a PDF"
+              features={pdfReducerFeatures}
               platform="Browser"
               availability="Free tool"
             />
