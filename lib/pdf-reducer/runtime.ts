@@ -1,4 +1,5 @@
 import {
+  PDF_REDUCER_RUNTIME_VERSION,
   PDF_REDUCER_SOURCE_LIMITS,
   PDF_REDUCER_WORKER_URL,
   type PdfReducerErrorCode,
@@ -52,14 +53,61 @@ function defaultWorkerFactory(): PdfReducerWorkerLike {
   });
 }
 
-function isWorkerResponse(value: unknown): value is PdfReducerWorkerResponse {
+const PDF_REDUCER_ERROR_CODES = new Set<PdfReducerErrorCode>([
+  "INVALID_PDF",
+  "ENCRYPTED_PDF",
+  "FILE_TOO_LARGE",
+  "IMAGE_LIMIT",
+  "PROCESSING_FAILED",
+  "VALIDATION_FAILED",
+  "RUNTIME_FAILED",
+  "CANCELLED",
+]);
+
+function isFiniteNonNegativeInteger(value: unknown): value is number {
+  return typeof value === "number" && Number.isSafeInteger(value) && value >= 0;
+}
+
+function isMetadata(value: unknown): value is PdfReducerResult["metadata"] {
+  if (typeof value !== "object" || value === null) return false;
+  const metadata = value as Record<string, unknown>;
   return (
-    typeof value === "object" &&
-    value !== null &&
-    "type" in value &&
-    (value.type === "ready" ||
-      value.type === "result" ||
-      value.type === "error")
+    (metadata.mode === "optimize" || metadata.mode === "reduce-images") &&
+    [
+      "inspected",
+      "downsampled",
+      "recompressed",
+      "skipped",
+      "unsupported",
+      "ambiguous",
+      "decodedPeakBytes",
+      "decodedTotalBytes",
+    ].every((key) => isFiniteNonNegativeInteger(metadata[key]))
+  );
+}
+
+function isWorkerResponse(value: unknown): value is PdfReducerWorkerResponse {
+  if (typeof value !== "object" || value === null) return false;
+  const response = value as Record<string, unknown>;
+
+  if (response.type === "ready") {
+    return response.runtimeVersion === PDF_REDUCER_RUNTIME_VERSION;
+  }
+  if (response.type === "error") {
+    return (
+      (typeof response.jobId === "string" || response.jobId === null) &&
+      typeof response.code === "string" &&
+      PDF_REDUCER_ERROR_CODES.has(response.code as PdfReducerErrorCode)
+    );
+  }
+  if (response.type !== "result") return false;
+  return (
+    typeof response.jobId === "string" &&
+    response.output instanceof ArrayBuffer &&
+    isFiniteNonNegativeInteger(response.inputBytes) &&
+    isFiniteNonNegativeInteger(response.outputBytes) &&
+    response.outputBytes === response.output.byteLength &&
+    isMetadata(response.metadata)
   );
 }
 
@@ -103,16 +151,16 @@ export class PdfReducerRuntime {
       };
 
       worker.onmessage = (event: MessageEvent<unknown>) => {
-        if (this.active !== active || !isWorkerResponse(event.data)) return;
+        if (this.active !== active) return;
+        if (!isWorkerResponse(event.data)) {
+          fail("RUNTIME_FAILED");
+          return;
+        }
         const response = event.data;
         if (response.type === "ready") return;
         if (response.jobId !== jobId && response.jobId !== null) return;
         if (response.type === "error") {
           fail(response.code);
-          return;
-        }
-        if (!(response.output instanceof ArrayBuffer)) {
-          fail("RUNTIME_FAILED");
           return;
         }
 

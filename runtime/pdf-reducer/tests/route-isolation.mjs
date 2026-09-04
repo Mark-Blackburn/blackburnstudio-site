@@ -1,8 +1,21 @@
 import { spawn } from "node:child_process";
+import { createServer } from "node:net";
 
 import { chromium } from "playwright";
 
-const port = 3415;
+const port = await new Promise((resolvePort, rejectPort) => {
+  const probe = createServer();
+  probe.once("error", rejectPort);
+  probe.listen(0, "127.0.0.1", () => {
+    const address = probe.address();
+    if (!address || typeof address === "string") {
+      probe.close(() => rejectPort(new Error("Could not allocate a port")));
+      return;
+    }
+    const selectedPort = address.port;
+    probe.close((error) => (error ? rejectPort(error) : resolvePort(selectedPort)));
+  });
+});
 const origin = `http://127.0.0.1:${port}`;
 const routes = [
   "/",

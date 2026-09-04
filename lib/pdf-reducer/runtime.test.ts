@@ -10,7 +10,6 @@ import {
   type PdfReducerErrorCode,
   type PdfReducerMetadata,
   type PdfReducerWorkerRequest,
-  type PdfReducerWorkerResponse,
 } from "./types";
 
 const metadata: PdfReducerMetadata = {
@@ -39,7 +38,7 @@ class FakeWorker implements PdfReducerWorkerLike {
     this.posted.push({ request, transfer });
   }
 
-  emit(response: PdfReducerWorkerResponse) {
+  emit(response: unknown) {
     this.onmessage?.call({} as Worker, { data: response } as MessageEvent);
   }
 }
@@ -120,6 +119,40 @@ describe("PdfReducerRuntime", () => {
     await expect(pending).resolves.toMatchObject({
       reductionRecommended: false,
     });
+  });
+
+  it.each([
+    { type: "result" },
+    { type: "error" },
+    { type: "unexpected" },
+  ])("fails safely for a malformed active response: %j", async (response) => {
+    const { runtime, workers } = setup();
+    const pending = runtime.optimize(new ArrayBuffer(10));
+    workers[0].emit(response);
+    await expectCode(pending, "RUNTIME_FAILED");
+    expect(workers[0].terminate).toHaveBeenCalledOnce();
+    expect(runtime.cancel()).toBe(false);
+  });
+
+  it("fails safely when the Worker sends a malformed ready response", async () => {
+    const { runtime, workers } = setup();
+    const pending = runtime.optimize(new ArrayBuffer(10));
+    workers[0].emit({ type: "ready" });
+    await expectCode(pending, "RUNTIME_FAILED");
+    expect(workers[0].terminate).toHaveBeenCalledOnce();
+  });
+
+  it("ignores malformed responses from an old Worker", async () => {
+    const { runtime, workers } = setup();
+    const first = runtime.optimize(new ArrayBuffer(10));
+    runtime.cancel();
+    await expectCode(first, "CANCELLED");
+
+    const second = runtime.optimize(new ArrayBuffer(10));
+    workers[0].emit({ type: "result" });
+    workers[0].emit({ type: "error" });
+    expect(runtime.cancel()).toBe(true);
+    await expectCode(second, "CANCELLED");
   });
 
   it("terminates cancellation and permits a fresh job", async () => {
