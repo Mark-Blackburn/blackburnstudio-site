@@ -1,0 +1,27 @@
+{
+  "runtimeVersion": "1.0.0",
+  "qpdfVersion": "12.4.1",
+  "emscriptenVersion": "4.0.17",
+  "artifacts": {
+    "pdf-reducer-worker.mjs": {
+      "sha256": "1ff175e88d715d5e061e067b0c4d32af3fdd19126526c0af1076e64a3632eeea",
+      "bytes": 4058
+    },
+    "pdf-reducer.mjs": {
+      "sha256": "d651bbe4c333f76ee50f2bd43d8b8dc7f4ddbafe0b9c3568a489cd2c02cdd6fc",
+      "bytes": 79325
+    },
+    "pdf-reducer.wasm": {
+      "sha256": "d07292d6b2dbe2c7e3e73248c4a88dbeaab9207cd3bf4d54157a8ec5f20a2cf3",
+      "bytes": 3019397
+    },
+    "THIRD_PARTY_NOTICES.md": {
+      "sha256": "494a5f4a1325c6afc8bc8e34a6369981f048aac9aaf2f617afed6764dec6fbcd",
+      "bytes": 23079
+    }
+  },
+  "supportedModes": [
+    "optimize",
+    "reduce-images"
+  ]
+}

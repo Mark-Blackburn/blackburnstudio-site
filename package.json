@@ -12,6 +12,10 @@
     "lint": "eslint",
     "test": "vitest",
     "test:run": "vitest run",
+    "build:pdf-reducer": "node scripts/build-pdf-reducer.mjs",
+    "verify:pdf-reducer": "node runtime/pdf-reducer/build/verify.mjs",
+    "smoke:pdf-reducer": "node runtime/pdf-reducer/tests/smoke.mjs",
+    "isolation:pdf-reducer": "node runtime/pdf-reducer/tests/route-isolation.mjs",
     "screenshot:site": "node scripts/screenshot-site.mjs",
     "screenshot:site:local": "node scripts/screenshot-site.mjs --baseUrl=http://localhost:3000"
   },
