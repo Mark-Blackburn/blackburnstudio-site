@@ -35,11 +35,9 @@ function build(destination, token) {
         `type=local,dest=${destination}`,
         root,
       ],
-      { stdio: ["ignore", "pipe", "pipe"], maxBuffer: 4 * 1024 * 1024 },
+      { stdio: ["ignore", "inherit", "inherit"] },
     );
   } catch (error) {
-    if (error.stdout) process.stderr.write(error.stdout);
-    if (error.stderr) process.stderr.write(error.stderr);
     throw error;
   }
 }

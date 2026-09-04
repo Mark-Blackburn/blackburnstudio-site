@@ -1,6 +1,7 @@
 import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
-import { extname, join, normalize, resolve } from "node:path";
+import { extname, isAbsolute, join, normalize, relative, resolve, sep } from "node:path";
+import { strict as assert } from "node:assert";
 
 import { chromium } from "playwright";
 import sharp from "sharp";
@@ -18,6 +19,26 @@ function stream(dictionary, bytes) {
     bytes,
     Buffer.from("\nendstream"),
   ]);
+}
+
+function resolvePublicAssetPathFromPathname(pathname) {
+  const normalized = normalize(decodeURIComponent(pathname));
+  const relativePath = normalized.replace(/^[/\\]+/, "");
+  const candidate = join(publicRoot, relativePath);
+  const relativeToRoot = relative(publicRoot, candidate);
+  if (
+    isAbsolute(relativeToRoot) ||
+    relativeToRoot === ".." ||
+    relativeToRoot.startsWith(`..${sep}`)
+  ) {
+    throw new Error("unsafe path");
+  }
+  return candidate;
+}
+
+function resolvePublicAssetPath(requestUrl) {
+  const pathname = new URL(requestUrl ?? "/", "http://127.0.0.1").pathname;
+  return resolvePublicAssetPathFromPathname(pathname);
 }
 
 function createPdf(
@@ -139,6 +160,16 @@ const contentTypes = {
   ".md": "text/markdown; charset=utf-8",
 };
 
+assert.equal(
+  resolvePublicAssetPath("/runtime/pdf-reducer/1.0.0/pdf-reducer-worker.mjs"),
+  join(publicRoot, "runtime/pdf-reducer/1.0.0/pdf-reducer-worker.mjs"),
+);
+
+assert.throws(
+  () => resolvePublicAssetPathFromPathname("../secrets.txt"),
+  /unsafe path/,
+);
+
 const server = createServer(async (request, response) => {
   try {
     if (request.url === "/") {
@@ -146,11 +177,7 @@ const server = createServer(async (request, response) => {
       response.end("<!doctype html><title>PDF Reducer smoke</title>");
       return;
     }
-    const path = normalize(decodeURIComponent(request.url ?? "/")).replace(
-      /^(\.\.(\\|\/|$))+/, "",
-    );
-    const file = join(publicRoot, path);
-    if (!file.startsWith(publicRoot)) throw new Error("unsafe path");
+    const file = resolvePublicAssetPath(request.url);
     const bytes = await readFile(file);
     response.writeHead(200, {
       "content-type": contentTypes[extname(file)] ?? "application/octet-stream",
