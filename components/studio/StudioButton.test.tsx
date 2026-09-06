@@ -66,6 +66,18 @@ describe("StudioButton", () => {
     expect(link).not.toHaveAttribute("rel");
   });
 
+  it("renders the opt-in light tone without changing the default tone", () => {
+    render(
+      <StudioButton href="/contact" variant="primary" tone="light">
+        Start a conversation
+      </StudioButton>,
+    );
+
+    const link = screen.getByRole("link", { name: "Start a conversation" });
+    expect(link).toHaveClass("bg-[#111111]", "text-[#f4f1eb]");
+    expect(link).not.toHaveClass("bg-white");
+  });
+
   it("protects explicitly external HTTP links opened in a new tab", () => {
     render(
       <StudioButton href="https://example.com" external>

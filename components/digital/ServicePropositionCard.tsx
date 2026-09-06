@@ -47,7 +47,7 @@ export default function ServicePropositionCard({
         <ul className="mt-5 space-y-2.5 text-sm leading-relaxed text-studio-muted md:text-base">
           {capabilities.map((capability) => (
             <li key={capability} className="flex gap-2">
-              <span className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border" aria-hidden="true" />
+              <span className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#b9955a]" aria-hidden="true" />
               <span>{capability}</span>
             </li>
           ))}
