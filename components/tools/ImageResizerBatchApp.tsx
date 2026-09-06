@@ -1756,7 +1756,7 @@ export default function ImageResizerBatchApp({
   return (
     <div className={queue.length > 0 ? "mb-6 sm:mb-8" : undefined}>
       <section aria-labelledby="online-resizer-heading" className="max-w-[76ch]">
-        <SectionEyebrow>Online tool</SectionEyebrow>
+        <SectionEyebrow className="text-[#765d34]">Online tool</SectionEyebrow>
         <h1
           id="online-resizer-heading"
           className="mt-4 max-w-[22ch] text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-6xl"
@@ -1770,9 +1770,10 @@ export default function ImageResizerBatchApp({
         </p>
       </section>
 
+      <div className="tools-dark-workspace mt-10 rounded-3xl border border-studio-border bg-studio-base p-5 text-studio-muted shadow-[0_24px_70px_rgba(17,17,17,0.16)] sm:p-7 md:p-9">
       <section
         aria-label="Browser processing status"
-        className={`mt-8 rounded-xl px-5 py-4 ${runtimeState === "error" ? "border border-red-300/25 bg-red-950/20" : "bg-studio-surface-soft"}`}
+        className={`rounded-xl px-5 py-4 ${runtimeState === "error" ? "border border-red-300/25 bg-red-950/20" : "bg-studio-surface-soft"}`}
       >
         <div role="status" aria-live="polite">
           {runtimeState === "preparing" ? (
@@ -2079,6 +2080,7 @@ export default function ImageResizerBatchApp({
           </ol>
         )}
       </section>
+      </div>
     </div>
   );
 }

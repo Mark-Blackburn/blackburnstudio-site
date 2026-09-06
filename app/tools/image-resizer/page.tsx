@@ -35,9 +35,10 @@ export default function ImageResizerPage() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
+      <main className="tools-light-theme w-full flex-1 bg-studio-base text-studio-muted">
+        <div className="mx-auto w-full max-w-312 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
         <section aria-labelledby="image-resizer-heading" className="max-w-[78ch]">
-          <SectionEyebrow>Blackburn Studio Tools</SectionEyebrow>
+          <SectionEyebrow className="text-[#765d34]">Blackburn Studio Tools</SectionEyebrow>
           <h1
             id="image-resizer-heading"
             className="mt-4 max-w-[21ch] text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-6xl"
@@ -58,16 +59,24 @@ export default function ImageResizerPage() {
             ))}
           </div>
           <div className="mt-9 flex flex-wrap gap-3">
-            <StudioButton href="/tools/image-resizer/app" variant="primary">
+            <StudioButton
+              href="/tools/image-resizer/app"
+              variant="primary"
+              className="!bg-[#111111] !text-[#f4f1eb] hover:!bg-[#2a2824] focus-visible:!ring-black/60 focus-visible:!ring-offset-[#f4f1eb]"
+            >
               Use online
             </StudioButton>
-            <StudioButton href="#download" variant="secondary">
+            <StudioButton
+              href="#download"
+              variant="secondary"
+              className="border-black/20 text-studio-text hover:border-black/45 hover:text-black focus-visible:ring-black/60 focus-visible:ring-offset-[#f4f1eb]"
+            >
               Download for Windows
             </StudioButton>
           </div>
         </section>
 
-        <figure className="mt-16 overflow-hidden rounded-2xl border border-studio-border/70 bg-studio-surface/65 md:mt-20">
+        <figure className="mt-16 overflow-hidden rounded-2xl border border-black/25 bg-studio-surface shadow-[0_1px_2px_rgba(17,17,17,0.1),0_8px_20px_rgba(17,17,17,0.13)] md:mt-20">
           <Image
             src={imageResizerApp}
             alt="Blackburn Studio Web Image Resizer showing batch image sizing, output dimensions and metadata options"
@@ -97,7 +106,7 @@ export default function ImageResizerPage() {
             {capabilities.map((capability) => (
               <li key={capability} className="flex gap-3">
                 <span
-                  className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                  className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#b9955a]"
                   aria-hidden="true"
                 />
                 <span>{capability}</span>
@@ -121,7 +130,7 @@ export default function ImageResizerPage() {
           aria-labelledby="installation-heading"
           className="mt-20 max-w-5xl md:mt-24"
         >
-          <SectionEyebrow>Installation</SectionEyebrow>
+          <SectionEyebrow className="text-[#765d34]">Installation</SectionEyebrow>
           <h2
             id="installation-heading"
             className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
@@ -145,7 +154,7 @@ export default function ImageResizerPage() {
             ].map((step, index) => (
               <li
                 key={step.title}
-                className="rounded-2xl border border-studio-border/70 bg-studio-surface/65 px-5 py-6 md:px-6"
+                className="rounded-2xl border border-studio-border bg-studio-surface px-5 py-6 shadow-[0_18px_50px_rgba(17,17,17,0.04)] md:px-6"
               >
                 <p className="text-xs uppercase tracking-[0.2em] text-studio-dim">
                   Step {index + 1}
@@ -165,7 +174,7 @@ export default function ImageResizerPage() {
           aria-labelledby="privacy-heading"
           className="mt-20 max-w-[74ch] md:mt-24"
         >
-          <SectionEyebrow>Privacy</SectionEyebrow>
+          <SectionEyebrow className="text-[#765d34]">Privacy</SectionEyebrow>
           <h2
             id="privacy-heading"
             className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
@@ -178,6 +187,7 @@ export default function ImageResizerPage() {
             third-party image service.
           </p>
         </section>
+        </div>
       </main>
 
       <SiteFooter />

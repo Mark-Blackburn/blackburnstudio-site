@@ -297,7 +297,7 @@ export default function QrCodeGeneratorApp() {
 
   return (
     <section aria-labelledby="qr-app-heading">
-      <SectionEyebrow>Free browser tool</SectionEyebrow>
+      <SectionEyebrow className="text-[#765d34]">Free browser tool</SectionEyebrow>
       <h1
         id="qr-app-heading"
         className="mt-4 text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-5xl"
@@ -319,7 +319,7 @@ export default function QrCodeGeneratorApp() {
       </aside>
 
       <div
-        className="mt-8 grid grid-cols-[minmax(0,1fr)] gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)] lg:items-start"
+        className="tools-dark-workspace mt-10 grid grid-cols-[minmax(0,1fr)] gap-8 rounded-3xl border border-studio-border bg-studio-base p-5 text-studio-muted shadow-[0_24px_70px_rgba(17,17,17,0.16)] sm:p-7 md:p-9 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,0.8fr)] lg:items-start"
         data-testid="qr-generator-workspace"
       >
         <div className="min-w-0 space-y-7 rounded-2xl border border-studio-border/70 bg-studio-surface/65 p-6 md:p-8">

@@ -15,8 +15,10 @@ export default function OnlineQrCodeGeneratorPage() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-280 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
-        <QrCodeGeneratorApp />
+      <main className="tools-light-theme w-full flex-1 bg-studio-base text-studio-muted">
+        <div className="mx-auto w-full max-w-280 px-5 pt-16 pb-24 sm:px-6 md:px-8 md:pt-24 md:pb-32">
+          <QrCodeGeneratorApp />
+        </div>
       </main>
 
       <SiteFooter />
