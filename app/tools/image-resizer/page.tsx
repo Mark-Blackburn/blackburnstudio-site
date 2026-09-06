@@ -38,7 +38,7 @@ export default function ImageResizerPage() {
       <main className="tools-light-theme w-full flex-1 bg-studio-base text-studio-muted">
         <div className="mx-auto w-full max-w-312 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
         <section aria-labelledby="image-resizer-heading" className="max-w-[78ch]">
-          <SectionEyebrow className="!text-[#765d34]">Blackburn Studio Tools</SectionEyebrow>
+          <SectionEyebrow className="text-[#765d34]">Blackburn Studio Tools</SectionEyebrow>
           <h1
             id="image-resizer-heading"
             className="mt-4 max-w-[21ch] text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-6xl"
@@ -130,7 +130,7 @@ export default function ImageResizerPage() {
           aria-labelledby="installation-heading"
           className="mt-20 max-w-5xl md:mt-24"
         >
-          <SectionEyebrow className="!text-[#765d34]">Installation</SectionEyebrow>
+          <SectionEyebrow className="text-[#765d34]">Installation</SectionEyebrow>
           <h2
             id="installation-heading"
             className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
@@ -174,7 +174,7 @@ export default function ImageResizerPage() {
           aria-labelledby="privacy-heading"
           className="mt-20 max-w-[74ch] md:mt-24"
         >
-          <SectionEyebrow className="!text-[#765d34]">Privacy</SectionEyebrow>
+          <SectionEyebrow className="text-[#765d34]">Privacy</SectionEyebrow>
           <h2
             id="privacy-heading"
             className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"

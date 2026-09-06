@@ -1756,7 +1756,7 @@ export default function ImageResizerBatchApp({
   return (
     <div className={queue.length > 0 ? "mb-6 sm:mb-8" : undefined}>
       <section aria-labelledby="online-resizer-heading" className="max-w-[76ch]">
-        <SectionEyebrow className="!text-[#765d34]">Online tool</SectionEyebrow>
+        <SectionEyebrow className="text-[#765d34]">Online tool</SectionEyebrow>
         <h1
           id="online-resizer-heading"
           className="mt-4 max-w-[22ch] text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-6xl"

@@ -436,7 +436,7 @@ export default function ImageResizerRelease() {
         aria-labelledby="current-release-heading"
         className="rounded-3xl border border-studio-border bg-studio-surface px-6 py-8 shadow-[0_18px_50px_rgba(17,17,17,0.04)] md:px-9 md:py-10"
       >
-        <SectionEyebrow className="!text-[#765d34]">Latest release</SectionEyebrow>
+        <SectionEyebrow className="text-[#765d34]">Latest release</SectionEyebrow>
         <h2
           id="current-release-heading"
           className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"

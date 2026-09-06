@@ -297,7 +297,7 @@ export default function QrCodeGeneratorApp() {
 
   return (
     <section aria-labelledby="qr-app-heading">
-      <SectionEyebrow className="!text-[#765d34]">Free browser tool</SectionEyebrow>
+      <SectionEyebrow className="text-[#765d34]">Free browser tool</SectionEyebrow>
       <h1
         id="qr-app-heading"
         className="mt-4 text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-5xl"

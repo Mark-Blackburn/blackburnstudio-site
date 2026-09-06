@@ -40,7 +40,7 @@ export default function QrCodeGeneratorPage() {
           className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.05fr)_minmax(22rem,0.95fr)] lg:gap-12"
         >
           <div>
-            <SectionEyebrow className="!text-[#765d34]">Blackburn Studio Tools</SectionEyebrow>
+            <SectionEyebrow className="text-[#765d34]">Blackburn Studio Tools</SectionEyebrow>
             <h1
               id="qr-generator-heading"
               className="mt-4 max-w-[21ch] text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-5xl"
@@ -91,7 +91,7 @@ export default function QrCodeGeneratorPage() {
           className="mt-14 grid gap-6 md:mt-16 lg:grid-cols-2"
         >
           <article className="rounded-2xl border border-studio-border bg-studio-surface p-7 shadow-[0_18px_50px_rgba(17,17,17,0.04)] md:p-9">
-            <SectionEyebrow className="!text-[#765d34]">Capabilities</SectionEyebrow>
+            <SectionEyebrow className="text-[#765d34]">Capabilities</SectionEyebrow>
             <h2
               id="qr-benefits-heading"
               className="mt-3 max-w-[25ch] text-3xl font-medium tracking-tight text-studio-text"
@@ -112,7 +112,7 @@ export default function QrCodeGeneratorPage() {
           </article>
 
           <article className="rounded-2xl border border-studio-border bg-studio-surface p-7 shadow-[0_18px_50px_rgba(17,17,17,0.04)] md:p-9">
-            <SectionEyebrow className="!text-[#765d34]">Privacy</SectionEyebrow>
+            <SectionEyebrow className="text-[#765d34]">Privacy</SectionEyebrow>
             <h2
               id="qr-privacy-heading"
               className="mt-3 max-w-[22ch] text-3xl font-medium tracking-tight text-studio-text"
