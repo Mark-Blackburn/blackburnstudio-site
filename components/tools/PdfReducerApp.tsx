@@ -113,6 +113,7 @@ export default function PdfReducerApp({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const runtimeRef = useRef<PdfReducerRuntimeLike | null>(null);
   const operationRef = useRef(0);
+  const processingStageRef = useRef<"idle" | "reading-file" | "runtime">("idle");
   const mountedRef = useRef(true);
   const resultUrlRef = useRef<string | null>(null);
 
@@ -132,6 +133,7 @@ export default function PdfReducerApp({
     return () => {
       mountedRef.current = false;
       operationRef.current += 1;
+      processingStageRef.current = "idle";
       runtimeRef.current?.cancel();
       if (resultUrlRef.current) {
         URL.revokeObjectURL(resultUrlRef.current);
@@ -213,16 +215,19 @@ export default function PdfReducerApp({
     setRuntimeError(null);
     setNotice(null);
     setPhase("processing");
+    processingStageRef.current = "reading-file";
 
     try {
       const input = await file.arrayBuffer();
       if (!mountedRef.current || operationRef.current !== operation) return;
       const runtime = runtimeRef.current ?? runtimeFactory();
       runtimeRef.current = runtime;
+      processingStageRef.current = "runtime";
       const response = await runtime.process(mode, input);
       if (!mountedRef.current || operationRef.current !== operation) return;
 
       if (!response.reductionRecommended) {
+        processingStageRef.current = "idle";
         setPhase("no-reduction");
         return;
       }
@@ -237,9 +242,11 @@ export default function PdfReducerApp({
         url,
         filename: reducedFilename(file.name),
       });
+      processingStageRef.current = "idle";
       setPhase("success");
     } catch (error) {
       if (!mountedRef.current || operationRef.current !== operation) return;
+      processingStageRef.current = "idle";
       const code = error instanceof PdfReducerError ? error.code : "RUNTIME_FAILED";
       if (code === "CANCELLED") {
         setPhase("ready");
@@ -252,9 +259,12 @@ export default function PdfReducerApp({
   }
 
   function cancelProcessing() {
-    if (!processing) return;
+    if (!processing || processingStageRef.current === "idle") return;
+
+    if (processingStageRef.current === "runtime" && !runtimeRef.current?.cancel()) return;
+
     operationRef.current += 1;
-    runtimeRef.current?.cancel();
+    processingStageRef.current = "idle";
     setPhase(selectedFile ? "ready" : "empty");
     setNotice("Processing cancelled. Your PDF is still selected.");
   }

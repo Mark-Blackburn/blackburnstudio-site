@@ -172,6 +172,60 @@ describe("PdfReducerApp", () => {
     expect(screen.getByRole("button", { name: "Reduce PDF" })).toBeEnabled();
   });
 
+  it("cancels while reading the file without starting the runtime afterward", async () => {
+    const { runtime } = setup();
+    const file = pdfFile();
+    const input = deferred<ArrayBuffer>();
+    Object.defineProperty(file, "arrayBuffer", {
+      configurable: true,
+      value: vi.fn(() => input.promise),
+    });
+
+    choose(file);
+    fireEvent.click(screen.getByRole("button", { name: "Reduce PDF" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Processing your PDF in this browser");
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(screen.getByText("proposal.pdf")).toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Processing cancelled");
+
+    await act(async () => input.resolve(new ArrayBuffer(3)));
+    expect(runtime.jobs).toHaveLength(0);
+    expect(screen.queryByRole("link", { name: "Download reduced PDF" })).not.toBeInTheDocument();
+  });
+
+  it("cancels an active runtime job and ignores its late result", async () => {
+    const { runtime } = setup();
+    choose(pdfFile());
+    fireEvent.click(screen.getByRole("button", { name: "Reduce PDF" }));
+    await waitFor(() => expect(runtime.jobs).toHaveLength(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(runtime.cancel).toHaveBeenCalledOnce();
+    expect(screen.getByRole("status")).toHaveTextContent("Processing cancelled");
+    expect(screen.getByRole("button", { name: "Reduce PDF" })).toBeEnabled();
+
+    await act(async () => runtime.jobs[0].deferred.resolve(reductionResult()));
+    expect(screen.queryByRole("link", { name: "Download reduced PDF" })).not.toBeInTheDocument();
+    expect(screen.getByRole("status")).toHaveTextContent("Processing cancelled");
+  });
+
+  it("does not invalidate a runtime operation when cancellation loses the race", async () => {
+    const { runtime } = setup();
+    runtime.cancel.mockReturnValue(false);
+    choose(pdfFile());
+    fireEvent.click(screen.getByRole("button", { name: "Reduce PDF" }));
+    await waitFor(() => expect(runtime.jobs).toHaveLength(1));
+
+    fireEvent.click(screen.getByRole("button", { name: "Cancel" }));
+    expect(runtime.cancel).toHaveBeenCalledOnce();
+    expect(screen.getByRole("status")).toHaveTextContent("Processing your PDF in this browser");
+    expect(screen.queryByText("Processing cancelled")).not.toBeInTheDocument();
+
+    await act(async () => runtime.jobs[0].deferred.resolve(reductionResult()));
+    expect(screen.getByRole("link", { name: "Download reduced PDF" })).toBeInTheDocument();
+  });
+
   it("offers a local PDF download only when the result is smaller", async () => {
     const { runtime } = setup();
     choose(pdfFile("Proposal.PDF"));
