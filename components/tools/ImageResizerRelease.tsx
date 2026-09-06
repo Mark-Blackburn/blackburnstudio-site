@@ -177,7 +177,7 @@ function ExternalLink({
       target="_blank"
       rel="noopener noreferrer"
       aria-label={ariaLabel}
-      className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base"
+      className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-black/60 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base"
     >
       {children}
     </a>
@@ -228,6 +228,7 @@ function CurrentRelease({ release }: { release: LatestRelease }) {
             href={release.installer.downloadUrl}
             external
             variant="primary"
+            className="!bg-[#111111] !text-[#f4f1eb] hover:!bg-[#2a2824] focus-visible:!ring-black/60 focus-visible:!ring-offset-studio-surface"
           >
             Download for Windows
             <span className="sr-only"> (opens in a new tab)</span>
@@ -242,6 +243,7 @@ function CurrentRelease({ release }: { release: LatestRelease }) {
             href={release.portable.downloadUrl}
             external
             variant="secondary"
+            className="border-black/20 text-studio-text hover:border-black/45 hover:text-black focus-visible:ring-black/60 focus-visible:ring-offset-studio-surface"
           >
             Portable version
             <span className="sr-only"> (opens in a new tab)</span>
@@ -432,9 +434,9 @@ export default function ImageResizerRelease() {
     <>
       <section
         aria-labelledby="current-release-heading"
-        className="rounded-3xl border border-studio-border bg-studio-surface px-6 py-8 md:px-9 md:py-10"
+        className="rounded-3xl border border-studio-border bg-studio-surface px-6 py-8 shadow-[0_18px_50px_rgba(17,17,17,0.04)] md:px-9 md:py-10"
       >
-        <SectionEyebrow>Latest release</SectionEyebrow>
+        <SectionEyebrow className="!text-[#765d34]">Latest release</SectionEyebrow>
         <h2
           id="current-release-heading"
           className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
