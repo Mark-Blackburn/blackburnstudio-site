@@ -32,22 +32,24 @@ describe("PDF Reducer routes", () => {
     );
     const card = screen.getByRole("heading", { name: "PDF Reducer" }).closest("article");
     expect(card).not.toBeNull();
-    expect(within(card!).getByText("Structural optimisation")).toBeInTheDocument();
+    expect(within(card!).getByText("Structural optimization")).toBeInTheDocument();
     expect(within(card!).getByText("Local browser processing")).toBeInTheDocument();
   });
 
   it("renders the indexable product page, mode copy, privacy message, and app CTA", () => {
     render(<PdfReducerPage />);
     expect(landingMetadata.title).toEqual("PDF Reducer");
-    expect(landingMetadata.description).toMatch(/without uploading your document/);
+    expect(landingMetadata.description).toMatch(/while your document stays on your device/);
     expect(
-      screen.getByRole("heading", { name: "Make PDFs smaller without uploading them" }),
+      screen.getByRole("heading", { name: "Make PDFs smaller in your browser" }),
     ).toBeInTheDocument();
     expect(screen.getAllByRole("heading", { name: "Optimize" })).toHaveLength(1);
     expect(screen.getAllByRole("heading", { name: "Reduce images" })).toHaveLength(1);
     expect(
-      screen.getByRole("heading", { name: "Your PDF is processed locally in your browser" }),
+      screen.getByText("Processed locally in your browser. Your PDF is not sent to Blackburn Studio."),
     ).toBeInTheDocument();
+    expect(screen.getByText("Fine detail may soften slightly.", { exact: false })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "Your PDF is processed locally in your browser" })).not.toBeInTheDocument();
     expect(screen.getAllByRole("link", { name: "Reduce a PDF" })[0]).toHaveAttribute(
       "href",
       "/tools/pdf-reducer/app",

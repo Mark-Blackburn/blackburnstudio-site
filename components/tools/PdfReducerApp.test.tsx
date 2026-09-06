@@ -112,10 +112,13 @@ describe("PdfReducerApp", () => {
 
   it("starts with Reduce images selected and requires a deliberate file action", () => {
     setup();
+    expect(screen.getByRole("group", { name: "Choose a reduction mode" })).toBeInTheDocument();
+    expect(screen.getByText("Choose a reduction mode, then select the PDF you want to make smaller.", { exact: false })).toBeInTheDocument();
     expect(screen.getByRole("radio", { name: /Reduce images/ })).toBeChecked();
     expect(screen.getByRole("radio", { name: /Optimize/ })).not.toBeChecked();
+    expect(screen.queryByText("Selected")).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Reduce PDF" })).toBeDisabled();
-    expect(screen.getByText("Image reduction can soften fine detail.", { exact: false })).toBeInTheDocument();
+    expect(screen.getByText("Fine detail may soften slightly.", { exact: false })).toBeInTheDocument();
   });
 
   it("selects, replaces, removes, and switches mode without processing automatically", () => {
@@ -194,7 +197,7 @@ describe("PdfReducerApp", () => {
       ),
     );
 
-    expect(screen.getByRole("heading", { name: "This PDF is already well optimised." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "This PDF is already well optimized." })).toBeInTheDocument();
     expect(screen.queryByRole("link", { name: "Download reduced PDF" })).not.toBeInTheDocument();
     expect(createObjectURL).not.toHaveBeenCalled();
     expect(screen.getByRole("button", { name: "Choose another PDF" })).toBeInTheDocument();
@@ -239,7 +242,50 @@ describe("PdfReducerApp", () => {
         reductionResult({ outputBytes: 20, reductionRecommended: false }),
       ),
     );
-    expect(screen.getByRole("heading", { name: "This PDF is already well optimised." })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "This PDF is already well optimized." })).toBeInTheDocument();
+  });
+
+  it("clears a selection error when the mode changes", () => {
+    setup();
+    choose(pdfFile("notes.txt", 10, "text/plain"));
+    expect(screen.getByRole("alert")).toHaveTextContent("Choose a PDF file.");
+
+    fireEvent.click(screen.getByRole("radio", { name: /Optimize/ }));
+    expect(screen.queryByText("Choose a PDF file.")).not.toBeInTheDocument();
+  });
+
+  it("clears a selection error when retrying with another mode", async () => {
+    const { runtime } = setup();
+    choose(pdfFile());
+    fireEvent.click(screen.getByRole("radio", { name: /Optimize/ }));
+    fireEvent.click(screen.getByRole("button", { name: "Reduce PDF" }));
+    await waitFor(() => expect(runtime.jobs).toHaveLength(1));
+    await act(async () =>
+      runtime.jobs[0].deferred.resolve(
+        reductionResult({ outputBytes: 20, reductionRecommended: false }),
+      ),
+    );
+    fireEvent.drop(screen.getByText("proposal.pdf").parentElement?.parentElement?.parentElement as HTMLElement, {
+      dataTransfer: { files: [pdfFile("one.pdf"), pdfFile("two.pdf")] },
+    });
+    expect(screen.getByRole("alert")).toHaveTextContent("Choose exactly one PDF file.");
+
+    fireEvent.click(screen.getByRole("button", { name: "Try Reduce images" }));
+    expect(screen.queryByText("Choose exactly one PDF file.")).not.toBeInTheDocument();
+  });
+
+  it("keeps a newly invalid selection error visible", () => {
+    setup();
+    choose(pdfFile("notes.txt", 10, "text/plain"));
+    expect(screen.getByRole("alert")).toHaveTextContent("Choose a PDF file.");
+  });
+
+  it("clears a selection error after a valid selection", () => {
+    setup();
+    choose(pdfFile("notes.txt", 10, "text/plain"));
+    choose(pdfFile("valid.pdf"));
+    expect(screen.queryByText("Choose a PDF file.")).not.toBeInTheDocument();
+    expect(screen.getByText("valid.pdf")).toBeInTheDocument();
   });
 
   it("revokes result object URLs on replacement and unmount", async () => {

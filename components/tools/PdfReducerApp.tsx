@@ -199,6 +199,7 @@ export default function PdfReducerApp({
     operationRef.current += 1;
     clearResult();
     setMode(nextMode);
+    setSelectionError(null);
     setRuntimeError(null);
     setNotice(null);
     setPhase(selectedFile ? "ready" : "empty");
@@ -285,6 +286,7 @@ export default function PdfReducerApp({
     operationRef.current += 1;
     clearResult();
     setMode(nextMode);
+    setSelectionError(null);
     setRuntimeError(null);
     setNotice(null);
     setPhase(selectedFile ? "ready" : "empty");
@@ -293,25 +295,24 @@ export default function PdfReducerApp({
   return (
     <div className="pb-24 md:pb-32">
       <header className="max-w-[76ch]">
-        <SectionEyebrow>Blackburn Studio Tools</SectionEyebrow>
+        <SectionEyebrow className="text-[#765d34]">Blackburn Studio Tools</SectionEyebrow>
         <h1 className="mt-4 text-4xl font-medium tracking-tight text-studio-text md:text-5xl">
           Reduce a PDF
         </h1>
         <p className="mt-5 max-w-[65ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-          Choose a PDF and a reduction method. Processing happens locally in this browser,
-          and your document is not uploaded to Blackburn Studio.
+          Choose a reduction mode, then select the PDF you want to make smaller. Processing happens locally in this browser,
+          and your document is not sent to Blackburn Studio.
         </p>
         <div className="mt-6 flex flex-wrap gap-2.5">
           <StudioTag>PDF only</StudioTag>
           <StudioTag>Local processing</StudioTag>
-          <StudioTag>No upload</StudioTag>
         </div>
       </header>
 
-      <section className="mt-10 rounded-3xl border border-studio-border bg-studio-surface p-5 shadow-2xl shadow-black/20 sm:p-7 md:p-9">
+      <section className="tools-dark-workspace mt-10 rounded-3xl border border-studio-border bg-studio-surface p-5 shadow-[0_24px_70px_rgba(17,17,17,0.16)] sm:p-7 md:p-9">
         <fieldset disabled={processing}>
           <legend className="text-xl font-medium tracking-tight text-studio-text">
-            Choose how to reduce your PDF
+            Choose a reduction mode
           </legend>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
             {MODE_OPTIONS.map((option) => {
@@ -321,7 +322,7 @@ export default function PdfReducerApp({
                   key={option.mode}
                   className={`relative flex cursor-pointer flex-col rounded-2xl border p-5 transition focus-within:ring-2 focus-within:ring-white/70 ${
                     selected
-                      ? "border-white/40 bg-studio-surface-raised"
+                      ? "border-[#d8c29a]/70 bg-studio-surface-raised shadow-[0_0_0_1px_rgba(216,194,154,0.12)]"
                       : "border-studio-border bg-studio-surface-soft hover:border-white/25"
                   } ${processing ? "cursor-not-allowed opacity-60" : ""}`}
                 >
@@ -331,20 +332,31 @@ export default function PdfReducerApp({
                     value={option.mode}
                     checked={selected}
                     onChange={() => changeMode(option.mode)}
-                    className="sr-only"
+                    className="peer absolute left-5 top-5 z-10 h-5 w-5 cursor-pointer opacity-0"
                   />
                   <span className="flex items-start justify-between gap-3">
-                    <span className="text-lg font-medium text-studio-text">{option.title}</span>
-                    <span className="text-xs uppercase tracking-[0.14em] text-studio-dim">
-                      {selected ? "Selected" : option.limit}
+                    <span className="flex min-w-0 items-center gap-3 text-lg font-medium text-studio-text">
+                      <span
+                        aria-hidden="true"
+                        className={`pointer-events-none relative h-5 w-5 shrink-0 rounded-full border transition ${
+                          selected
+                            ? "border-[#d8c29a] bg-[#d8c29a]"
+                            : "border-studio-dim bg-transparent"
+                        }`}
+                      />
+                      <span>{option.title}</span>
+                    </span>
+                    <span className="shrink-0 text-right text-xs uppercase tracking-[0.14em] text-studio-dim">
+                      {option.limit}
                     </span>
                   </span>
                   <span className="mt-3 text-sm leading-relaxed text-studio-muted">
                     {option.description}
                   </span>
-                  {selected ? (
-                    <span className="mt-4 text-xs font-medium uppercase tracking-[0.14em] text-studio-text">
-                      {option.limit}
+                  {option.mode === "reduce-images" ? (
+                    <span className="mt-4 text-sm leading-relaxed text-studio-dim">
+                      Fine detail may soften slightly. Images that can&apos;t be changed safely are
+                      left untouched.
                     </span>
                   ) : null}
                 </label>
@@ -353,15 +365,11 @@ export default function PdfReducerApp({
           </div>
         </fieldset>
 
-        {mode === "reduce-images" ? (
-          <p className="mt-4 text-sm leading-relaxed text-studio-dim">
-            Image reduction can soften fine detail. Images and formats that cannot be changed
-            safely are left untouched.
-          </p>
-        ) : null}
-
         <div className="mt-8 border-t border-studio-border/70 pt-8">
           <h2 className="text-xl font-medium tracking-tight text-studio-text">Choose your PDF</h2>
+          <p className="mt-3 text-sm leading-relaxed text-studio-dim">
+            Processed privately in your browser. Your PDF is not sent to Blackburn Studio.
+          </p>
           <input
             ref={fileInputRef}
             id="pdf-reducer-file"
@@ -468,12 +476,11 @@ export default function PdfReducerApp({
               Reduce PDF
             </StudioButton>
           )}
-          <p className="text-xs leading-relaxed text-studio-dim">No upload or server processing.</p>
         </div>
       </section>
 
       {phase === "success" && result ? (
-        <section aria-labelledby="pdf-result-heading" aria-live="polite" className="mt-8 rounded-3xl border border-white/20 bg-studio-surface-soft p-6 md:p-9">
+        <section aria-labelledby="pdf-result-heading" aria-live="polite" className="tools-dark-workspace mt-8 rounded-3xl border border-white/20 bg-studio-surface-soft p-6 md:p-9">
           <SectionEyebrow>Reduction complete</SectionEyebrow>
           <h2 id="pdf-result-heading" className="mt-3 text-3xl font-medium tracking-tight text-studio-text">
             Your smaller PDF is ready
@@ -513,10 +520,10 @@ export default function PdfReducerApp({
       ) : null}
 
       {phase === "no-reduction" ? (
-        <section aria-labelledby="pdf-no-reduction-heading" aria-live="polite" className="mt-8 rounded-3xl border border-studio-border bg-studio-surface-soft p-6 md:p-9">
+        <section aria-labelledby="pdf-no-reduction-heading" aria-live="polite" className="tools-dark-workspace mt-8 rounded-3xl border border-studio-border bg-studio-surface-soft p-6 md:p-9">
           <SectionEyebrow>No smaller output</SectionEyebrow>
           <h2 id="pdf-no-reduction-heading" className="mt-3 text-3xl font-medium tracking-tight text-studio-text">
-            This PDF is already well optimised.
+            This PDF is already well optimized.
           </h2>
           <p className="mt-5 max-w-[62ch] text-base leading-relaxed text-studio-muted">
             The processed version was not smaller, so your original file remains the better option.
@@ -536,7 +543,7 @@ export default function PdfReducerApp({
       ) : null}
 
       {phase === "error" && runtimeError ? (
-        <section role="alert" aria-labelledby="pdf-error-heading" className="mt-8 rounded-3xl border border-red-300/20 bg-red-300/5 p-6 md:p-8">
+        <section role="alert" aria-labelledby="pdf-error-heading" className="tools-dark-workspace mt-8 rounded-3xl border border-red-300/20 bg-red-300/5 p-6 md:p-8">
           <SectionEyebrow>Could not reduce PDF</SectionEyebrow>
           <h2 id="pdf-error-heading" className="mt-3 text-2xl font-medium tracking-tight text-studio-text">
             No output was created
@@ -558,13 +565,6 @@ export default function PdfReducerApp({
         </section>
       ) : null}
 
-      <aside className="mt-10 border-l border-studio-border pl-5 text-sm leading-relaxed text-studio-muted">
-        <h2 className="font-medium text-studio-text">Your PDF stays on your device</h2>
-        <p className="mt-2 max-w-[70ch]">
-          Document contents and filenames are not sent to Blackburn Studio for processing.
-          Processing stops if you cancel or close this page.
-        </p>
-      </aside>
     </div>
   );
 }
