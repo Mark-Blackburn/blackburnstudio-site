@@ -1,6 +1,6 @@
 # Blackburn Studio PDF Reducer Runtime
 
-This directory owns the browser-local PDF Reducer 1.0.0 runtime foundation. Blackburn builds qpdf itself so the exact upstream version, compiler, memory policy, command surface, image policy, and same-origin assets are auditable and reproducible. There is no public PDF Reducer route or React UI in this foundation.
+This directory owns the browser-local PDF Reducer 1.0.0 runtime foundation. Blackburn builds qpdf itself so the exact upstream version, compiler, memory policy, command surface, image policy, and same-origin assets are auditable and reproducible. The public experience is available at `/tools/pdf-reducer` and `/tools/pdf-reducer/app`; the UI consumes this qualified runtime without duplicating its processing logic.
 
 ## Modes
 
@@ -29,7 +29,7 @@ Effective-DPI targets must remain finite, positive, and representable as an inte
 
 ## Browser architecture and privacy
 
-Each operation gets a fresh module Worker. The input and output `ArrayBuffer` values are transferred, not cloned; MEMFS necessarily copies between browser and WASM memory. Cancellation terminates the Worker. A subsequent operation creates a fresh Worker, and stale responses are ignored.
+Each operation gets a fresh module Worker. The input and output `ArrayBuffer` values are transferred, not cloned; MEMFS necessarily copies between browser and WASM memory. Cancellation terminates the Worker. A subsequent operation creates a fresh Worker, and stale responses are ignored. The public UI creates the runtime only after the user deliberately starts processing, so the Worker and WASM are not fetched by the landing page or an idle app page.
 
 No PDF bytes, filenames, text, metadata, or diagnostics leave the browser. Native diagnostics are not exposed as user messages. Runtime MJS/WASM fetching is same-origin from `/runtime/pdf-reducer/1.0.0/` and occurs only after a future consumer imports and invokes the adapter.
 

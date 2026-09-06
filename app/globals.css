@@ -13,6 +13,28 @@
   --studio-border: rgba(237, 231, 220, 0.15);
 }
 
+.tools-light-theme {
+  --studio-base: #f4f1eb;
+  --studio-surface: #fbfaf7;
+  --studio-surface-soft: #eee9e0;
+  --studio-surface-raised: #fffdf9;
+  --studio-text: #111111;
+  --studio-muted: #4f4a42;
+  --studio-dim: #6f685d;
+  --studio-border: rgba(17, 17, 17, 0.16);
+}
+
+.tools-dark-workspace {
+  --studio-base: #0d0c0a;
+  --studio-surface: #13110f;
+  --studio-surface-soft: #191712;
+  --studio-surface-raised: #211e19;
+  --studio-text: #ede7dc;
+  --studio-muted: #c4bcae;
+  --studio-dim: #a89f90;
+  --studio-border: rgba(237, 231, 220, 0.15);
+}
+
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
