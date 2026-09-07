@@ -113,7 +113,7 @@ export default function ToolsPage() {
 
           <section
             aria-labelledby="tools-contact-heading"
-            className="tools-dark-workspace mt-24 max-w-264 rounded-3xl border border-studio-border bg-studio-base px-7 py-11 md:mt-28 md:px-11 md:py-13"
+            className="tools-dark-workspace mt-24 max-w-6xl rounded-3xl border border-studio-border bg-studio-base px-7 py-11 md:mt-28 md:px-11 md:py-13"
           >
           <h2
             id="tools-contact-heading"

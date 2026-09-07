@@ -22,9 +22,12 @@ export default function HostingDomainsPage() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
+      <main className="editorial-light-theme w-full flex-1 bg-studio-base text-studio-muted">
+        <div className="mx-auto w-full max-w-328 px-6 pt-14 pb-20 md:px-8 md:pt-20 md:pb-28">
         <section aria-labelledby="hosting-heading" className="max-w-[76ch]">
-          <SectionEyebrow>Digital services</SectionEyebrow>
+          <SectionEyebrow className="text-sm tracking-[0.24em]">
+            <span className="text-[#765d34]">Digital services</span>
+          </SectionEyebrow>
           <h1
             id="hosting-heading"
             className="mt-4 max-w-[24ch] text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-6xl"
@@ -150,7 +153,7 @@ export default function HostingDomainsPage() {
         </section>
 
         <section
-          className="mt-16 rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:mt-20 md:px-7 md:py-7"
+          className="mt-16 max-w-[74ch] border-t border-studio-border pt-12 md:mt-20 md:pt-14"
           aria-labelledby="managed-any-heading"
         >
           <h2
@@ -243,7 +246,9 @@ export default function HostingDomainsPage() {
           className="mt-16 md:mt-20"
           aria-labelledby="managed-hosting-levels-heading"
         >
-          <SectionEyebrow>MANAGED HOSTING</SectionEyebrow>
+          <SectionEyebrow>
+            <span className="text-[#765d34]">MANAGED HOSTING</span>
+          </SectionEyebrow>
           <h2
             id="managed-hosting-levels-heading"
             className="mt-3 max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
@@ -309,7 +314,7 @@ export default function HostingDomainsPage() {
             requirements and desired support level.
           </p>
           <div className="mt-8">
-            <StudioButton href="/contact" variant="primary">
+            <StudioButton href="/contact" variant="primary" tone="light">
               Discuss managed hosting
             </StudioButton>
           </div>
@@ -325,7 +330,7 @@ export default function HostingDomainsPage() {
           className="mt-16 md:mt-20"
         />
 
-        <section className="mt-20 rounded-3xl border border-studio-border bg-studio-surface px-7 py-11 md:mt-24 md:px-10 md:py-12">
+        <section className="editorial-dark-section mt-20 rounded-3xl border border-studio-border bg-studio-base px-7 py-11 text-studio-muted md:mt-24 md:px-10 md:py-12">
           <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
             Need help with hosting or a domain?
           </h2>
@@ -340,6 +345,7 @@ export default function HostingDomainsPage() {
             </StudioButton>
           </div>
         </section>
+        </div>
       </main>
 
       <SiteFooter />

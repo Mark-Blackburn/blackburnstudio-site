@@ -22,9 +22,12 @@ export default function DigitalSupportPage() {
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
 
-      <main className="mx-auto w-full max-w-312 flex-1 px-6 pt-16 pb-24 md:px-8 md:pt-24 md:pb-32">
+      <main className="editorial-light-theme w-full flex-1 bg-studio-base text-studio-muted">
+        <div className="mx-auto w-full max-w-328 px-6 pt-14 pb-20 md:px-8 md:pt-20 md:pb-28">
         <section aria-labelledby="support-heading" className="max-w-[76ch]">
-          <SectionEyebrow>Digital services</SectionEyebrow>
+          <SectionEyebrow className="text-sm tracking-[0.24em]">
+            <span className="text-[#765d34]">Digital services</span>
+          </SectionEyebrow>
           <h1
             id="support-heading"
             className="mt-4 max-w-[22ch] text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-6xl"
@@ -211,42 +214,42 @@ export default function DigitalSupportPage() {
           <ul className="mt-7 space-y-2.5 text-sm leading-relaxed text-studio-muted md:text-base">
             <li className="flex gap-2">
               <span
-                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#b9955a]"
                 aria-hidden="true"
               />
               <span>Emergency or after-hours response.</span>
             </li>
             <li className="flex gap-2">
               <span
-                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#b9955a]"
                 aria-hidden="true"
               />
               <span>Major redesign or redevelopment.</span>
             </li>
             <li className="flex gap-2">
               <span
-                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#b9955a]"
                 aria-hidden="true"
               />
               <span>Unsupported or abandoned software.</span>
             </li>
             <li className="flex gap-2">
               <span
-                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#b9955a]"
                 aria-hidden="true"
               />
               <span>Third-party custom code repair.</span>
             </li>
             <li className="flex gap-2">
               <span
-                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#b9955a]"
                 aria-hidden="true"
               />
               <span>Incident recovery outside the agreed service.</span>
             </li>
             <li className="flex gap-2">
               <span
-                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-studio-border"
+                className="mt-[0.55em] h-1.5 w-1.5 shrink-0 rounded-full bg-[#b9955a]"
                 aria-hidden="true"
               />
               <span>Work requiring specialist providers.</span>
@@ -264,7 +267,7 @@ export default function DigitalSupportPage() {
           className="mt-16 md:mt-20"
         />
 
-        <section className="mt-20 rounded-3xl border border-studio-border bg-studio-surface px-7 py-11 md:mt-24 md:px-10 md:py-12">
+        <section className="editorial-dark-section mt-20 rounded-3xl border border-studio-border bg-studio-base px-7 py-11 text-studio-muted md:mt-24 md:px-10 md:py-12">
           <h2 className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
             Need ongoing digital support?
           </h2>
@@ -279,6 +282,7 @@ export default function DigitalSupportPage() {
             </StudioButton>
           </div>
         </section>
+        </div>
       </main>
 
       <SiteFooter />

@@ -104,9 +104,9 @@ const PHONE_ERROR_MESSAGE = "Enter a valid Australian phone number.";
 const EMAIL_ERROR_MESSAGE = "Enter a valid email address.";
 
 const fieldClassName =
-  "w-full rounded-xl border border-studio-border/80 bg-studio-base/35 px-4 py-3 text-sm text-studio-text placeholder:text-studio-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base disabled:cursor-not-allowed disabled:opacity-50";
+  "w-full rounded-xl border border-[#8a8378] bg-studio-surface-raised px-4 py-3 text-sm text-studio-text placeholder:text-studio-dim focus-visible:border-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-studio-surface disabled:cursor-not-allowed disabled:border-studio-border disabled:bg-studio-surface-soft disabled:text-studio-dim";
 
-const errorClassName = "border-red-500/55 focus-visible:ring-red-500/50";
+const errorClassName = "border-red-700/70 focus-visible:border-red-700 focus-visible:ring-red-700";
 
 const FIELD_FOCUS_TARGETS: Record<string, string> = {
   name: "contact-name",
@@ -498,7 +498,7 @@ export default function ContactEnquiryForm({
   if (isSuccess) {
     return (
       <section
-        className="mt-10 max-w-3xl rounded-2xl border border-studio-border bg-studio-surface/70 px-5 py-6 md:px-6 md:py-7"
+        className="mt-10 max-w-4xl rounded-2xl border border-studio-border bg-studio-surface px-5 py-7 shadow-[0_18px_48px_rgba(17,17,17,0.06)] md:px-8 md:py-9"
         role="region"
         aria-live="polite"
         aria-label="Enquiry submission success"
@@ -514,13 +514,13 @@ export default function ContactEnquiryForm({
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <a
             href="/work"
-            className="inline-flex items-center justify-center rounded-xl border border-studio-border/60 bg-studio-surface px-4 py-2.5 text-sm font-medium text-studio-muted transition hover:bg-studio-surface/80 hover:text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base"
+            className="inline-flex items-center justify-center rounded-xl border border-studio-border bg-studio-surface-raised px-4 py-2.5 text-sm font-medium text-studio-muted transition hover:border-[#111111]/35 hover:text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-studio-surface"
           >
             View selected work
           </a>
           <a
             href="/digital"
-            className="inline-flex items-center justify-center rounded-xl border border-studio-border/60 bg-studio-surface px-4 py-2.5 text-sm font-medium text-studio-muted transition hover:bg-studio-surface/80 hover:text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base"
+            className="inline-flex items-center justify-center rounded-xl border border-studio-border bg-studio-surface-raised px-4 py-2.5 text-sm font-medium text-studio-muted transition hover:border-[#111111]/35 hover:text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-studio-surface"
           >
             Explore digital services
           </a>
@@ -531,7 +531,7 @@ export default function ContactEnquiryForm({
 
   return (
     <section
-      className="mt-10 max-w-3xl rounded-2xl border border-studio-border bg-studio-surface/70 px-5 py-6 md:px-6 md:py-7"
+      className="mt-10 max-w-4xl rounded-2xl border border-studio-border bg-studio-surface px-5 py-7 shadow-[0_18px_48px_rgba(17,17,17,0.06)] md:px-8 md:py-9"
       aria-labelledby="contact-form-heading"
     >
       <h2
@@ -550,17 +550,17 @@ export default function ContactEnquiryForm({
           ref={errorSummaryRef}
           tabIndex={-1}
           role="alert"
-          className="mt-6 rounded-xl border border-red-500/35 bg-red-500/5 px-4 py-3"
+          className="mt-6 rounded-xl border border-red-700/30 bg-red-50 px-4 py-3"
         >
-          <h3 className="font-medium text-red-300">The enquiry could not be sent</h3>
-          {globalError ? <p className="mt-1 text-sm text-red-200">{globalError}</p> : null}
+          <h3 className="font-medium text-red-800">The enquiry could not be sent</h3>
+          {globalError ? <p className="mt-1 text-sm text-red-700">{globalError}</p> : null}
           {visibleErrors.length > 0 ? (
-            <ul className="mt-2 list-disc pl-5 text-sm text-red-200">
+            <ul className="mt-2 list-disc pl-5 text-sm text-red-700">
               {visibleErrors.map(([field, message]) => (
                 <li key={field}>
                   <button
                     type="button"
-                    className="underline decoration-red-300/60 underline-offset-2"
+                    className="text-left underline decoration-red-700/50 underline-offset-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-red-700"
                     onClick={() => {
                       focusErrorField(field);
                     }}
@@ -592,7 +592,7 @@ export default function ContactEnquiryForm({
           aria-hidden="true"
         />
 
-        <section className="space-y-4 rounded-xl border border-studio-border/60 bg-studio-base/20 p-4 md:p-5">
+        <section className="space-y-4">
           <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-studio-dim">
             1. Your details
           </h3>
@@ -603,7 +603,7 @@ export default function ContactEnquiryForm({
                 htmlFor="contact-name"
                 className="text-sm font-medium text-studio-text"
               >
-                Name <span className="text-red-400">*</span>
+                Name <span className="text-red-700">*</span>
               </label>
               <input
                 id="contact-name"
@@ -621,7 +621,7 @@ export default function ContactEnquiryForm({
                 aria-describedby={errors.name ? "error-name" : undefined}
               />
               {errors.name ? (
-                <p id="error-name" className="mt-1 text-sm text-red-400" role="alert">
+                <p id="error-name" className="mt-1 text-sm text-red-700" role="alert">
                   {errors.name}
                 </p>
               ) : null}
@@ -632,7 +632,7 @@ export default function ContactEnquiryForm({
                 htmlFor="contact-email"
                 className="text-sm font-medium text-studio-text"
               >
-                Email address <span className="text-red-400">*</span>
+                Email address <span className="text-red-700">*</span>
               </label>
               <input
                 id="contact-email"
@@ -663,7 +663,7 @@ export default function ContactEnquiryForm({
                 aria-describedby={errors.email ? "error-email" : "email-helper"}
               />
               {errors.email ? (
-                <p id="error-email" className="mt-1 text-sm text-red-400" role="alert">
+                <p id="error-email" className="mt-1 text-sm text-red-700" role="alert">
                   {errors.email}
                 </p>
               ) : (
@@ -718,7 +718,7 @@ export default function ContactEnquiryForm({
               aria-describedby={errors.phone ? "error-phone" : "phone-helper"}
             />
             {errors.phone ? (
-              <p id="error-phone" className="mt-1 text-sm text-red-400" role="alert">
+              <p id="error-phone" className="mt-1 text-sm text-red-700" role="alert">
                 {errors.phone}
               </p>
             ) : (
@@ -729,14 +729,14 @@ export default function ContactEnquiryForm({
           </div>
         </section>
 
-        <section className="space-y-4 rounded-xl border border-studio-border/60 bg-studio-base/20 p-4 md:p-5">
+        <section className="space-y-4 border-t border-studio-border pt-6 md:pt-8">
           <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-studio-dim">
             2. What do you need?
           </h3>
 
           <fieldset>
             <legend id="contact-services" className="text-sm font-medium text-studio-text">
-              Select one or more services <span className="text-red-400">*</span>
+              Select one or more services <span className="text-red-700">*</span>
             </legend>
             <div className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
               {SERVICE_OPTIONS.map((option) => {
@@ -746,8 +746,8 @@ export default function ContactEnquiryForm({
                     key={option.value}
                     className={`group flex min-h-14 cursor-pointer items-center justify-start gap-3 rounded-xl border px-3 py-2.5 transition ${
                       selected
-                        ? "border-white/70 bg-white/10"
-                        : "border-studio-border/70 bg-studio-base/20 hover:border-white/40"
+                        ? "border-[#8a6c3b] bg-[#f2eadb]"
+                        : "border-[#8a8378] bg-studio-surface-raised hover:border-[#765d34]"
                     }`}
                   >
                     <span className="flex items-center gap-3">
@@ -757,7 +757,7 @@ export default function ContactEnquiryForm({
                         checked={selected}
                         onChange={() => toggleService(option.value)}
                         disabled={isSubmitting}
-                        className="h-4 w-4 rounded border border-studio-border bg-studio-base/35 accent-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base"
+                        className="h-4 w-4 rounded border border-[#8a8378] bg-studio-surface-raised accent-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-studio-surface"
                         aria-invalid={!!errors.services}
                         aria-describedby={errors.services ? "error-services" : undefined}
                       />
@@ -768,7 +768,7 @@ export default function ContactEnquiryForm({
               })}
             </div>
             {errors.services ? (
-              <p id="error-services" className="mt-2 text-sm text-red-400" role="alert">
+              <p id="error-services" className="mt-2 text-sm text-red-700" role="alert">
                 {errors.services}
               </p>
             ) : null}
@@ -781,7 +781,7 @@ export default function ContactEnquiryForm({
                 className="text-sm font-medium text-studio-text"
               >
                 Is there an existing website or digital setup?{" "}
-                <span className="text-red-400">*</span>
+                <span className="text-red-700">*</span>
               </label>
               <select
                 id="contact-setup"
@@ -804,7 +804,7 @@ export default function ContactEnquiryForm({
                 ))}
               </select>
               {errors.setup ? (
-                <p id="error-setup" className="mt-1 text-sm text-red-400" role="alert">
+                <p id="error-setup" className="mt-1 text-sm text-red-700" role="alert">
                   {errors.setup}
                 </p>
               ) : null}
@@ -812,7 +812,7 @@ export default function ContactEnquiryForm({
           ) : null}
         </section>
 
-        <section className="space-y-4 rounded-xl border border-studio-border/60 bg-studio-base/20 p-4 md:p-5">
+        <section className="space-y-4 border-t border-studio-border pt-6 md:pt-8">
           <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-studio-dim">
             3. Project details
           </h3>
@@ -822,7 +822,7 @@ export default function ContactEnquiryForm({
               htmlFor="contact-message"
               className="text-sm font-medium text-studio-text"
             >
-              {detailsCopy.label} <span className="text-red-400">*</span>
+              {detailsCopy.label} <span className="text-red-700">*</span>
             </label>
             {detailsCopy.helperText ? (
               <p className="mt-1 text-xs text-studio-dim">{detailsCopy.helperText}</p>
@@ -841,14 +841,14 @@ export default function ContactEnquiryForm({
               aria-describedby={errors.message ? "error-message" : undefined}
             />
             {errors.message ? (
-              <p id="error-message" className="mt-1 text-sm text-red-400" role="alert">
+              <p id="error-message" className="mt-1 text-sm text-red-700" role="alert">
                 {errors.message}
               </p>
             ) : null}
           </div>
         </section>
 
-        <section className="space-y-4 rounded-xl border border-studio-border/60 bg-studio-base/20 p-4 md:p-5">
+        <section className="space-y-4 border-t border-studio-border pt-6 md:pt-8">
           <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-studio-dim">
             4. Contact and timing
           </h3>
@@ -868,8 +868,8 @@ export default function ContactEnquiryForm({
                     key={option.value}
                     className={`flex min-h-14 cursor-pointer items-center justify-start gap-3 rounded-xl border px-3 py-2.5 transition ${
                       selected
-                        ? "border-white/70 bg-white/10 text-studio-text"
-                        : "border-studio-border/70 bg-studio-base/20 text-studio-muted hover:border-white/40"
+                        ? "border-[#8a6c3b] bg-[#f2eadb] text-studio-text"
+                        : "border-[#8a8378] bg-studio-surface-raised text-studio-muted hover:border-[#765d34]"
                     }`}
                   >
                     <span className="flex items-center gap-3">
@@ -887,7 +887,7 @@ export default function ContactEnquiryForm({
                           }
                         }}
                         disabled={isSubmitting}
-                        className="h-4 w-4 rounded-full border border-studio-border bg-studio-base/35 accent-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base"
+                        className="h-4 w-4 rounded-full border border-[#8a8378] bg-studio-surface-raised accent-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-studio-surface"
                       />
                       <span className="text-sm">{option.label}</span>
                     </span>
@@ -898,7 +898,7 @@ export default function ContactEnquiryForm({
             {errors.contactMethod ? (
               <p
                 id="error-contactMethod"
-                className="mt-1 text-sm text-red-400"
+                className="mt-1 text-sm text-red-700"
                 role="alert"
               >
                 {errors.contactMethod}
@@ -939,7 +939,7 @@ export default function ContactEnquiryForm({
               ))}
             </select>
             {errors.timing ? (
-              <p id="error-timing" className="mt-1 text-sm text-red-400" role="alert">
+              <p id="error-timing" className="mt-1 text-sm text-red-700" role="alert">
                 {errors.timing}
               </p>
             ) : null}
@@ -970,7 +970,7 @@ export default function ContactEnquiryForm({
               {errors.requiredDate ? (
                 <p
                   id="error-requiredDate"
-                  className="mt-1 text-sm text-red-400"
+                  className="mt-1 text-sm text-red-700"
                   role="alert"
                 >
                   {errors.requiredDate}
@@ -984,12 +984,12 @@ export default function ContactEnquiryForm({
           ) : null}
         </section>
 
-        <section className="space-y-4 rounded-xl border border-studio-border/60 bg-studio-base/20 p-4 md:p-5">
+        <section className="space-y-4 border-t border-studio-border pt-6 md:pt-8">
           <h3 className="text-sm font-semibold uppercase tracking-[0.14em] text-studio-dim">
             5. Consent and submit
           </h3>
 
-          <div className="flex items-start gap-3 rounded-xl border border-studio-border/50 bg-studio-base/20 px-3 py-3">
+          <div className="flex items-start gap-3 rounded-xl border border-[#8a8378] bg-studio-surface-raised px-3 py-3">
             <input
               id="contact-consent"
               type="checkbox"
@@ -1000,7 +1000,7 @@ export default function ContactEnquiryForm({
                 clearError("consent");
               }}
               disabled={isSubmitting}
-              className="mt-1 h-4 w-4 cursor-pointer rounded border border-studio-border bg-studio-base/35 accent-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base disabled:cursor-not-allowed disabled:opacity-50"
+              className="mt-1 h-4 w-4 cursor-pointer rounded border border-[#8a8378] bg-studio-surface-raised accent-[#111111] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-studio-surface disabled:cursor-not-allowed disabled:opacity-50"
               aria-invalid={!!errors.consent}
               aria-describedby={errors.consent ? "error-consent" : undefined}
             />
@@ -1009,11 +1009,11 @@ export default function ContactEnquiryForm({
               className="cursor-pointer text-sm leading-relaxed text-studio-muted"
             >
               I consent to Blackburn Studio using these details to respond to my
-              enquiry. <span className="text-red-400">*</span>
+              enquiry. <span className="text-red-700">*</span>
             </label>
           </div>
           {errors.consent ? (
-            <p id="error-consent" className="text-sm text-red-400" role="alert">
+            <p id="error-consent" className="text-sm text-red-700" role="alert">
               {errors.consent}
             </p>
           ) : null}
@@ -1022,7 +1022,7 @@ export default function ContactEnquiryForm({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="inline-flex min-h-11 items-center justify-center rounded-xl border border-studio-border bg-white px-5 py-2.5 text-sm font-medium text-studio-base transition hover:bg-white/95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base disabled:cursor-not-allowed disabled:opacity-60"
+              className="inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-[#111111] bg-[#111111] px-5 py-2.5 text-sm font-semibold text-[#f4f1eb] transition hover:bg-[#2a2722] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-2 focus-visible:ring-offset-studio-surface disabled:cursor-not-allowed disabled:border-studio-border disabled:bg-studio-surface-soft disabled:text-studio-dim sm:w-auto"
             >
               {isSubmitting ? "Sending…" : "Send enquiry"}
             </button>

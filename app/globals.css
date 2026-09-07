@@ -13,7 +13,8 @@
   --studio-border: rgba(237, 231, 220, 0.15);
 }
 
-.tools-light-theme {
+.tools-light-theme,
+.editorial-light-theme {
   --studio-base: #f4f1eb;
   --studio-surface: #fbfaf7;
   --studio-surface-soft: #eee9e0;
@@ -24,7 +25,8 @@
   --studio-border: rgba(17, 17, 17, 0.16);
 }
 
-.tools-dark-workspace {
+.tools-dark-workspace,
+.editorial-dark-section {
   --studio-base: #0d0c0a;
   --studio-surface: #13110f;
   --studio-surface-soft: #191712;
