@@ -66,9 +66,10 @@ export function sendPublicPageView(
 
   const pagePath = searchParams ? `${pathname}?${searchParams}` : pathname;
   const pageLocation = new URL(pagePath, window.location.origin).toString();
+  const pageTitle = document.title.trim() || SITE_NAME;
 
   window.gtag?.("event", "page_view", {
-    page_title: SITE_NAME,
+    page_title: pageTitle,
     page_location: pageLocation,
     page_path: pagePath,
   });
