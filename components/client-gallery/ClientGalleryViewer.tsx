@@ -37,8 +37,9 @@ export function ClientGalleryViewer({
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const total = assets.length;
   const gestureTotal = Math.max(total, 1);
+  const normalizedIndex = Number.isFinite(index) ? index : 0;
   const safeIndex =
-    total > 0 ? ((index % total) + total) % total : 0;
+    total > 0 ? ((normalizedIndex % total) + total) % total : 0;
 
   useScrollLock(total > 0);
 
@@ -80,6 +81,12 @@ export function ClientGalleryViewer({
   }, [returnFocusRef, total]);
 
   if (total === 0) {
+    return null;
+  }
+
+  const currentAsset = assets[safeIndex];
+
+  if (!currentAsset) {
     return null;
   }
 
@@ -126,10 +133,12 @@ export function ClientGalleryViewer({
 
   const slides = [
     { asset: assets[prevIndex], offset: -1 },
-    { asset: assets[safeIndex], offset: 0 },
+    { asset: currentAsset, offset: 0 },
     { asset: assets[nextIndex], offset: 1 },
-  ];
-  const currentAsset = assets[safeIndex];
+  ].filter(
+    (slide): slide is { asset: ClientGalleryAsset; offset: -1 | 0 | 1 } =>
+      Boolean(slide.asset),
+  );
   const closeProgress = Math.min(Math.abs(dragY) / 220, 1);
 
   return (

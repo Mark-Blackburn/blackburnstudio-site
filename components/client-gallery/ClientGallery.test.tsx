@@ -148,6 +148,24 @@ describe("ClientGallery", () => {
     ).toBeInTheDocument();
   });
 
+  it("falls back to the first asset when the provided index is not finite", () => {
+    render(
+      <ClientGalleryViewer
+        assets={gallery.assets}
+        index={Number.NaN}
+        onIndexChange={vi.fn()}
+        onClose={vi.fn()}
+        returnFocusRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText(`1 of ${gallery.assets.length}`)).toBeInTheDocument();
+    expect(
+      screen.getByAltText(gallery.assets[0].altText),
+    ).toBeInTheDocument();
+  });
+
   it("opens the viewer and moves focus to its close control", async () => {
     render(<ClientGallery gallery={gallery} />);
 
