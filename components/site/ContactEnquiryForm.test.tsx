@@ -146,7 +146,7 @@ describe("ContactEnquiryForm error summary focus targets", () => {
     });
   });
 
-  it("does not attempt lead tracking when analytics is not configured", async () => {
+  it("delegates lead tracking to the analytics boundary when analytics is not configured", async () => {
     const user = userEvent.setup();
     vi.stubEnv("NEXT_PUBLIC_GA_MEASUREMENT_ID", "");
     render(<ContactEnquiryForm />);

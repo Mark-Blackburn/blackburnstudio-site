@@ -36,8 +36,11 @@ export function ClientGalleryViewer({
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const viewportRef = useRef<HTMLDivElement | null>(null);
   const total = assets.length;
+  const gestureTotal = Math.max(total, 1);
+  const safeIndex =
+    total > 0 ? ((index % total) + total) % total : 0;
 
-  useScrollLock(true);
+  useScrollLock(total > 0);
 
   const {
     dragX,
@@ -51,13 +54,15 @@ export function ClientGalleryViewer({
     touchHandlers,
   } = useLightboxGestures({
     viewportRef,
-    index,
-    total,
+    index: safeIndex,
+    total: gestureTotal,
     setIndex: onIndexChange,
     onClose,
   });
 
   useEffect(() => {
+    if (total === 0) return;
+
     const returnFocusTo = returnFocusRef.current;
     closeButtonRef.current?.focus();
 
@@ -72,7 +77,11 @@ export function ClientGalleryViewer({
       document.removeEventListener("focusin", containFocus);
       returnFocusTo?.focus();
     };
-  }, [returnFocusRef]);
+  }, [returnFocusRef, total]);
+
+  if (total === 0) {
+    return null;
+  }
 
   const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Escape") {
@@ -117,10 +126,10 @@ export function ClientGalleryViewer({
 
   const slides = [
     { asset: assets[prevIndex], offset: -1 },
-    { asset: assets[index], offset: 0 },
+    { asset: assets[safeIndex], offset: 0 },
     { asset: assets[nextIndex], offset: 1 },
   ];
-  const currentAsset = assets[index];
+  const currentAsset = assets[safeIndex];
   const closeProgress = Math.min(Math.abs(dragY) / 220, 1);
 
   return (
@@ -143,7 +152,7 @@ export function ClientGalleryViewer({
 
       <div className="relative z-20 flex min-h-16 items-center justify-between gap-4 border-b border-white/10 px-4 md:px-6">
         <p aria-live="polite" className="text-xs text-white/60">
-          {index + 1} of {total}
+          {safeIndex + 1} of {total}
         </p>
         <div className="flex items-center gap-2">
           {renderActions ? renderActions(currentAsset) : null}

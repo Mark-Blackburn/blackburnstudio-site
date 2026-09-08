@@ -9,6 +9,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ClientGallery } from "@/components/client-gallery/ClientGallery";
 import { ClientGalleryGrid } from "@/components/client-gallery/ClientGalleryGrid";
+import { ClientGalleryViewer } from "@/components/client-gallery/ClientGalleryViewer";
 import {
   getSampleClientGallery,
   SAMPLE_CLIENT_GALLERY_ID,
@@ -84,6 +85,67 @@ describe("ClientGallery", () => {
     expect(screen.getByText("Private client gallery")).toBeInTheDocument();
     expect(screen.queryByText(/Private gallery for/)).not.toBeInTheDocument();
     expect(screen.queryByText(/undefined/i)).not.toBeInTheDocument();
+  });
+
+  it("renders nothing for an empty asset collection and does not invoke renderActions", () => {
+    const renderActions = vi.fn();
+
+    render(
+      <ClientGalleryViewer
+        assets={[]}
+        index={0}
+        onIndexChange={vi.fn()}
+        onClose={vi.fn()}
+        returnFocusRef={{ current: null }}
+        renderActions={renderActions}
+      />,
+    );
+
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(renderActions).not.toHaveBeenCalled();
+  });
+
+  it("normalizes an index greater than the asset count", () => {
+    const renderActions = vi.fn();
+
+    render(
+      <ClientGalleryViewer
+        assets={gallery.assets}
+        index={gallery.assets.length + 7}
+        onIndexChange={vi.fn()}
+        onClose={vi.fn()}
+        returnFocusRef={{ current: null }}
+        renderActions={renderActions}
+      />,
+    );
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByText(`8 of ${gallery.assets.length}`)).toBeInTheDocument();
+    expect(
+      screen.getByAltText(gallery.assets[7].altText),
+    ).toBeInTheDocument();
+    expect(renderActions).toHaveBeenCalledOnce();
+    expect(renderActions).toHaveBeenCalledWith(gallery.assets[7]);
+  });
+
+  it("normalizes a negative index", () => {
+    render(
+      <ClientGalleryViewer
+        assets={gallery.assets}
+        index={-1}
+        onIndexChange={vi.fn()}
+        onClose={vi.fn()}
+        returnFocusRef={{ current: null }}
+      />,
+    );
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(
+      screen.getByText(`10 of ${gallery.assets.length}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByAltText(gallery.assets[gallery.assets.length - 1].altText),
+    ).toBeInTheDocument();
   });
 
   it("opens the viewer and moves focus to its close control", async () => {
