@@ -63,6 +63,29 @@ describe("ClientGallery", () => {
     );
   });
 
+  it("shows the client display name when present", () => {
+    render(<ClientGallery gallery={gallery} />);
+
+    expect(
+      screen.getByText(`Private gallery for ${gallery.clientDisplayName}`),
+    ).toBeInTheDocument();
+  });
+
+  it("falls back to the generic private gallery copy when the client display name is missing", () => {
+    render(
+      <ClientGallery
+        gallery={{
+          ...gallery,
+          clientDisplayName: "   ",
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Private client gallery")).toBeInTheDocument();
+    expect(screen.queryByText(/Private gallery for/)).not.toBeInTheDocument();
+    expect(screen.queryByText(/undefined/i)).not.toBeInTheDocument();
+  });
+
   it("opens the viewer and moves focus to its close control", async () => {
     render(<ClientGallery gallery={gallery} />);
 

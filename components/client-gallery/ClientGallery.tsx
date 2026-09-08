@@ -17,6 +17,7 @@ function formatExpiry(expiresAt: string) {
 export function ClientGallery({ gallery }: { gallery: ClientGalleryData }) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
   const openerRef = useRef<HTMLButtonElement | null>(null);
+  const clientDisplayName = gallery.clientDisplayName?.trim();
 
   const open = useCallback((index: number, opener: HTMLButtonElement) => {
     openerRef.current = opener;
@@ -40,7 +41,9 @@ export function ClientGallery({ gallery }: { gallery: ClientGalleryData }) {
       <main className="mx-auto w-full max-w-7xl px-5 pb-24 pt-12 sm:px-6 md:px-8 md:pb-32 md:pt-20">
         <section aria-labelledby="client-gallery-heading">
           <p className="text-[0.7rem] font-medium uppercase tracking-[0.22em] text-[#b9955a]">
-            Private gallery for {gallery.clientDisplayName}
+            {clientDisplayName
+              ? `Private gallery for ${clientDisplayName}`
+              : "Private client gallery"}
           </p>
           <h1
             id="client-gallery-heading"

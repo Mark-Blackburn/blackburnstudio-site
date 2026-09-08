@@ -158,7 +158,10 @@ describe("ContactEnquiryForm error summary focus targets", () => {
       expect(screen.getByRole("region", { name: "Enquiry submission success" })).toBeInTheDocument();
     });
 
-    expect(sendPublicAnalyticsEventMock).not.toHaveBeenCalled();
+    expect(sendPublicAnalyticsEventMock).toHaveBeenCalledOnce();
+    expect(sendPublicAnalyticsEventMock).toHaveBeenCalledWith("generate_lead", {
+      form_name: "project_enquiry",
+    });
   });
 
   it("does not track a lead when the server rejects the enquiry", async () => {

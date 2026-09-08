@@ -445,11 +445,9 @@ export default function ContactEnquiryForm({
       });
 
       if (result.success) {
-        if (process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID) {
-          sendPublicAnalyticsEvent("generate_lead", {
-            form_name: "project_enquiry",
-          });
-        }
+        sendPublicAnalyticsEvent("generate_lead", {
+          form_name: "project_enquiry",
+        });
 
         setSubmissionState("success");
         setName("");
