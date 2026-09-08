@@ -9,10 +9,10 @@ vi.mock("@/lib/actions/submitContactForm", () => ({
   submitContactForm: vi.fn(),
 }));
 
-const sendGAEventMock = vi.hoisted(() => vi.fn());
+const sendPublicAnalyticsEventMock = vi.hoisted(() => vi.fn());
 
-vi.mock("@next/third-parties/google", () => ({
-  sendGAEvent: sendGAEventMock,
+vi.mock("@/lib/analytics", () => ({
+  sendPublicAnalyticsEvent: sendPublicAnalyticsEventMock,
 }));
 
 const submitContactFormMock = vi.mocked(submitContactForm);
@@ -36,7 +36,7 @@ describe("ContactEnquiryForm error summary focus targets", () => {
   beforeEach(() => {
     submitContactFormMock.mockReset();
     submitContactFormMock.mockResolvedValue({ success: true, message: "ok" });
-    sendGAEventMock.mockReset();
+    sendPublicAnalyticsEventMock.mockReset();
     vi.stubEnv("NEXT_PUBLIC_GA_MEASUREMENT_ID", "G-TEST123");
   });
 
@@ -140,8 +140,8 @@ describe("ContactEnquiryForm error summary focus targets", () => {
       expect(screen.getByRole("region", { name: "Enquiry submission success" })).toBeInTheDocument();
     });
 
-    expect(sendGAEventMock).toHaveBeenCalledOnce();
-    expect(sendGAEventMock).toHaveBeenCalledWith("event", "generate_lead", {
+    expect(sendPublicAnalyticsEventMock).toHaveBeenCalledOnce();
+    expect(sendPublicAnalyticsEventMock).toHaveBeenCalledWith("generate_lead", {
       form_name: "project_enquiry",
     });
   });
@@ -158,7 +158,7 @@ describe("ContactEnquiryForm error summary focus targets", () => {
       expect(screen.getByRole("region", { name: "Enquiry submission success" })).toBeInTheDocument();
     });
 
-    expect(sendGAEventMock).not.toHaveBeenCalled();
+    expect(sendPublicAnalyticsEventMock).not.toHaveBeenCalled();
   });
 
   it("does not track a lead when the server rejects the enquiry", async () => {
@@ -176,7 +176,7 @@ describe("ContactEnquiryForm error summary focus targets", () => {
       expect(screen.getByText("The enquiry could not be sent.")).toBeInTheDocument();
     });
 
-    expect(sendGAEventMock).not.toHaveBeenCalled();
+    expect(sendPublicAnalyticsEventMock).not.toHaveBeenCalled();
   });
 
   it("does not track a lead when client validation fails", async () => {
@@ -185,6 +185,6 @@ describe("ContactEnquiryForm error summary focus targets", () => {
 
     await user.click(screen.getByRole("button", { name: "Send enquiry" }));
 
-    expect(sendGAEventMock).not.toHaveBeenCalled();
+    expect(sendPublicAnalyticsEventMock).not.toHaveBeenCalled();
   });
 });

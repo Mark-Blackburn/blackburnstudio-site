@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Suspense } from "react";
 
 import SiteAnalytics from "@/components/site/SiteAnalytics";
+import SiteStructuredData from "@/components/site/SiteStructuredData";
 import {
   DEFAULT_DESCRIPTION,
   DEFAULT_TITLE,
-  SITE_EMAIL,
   SITE_NAME,
   SITE_URL,
 } from "@/lib/siteConfig";
@@ -42,41 +43,6 @@ export const metadata: Metadata = {
   manifest: "/site.webmanifest",
 };
 
-const structuredData = {
-  "@context": "https://schema.org",
-  "@graph": [
-    {
-      "@type": "WebSite",
-      "@id": `${SITE_URL}/#website`,
-      url: `${SITE_URL}/`,
-      name: SITE_NAME,
-      description: DEFAULT_DESCRIPTION,
-      inLanguage: "en-AU",
-      publisher: {
-        "@id": `${SITE_URL}/#business`,
-      },
-    },
-    {
-      "@type": "ProfessionalService",
-      "@id": `${SITE_URL}/#business`,
-      name: SITE_NAME,
-      url: `${SITE_URL}/`,
-      email: SITE_EMAIL,
-      description: DEFAULT_DESCRIPTION,
-      areaServed: [
-        {
-          "@type": "City",
-          name: "Gisborne",
-        },
-        {
-          "@type": "AdministrativeArea",
-          name: "Victoria",
-        },
-      ],
-    },
-  ],
-};
-
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -88,14 +54,11 @@ export default function RootLayout({
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{
-            __html: JSON.stringify(structuredData).replace(/</g, "\\u003c"),
-          }}
-        />
+        <SiteStructuredData />
         {children}
-        <SiteAnalytics />
+        <Suspense fallback={null}>
+          <SiteAnalytics />
+        </Suspense>
       </body>
     </html>
   );

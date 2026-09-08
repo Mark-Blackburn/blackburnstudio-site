@@ -69,7 +69,9 @@ Create a local `.env.local` file when needed. The site reads these public values
 - `NEXT_PUBLIC_DOMAIN_MANAGEMENT_URL` - Blackburn Studio domain-management URL. Leave blank if the link should not be shown.
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` - optional GA4 Measurement ID. Analytics is omitted when this is blank.
 
-Deployments that require GA4 should set `NEXT_PUBLIC_GA_MEASUREMENT_ID` to the GA4 Measurement ID for that deployment or property, in the form `G-XXXXXXXXXX`. Because this is a `NEXT_PUBLIC_` variable, it must be available to the production build. When it is blank or unset, analytics is omitted. GA4 records initial page loads through the Google tag and client-side App Router navigation through browser-history enhanced measurement. Keep the GA4 property's **Page changes based on browser history events** setting enabled; do not add manual page-view events unless automatic measurement is disabled.
+Deployments that require GA4 should set `NEXT_PUBLIC_GA_MEASUREMENT_ID` to the GA4 Measurement ID for that deployment or property, in the form `G-XXXXXXXXXX`. Because this is a `NEXT_PUBLIC_` variable, it must be available to the production build. When it is blank or unset, analytics is omitted. The application disables the Google tag's automatic page view and emits one manual `page_view` for each public App Router location. Client and admin routes neither initialize analytics on a cold load nor emit page views or custom events; an already-loaded Google tag is disabled for the configured property while those routes are active.
+
+The GA4 web data stream must also be configured manually in **Admin → Data streams → Web → Enhanced measurement → Page views → Show advanced settings** with **Page changes based on browser history events** set to **OFF**. Repository code cannot change this property setting. Leaving it enabled would allow Enhanced Measurement to duplicate application-owned public page views and observe browser-history transitions independently of the private-route guard.
 
 ## Learn More
 
