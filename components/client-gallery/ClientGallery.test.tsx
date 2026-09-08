@@ -166,6 +166,32 @@ describe("ClientGallery", () => {
     ).toBeInTheDocument();
   });
 
+  it("keeps a single-asset viewer open and stationary for ArrowLeft and ArrowRight", () => {
+    const onIndexChange = vi.fn();
+    const oneAsset = [gallery.assets[0]];
+
+    render(
+      <ClientGalleryViewer
+        assets={oneAsset}
+        index={0}
+        onIndexChange={onIndexChange}
+        onClose={vi.fn()}
+        returnFocusRef={{ current: null }}
+      />,
+    );
+
+    const dialog = screen.getByRole("dialog");
+    const image = screen.getByAltText(oneAsset[0].altText);
+
+    fireEvent.keyDown(dialog, { key: "ArrowLeft" });
+    fireEvent.keyDown(dialog, { key: "ArrowRight" });
+
+    expect(dialog).toBeInTheDocument();
+    expect(image).toBeInTheDocument();
+    expect(screen.getByText("1 of 1")).toBeInTheDocument();
+    expect(onIndexChange).not.toHaveBeenCalled();
+  });
+
   it("opens the viewer and moves focus to its close control", async () => {
     render(<ClientGallery gallery={gallery} />);
 

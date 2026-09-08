@@ -99,13 +99,17 @@ export function ClientGalleryViewer({
 
     if (event.key === "ArrowLeft") {
       event.preventDefault();
-      goPrev();
+      if (total > 1) {
+        goPrev();
+      }
       return;
     }
 
     if (event.key === "ArrowRight") {
       event.preventDefault();
-      goNext();
+      if (total > 1) {
+        goNext();
+      }
       return;
     }
 
