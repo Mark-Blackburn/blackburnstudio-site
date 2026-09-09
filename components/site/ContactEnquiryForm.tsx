@@ -1,9 +1,9 @@
 "use client";
 
-import { sendGAEvent } from "@next/third-parties/google";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { submitContactForm } from "@/lib/actions/submitContactForm";
+import { sendPublicAnalyticsEvent } from "@/lib/analytics";
 import {
   getSetupState,
   isValidAustralianPhone,
@@ -445,11 +445,9 @@ export default function ContactEnquiryForm({
       });
 
       if (result.success) {
-        if (process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID) {
-          sendGAEvent("event", "generate_lead", {
-            form_name: "project_enquiry",
-          });
-        }
+        sendPublicAnalyticsEvent("generate_lead", {
+          form_name: "project_enquiry",
+        });
 
         setSubmissionState("success");
         setName("");

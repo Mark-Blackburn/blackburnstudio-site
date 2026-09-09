@@ -260,9 +260,10 @@ Defined custom tokens in [app/globals.css](../../app/globals.css):
 
 ## Analytics and telemetry
 
-- GA4 is loaded once from the root layout through `@next/third-parties/google` when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is configured.
-- Initial page loads use the Google tag's standard page view. Client-side route changes rely on GA4 enhanced measurement for browser-history events; no manual page-view event is sent.
-- A privacy-safe `generate_lead` event is sent only after the enquiry server action confirms success. Its only custom property is the fixed `form_name` value `project_enquiry`.
+- GA4 is initialized from the root layout through a controlled `next/script` boundary when `NEXT_PUBLIC_GA_MEASUREMENT_ID` is configured and the current route is public. Automatic page views are disabled during tag configuration.
+- The application owns App Router page-view tracking and emits one manual `page_view` for each public location. Private `/clients/*` and `/admin/*` cold loads do not load GA; transitions to those routes disable the configured property and emit no page views or custom events.
+- A centralized privacy guard sends the `generate_lead` event only on public routes and only after the enquiry server action confirms success. Its only custom property is the fixed `form_name` value `project_enquiry`.
+- The GA4 web data stream's **Enhanced measurement → Page views → Page changes based on browser history events** setting must be **OFF**. This is a manual GA4 property setting and cannot be configured by repository code.
 - No consent manager or cookie banner is implemented in the application.
 
 ## Tests
