@@ -163,7 +163,10 @@ export function ClientGalleryViewer({
         Full-screen gallery viewer
       </h2>
 
-      <div className="relative z-20 flex min-h-16 items-center justify-between gap-4 border-b border-white/10 px-4 md:px-6">
+      <div
+        className="relative z-20 flex min-h-16 items-center justify-between gap-4 border-b border-white/10 px-4 md:px-6"
+        onClick={(event) => event.stopPropagation()}
+      >
         <p aria-live="polite" className="text-xs text-white/60">
           {safeIndex + 1} of {total}
         </p>

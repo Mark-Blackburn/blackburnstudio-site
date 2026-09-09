@@ -192,6 +192,31 @@ describe("ClientGallery", () => {
     expect(onIndexChange).not.toHaveBeenCalled();
   });
 
+  it("keeps header clicks from closing the viewer while preserving backdrop and close button behavior", () => {
+    const onClose = vi.fn();
+
+    render(
+      <ClientGalleryViewer
+        assets={gallery.assets.slice(0, 2)}
+        index={0}
+        onIndexChange={vi.fn()}
+        onClose={onClose}
+        returnFocusRef={{ current: null }}
+      />,
+    );
+
+    const dialog = screen.getByRole("dialog");
+
+    fireEvent.click(screen.getByText("1 of 2"));
+    expect(onClose).not.toHaveBeenCalled();
+
+    fireEvent.click(dialog);
+    expect(onClose).toHaveBeenCalledTimes(1);
+
+    fireEvent.click(screen.getByRole("button", { name: "Close image viewer" }));
+    expect(onClose).toHaveBeenCalledTimes(2);
+  });
+
   it("opens the viewer and moves focus to its close control", async () => {
     render(<ClientGallery gallery={gallery} />);
 
