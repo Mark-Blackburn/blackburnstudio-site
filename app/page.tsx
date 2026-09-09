@@ -25,9 +25,9 @@ export default function Home() {
   return (
     <div className="bg-studio-base text-studio-muted">
       {/* Hero */}
-      <section className="relative h-[85vh] w-full overflow-hidden">
+      <section className="relative h-[82vh] w-full overflow-hidden md:h-[78vh]">
         <Image
-          src={`${baseUrl}/hero.jpg`}
+          src={`${baseUrl}/hero.webp`}
           alt="Blackburn Studio hero"
           fill
           priority
@@ -35,14 +35,14 @@ export default function Home() {
           className="absolute inset-0 h-full w-full object-cover object-[70%_center] md:object-center"
         />
         <div className="absolute inset-0 z-10 bg-linear-to-b from-black/70 via-black/40 to-black/80 md:from-black/60 md:via-black/30 md:to-black/70" />
-        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-24 bg-linear-to-t from-black via-black/40 to-transparent md:h-32" />
+        <div className="pointer-events-none absolute inset-0 z-20 hidden bg-[linear-gradient(90deg,rgba(0,0,0,0.72)_0%,rgba(0,0,0,0.62)_28%,rgba(0,0,0,0.30)_52%,rgba(0,0,0,0)_72%)] md:block" />
+        <div className="pointer-events-none absolute inset-x-0 bottom-0 z-20 h-32 bg-linear-to-t from-studio-base via-studio-base/40 to-transparent md:h-40 lg:h-44" />
 
         <SiteHeader overlay />
 
-        {/* `[@media(max-height:760px)]:` refinements target shorter mobile
-            heights only (iPhone SE / 12 Pro class). Larger phones, tablets,
-            and desktop are untouched. */}
-        <div className="relative z-30 mx-auto flex h-[calc(85vh-72px)] w-full max-w-6xl flex-col justify-end px-6 pb-16 [@media(max-height:760px)]:pb-8 md:px-8 md:pb-20">
+        {/* `[@media(max-height:760px)]:` refinements target shorter screens
+          where the bottom-anchored hero content can crowd the header. */}
+        <div className="relative z-30 mx-auto flex h-[calc(82vh-72px)] w-full max-w-6xl flex-col justify-end px-6 pb-16 [@media(max-height:760px)]:pb-8 md:h-[calc(78vh-72px)] md:px-8 md:pb-28 lg:pb-32 [@media(min-width:768px)_and_(max-height:768px)]:!pb-0">
           <h1 className="rise-in mt-24 max-w-[90%] text-4xl font-medium leading-[1.1] tracking-tight text-white sm:text-5xl [@media(max-height:760px)]:mt-10 [@media(max-height:760px)]:text-3xl [@media(max-height:760px)]:leading-[1.15] md:mt-0 md:max-w-xl md:text-6xl">
             Photography, websites and practical digital services.
           </h1>
@@ -77,7 +77,7 @@ export default function Home() {
       </section>
 
       <section id="work">
-        <section className="mx-auto max-w-6xl px-6 pt-16 pb-8 md:px-8 md:pt-20 md:pb-12">
+        <section className="mx-auto max-w-6xl px-6 pt-16 pb-8 md:px-8 md:pt-8 md:pb-12">
           <SectionEyebrow>Studio</SectionEyebrow>
           <h2 className="mt-4 max-w-[24ch] text-3xl font-medium leading-tight tracking-tight text-studio-text md:text-4xl">
             Photography and digital work from one studio.
