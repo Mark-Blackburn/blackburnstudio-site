@@ -1,4 +1,7 @@
+import { Suspense } from "react";
+
 import ContactEnquiryForm from "@/components/site/ContactEnquiryForm";
+import ContactEnquiryFormFromSearchParams from "@/components/site/ContactEnquiryFormFromSearchParams";
 import SiteFooter from "@/components/site/SiteFooter";
 import SiteHeader from "@/components/site/SiteHeader";
 import { SectionEyebrow } from "@/components/studio";
@@ -12,18 +15,7 @@ export const metadata = createPageMetadata({
   path: "/contact",
 });
 
-export default async function ContactPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ service?: string | string[] }>;
-}) {
-  const params = await searchParams;
-  const preselectedServices = Array.isArray(params.service)
-    ? params.service
-    : params.service
-      ? [params.service]
-      : [];
-
+export default function ContactPage() {
   return (
     <div className="flex min-h-screen flex-col bg-studio-base text-studio-muted">
       <SiteHeader />
@@ -45,7 +37,9 @@ export default async function ContactPage({
             support enquiries are welcome. Share a few details and I&apos;ll
             come back to you with the most useful next step.
           </p>
-          <ContactEnquiryForm initialServices={preselectedServices} />
+          <Suspense fallback={<ContactEnquiryForm />}>
+            <ContactEnquiryFormFromSearchParams />
+          </Suspense>
           <div className="mt-10 grid gap-6 border-t border-studio-border pt-8 md:grid-cols-2 md:gap-10">
             <p className="text-sm leading-relaxed text-studio-dim md:text-base">
               Prefer email? Contact{" "}
