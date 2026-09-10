@@ -1,7 +1,13 @@
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { Metadata } from "next";
-import { afterEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+
+const usePathnameMock = vi.hoisted(() => vi.fn());
+
+vi.mock("next/navigation", () => ({
+  usePathname: usePathnameMock,
+}));
 
 import { metadata } from "@/app/clients/layout";
 import ClientsPage from "@/app/clients/page";
@@ -14,51 +20,76 @@ import { SAMPLE_CLIENT_GALLERY_ID } from "@/lib/client-galleries/fixtures/sample
 import nextConfig from "@/next.config";
 
 describe("client gallery route", () => {
-  afterEach(() => {
-    window.history.replaceState({}, "", "/");
+  beforeEach(() => {
+    usePathnameMock.mockReset();
+    usePathnameMock.mockReturnValue("/clients");
   });
 
-  it("renders the known transitional fixture from the browser pathname", () => {
-    window.history.replaceState(
-      {},
-      "",
-      `/clients/${SAMPLE_CLIENT_GALLERY_ID}?preview=1#access=test-token`,
+  it("renders the known transitional fixture after mounting", async () => {
+    usePathnameMock.mockReturnValue(
+      `/clients/${SAMPLE_CLIENT_GALLERY_ID}`,
     );
 
     render(<ClientGalleryShell />);
 
     expect(
-      screen.getByRole("heading", { name: "Sample Photography Gallery" }),
+      await screen.findByRole("heading", {
+        name: "Sample Photography Gallery",
+      }),
     ).toBeInTheDocument();
-    expect(window.location.pathname).toBe(
-      `/clients/${SAMPLE_CLIENT_GALLERY_ID}`,
-    );
-    expect(window.location.search).toBe("?preview=1");
-    expect(window.location.hash).toBe("#access=test-token");
   });
 
-  it("fails closed with the same generic state for unknown IDs", () => {
-    window.history.replaceState({}, "", "/clients/g_unknown");
+  it("fails closed with the same generic state for unknown IDs", async () => {
+    usePathnameMock.mockReturnValue("/clients/g_unknown");
     const first = render(<ClientGalleryShell />);
     expect(
-      screen.getByRole("heading", { name: "This gallery is unavailable." }),
+      await screen.findByRole("heading", {
+        name: "This gallery is unavailable.",
+      }),
     ).toBeInTheDocument();
     const firstCopy = first.container.textContent;
     first.unmount();
 
-    window.history.replaceState({}, "", "/clients/g_expired_or_revoked");
+    usePathnameMock.mockReturnValue("/clients/g_expired_or_revoked");
     const second = render(<ClientGalleryShell />);
-    expect(second.container.textContent).toBe(firstCopy);
+    await waitFor(() => {
+      expect(second.container.textContent).toBe(firstCopy);
+    });
   });
 
-  it("renders the generic unavailable state at the shell route", () => {
-    window.history.replaceState({}, "", "/clients");
-
+  it("renders the generic unavailable state at the shell route", async () => {
     render(<ClientGalleryShell />);
 
     expect(
-      screen.getByRole("heading", { name: "This gallery is unavailable." }),
+      await screen.findByRole("heading", {
+        name: "This gallery is unavailable.",
+      }),
     ).toBeInTheDocument();
+  });
+
+  it("reacts to client-side pathname changes after mounting", async () => {
+    usePathnameMock.mockReturnValue(
+      `/clients/${SAMPLE_CLIENT_GALLERY_ID}`,
+    );
+    const view = render(<ClientGalleryShell />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "Sample Photography Gallery",
+      }),
+    ).toBeInTheDocument();
+
+    usePathnameMock.mockReturnValue("/clients/g_unknown");
+    view.rerender(<ClientGalleryShell />);
+
+    expect(
+      await screen.findByRole("heading", {
+        name: "This gallery is unavailable.",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Sample Photography Gallery" }),
+    ).not.toBeInTheDocument();
   });
 
   it.each([
@@ -98,6 +129,9 @@ describe("client gallery route", () => {
   });
 
   it("does not embed fixture data in the generated shell HTML", () => {
+    usePathnameMock.mockReturnValue(
+      `/clients/${SAMPLE_CLIENT_GALLERY_ID}`,
+    );
     const html = renderToStaticMarkup(<ClientsPage />);
 
     expect(html).toContain("Loading private gallery");

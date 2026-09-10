@@ -1,23 +1,11 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 import { ClientGallery } from "@/components/client-gallery/ClientGallery";
 import { ClientGalleryUnavailable } from "@/components/client-gallery/ClientGalleryUnavailable";
 import { getSampleClientGallery } from "@/lib/client-galleries/fixtures/sampleClientGallery";
-
-function subscribeToPathname(onStoreChange: () => void) {
-  window.addEventListener("popstate", onStoreChange);
-  return () => window.removeEventListener("popstate", onStoreChange);
-}
-
-function getBrowserPathname() {
-  return window.location.pathname;
-}
-
-function getServerPathname() {
-  return null;
-}
 
 export function getClientGalleryId(pathname: string): string | null {
   const match = /^\/clients\/([^/]+)\/?$/.exec(pathname);
@@ -41,13 +29,18 @@ export function getClientGalleryId(pathname: string): string | null {
 }
 
 export function ClientGalleryShell() {
-  const pathname = useSyncExternalStore(
-    subscribeToPathname,
-    getBrowserPathname,
-    getServerPathname,
-  );
+  const pathname = usePathname();
+  const [mounted, setMounted] = useState(false);
 
-  if (pathname === null) {
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => {
+      setMounted(true);
+    });
+
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
+  if (!mounted) {
     return <ClientGalleryLoading />;
   }
 
