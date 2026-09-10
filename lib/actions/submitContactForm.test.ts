@@ -13,6 +13,7 @@ vi.mock("resend", () => {
 });
 
 import { submitContactForm } from "@/lib/actions/submitContactForm";
+import { CONTACT_MAX_FIELD_LENGTH } from "@/lib/contact/contactSubmission";
 
 function buildFormData(overrides: Partial<Parameters<typeof submitContactForm>[0]> = {}) {
   const seed = Math.random().toString(36).slice(2);
@@ -104,6 +105,35 @@ describe("submitContactForm message limits", () => {
     expect(sendMock).not.toHaveBeenCalled();
   });
 
+  it.each([
+    "Mark\r\nInjected",
+    "Mark\nInjected",
+    "Mark\tInjected",
+    "Mark\u0000Injected",
+  ])("rejects control characters before they reach the email subject", async (name) => {
+    const result = await submitContactForm(buildFormData({ name }));
+
+    expect(result).toEqual({
+      success: false,
+      errors: [{ field: "name", message: "Please enter your name." }],
+    });
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized name instead of sending a truncated subject", async () => {
+    const result = await submitContactForm(
+      buildFormData({
+        name: "A".repeat(CONTACT_MAX_FIELD_LENGTH + 1),
+      }),
+    );
+
+    expect(result).toEqual({
+      success: false,
+      errors: [{ field: "name", message: "Please enter your name." }],
+    });
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
   it("accepts 9-digit autofill mobile and sends canonical phone", async () => {
     const result = await submitContactForm(
       buildFormData({
@@ -114,5 +144,23 @@ describe("submitContactForm message limits", () => {
     expect(result.success).toBe(true);
     expect(sendMock).toHaveBeenCalledTimes(1);
     expect(sendMock.mock.calls[0][0].text).toContain("Phone: +61424961192");
+  });
+
+  it("does not log the submitter email when rate limiting", async () => {
+    const email = `rate-limit-${Math.random().toString(36).slice(2)}@example.com`;
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    try {
+      for (let submission = 0; submission < 6; submission += 1) {
+        await submitContactForm(buildFormData({ email }));
+      }
+
+      expect(logSpy).toHaveBeenCalledWith(
+        "[contact-form] Rate limit exceeded",
+      );
+      expect(JSON.stringify(logSpy.mock.calls)).not.toContain(email);
+    } finally {
+      logSpy.mockRestore();
+    }
   });
 });

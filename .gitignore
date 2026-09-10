@@ -2,6 +2,10 @@
 
 # dependencies
 /node_modules
+/functions/node_modules
+/functions/dist
+/functions/coverage
+/functions/local.settings.json
 /.pnp
 .pnp.*
 .yarn/*
