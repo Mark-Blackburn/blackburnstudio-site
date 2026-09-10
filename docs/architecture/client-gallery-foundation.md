@@ -15,7 +15,11 @@ token/session fields, Blob paths, and signed URLs.
 
 ## Runtime boundary
 
-The application now exposes one static-compatible /clients shell. For requests whose browser URL is /clients/<opaque-gallery-id>, the shell renders a generic loading state through initial hydration, then reads the current pathname through Next.js usePathname() and parses the single opaque ID segment. It does not read the access-token fragment or call an API in this slice.
+The application now exposes one static-compatible `/clients` shell. For requests
+whose browser URL is `/clients/<opaque-gallery-id>`, the shell renders a generic
+loading state through initial hydration, then reads the current pathname through
+Next.js `usePathname()` and parses the single opaque ID segment. It does not read
+the access-token fragment or call an API in this slice.
 
 The existing labelled sample remains available through a transitional
 client-side fixture lookup so the gallery UI can be regression tested. It uses
