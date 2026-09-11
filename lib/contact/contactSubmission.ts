@@ -210,13 +210,14 @@ export function validateContactSubmission(
     errors.push({ field: "email", message: "Enter a valid email address." });
   }
 
+  const contactMethodClean = sanitizeContactInput(data.contactMethod);
   const phoneClean = sanitizeContactInput(data.phone);
   if (data.phone.length > CONTACT_MAX_FIELD_LENGTH) {
     errors.push({
       field: "phone",
       message: "Phone number is too long.",
     });
-  } else if (data.contactMethod === "phone" && !phoneClean) {
+  } else if (contactMethodClean === "phone" && !phoneClean) {
     errors.push({
       field: "phone",
       message: "Please provide a phone number if phone is preferred.",
@@ -267,7 +268,6 @@ export function validateContactSubmission(
     });
   }
 
-  const contactMethodClean = sanitizeContactInput(data.contactMethod);
   if (
     data.contactMethod.length > CONTACT_MAX_FIELD_LENGTH ||
     !contactMethodClean ||

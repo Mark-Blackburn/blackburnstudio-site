@@ -197,6 +197,41 @@ describe("validateContactSubmission", () => {
     });
   });
 
+  it.each(["phone", " phone "])(
+    "requires a phone for normalized contact method %j",
+    (contactMethod) => {
+      expect(
+        validateContactSubmission(
+          buildSubmission({ contactMethod, phone: "" }),
+        ),
+      ).toContainEqual({
+        field: "phone",
+        message: "Please provide a phone number if phone is preferred.",
+      });
+    },
+  );
+
+  it("accepts a normalized phone contact method with a valid phone", () => {
+    const submission = buildSubmission({
+      contactMethod: " phone ",
+      phone: "0412 345 678",
+    });
+
+    expect(validateContactSubmission(submission)).toEqual([]);
+    expect(prepareContactSubmission(submission).contactMethod).toBe("phone");
+  });
+
+  it.each(["email", "either"])(
+    "allows an empty phone for contact method %s",
+    (contactMethod) => {
+      expect(
+        validateContactSubmission(
+          buildSubmission({ contactMethod, phone: "" }),
+        ),
+      ).toEqual([]);
+    },
+  );
+
   it("preserves the existing fixed-date validation behavior", () => {
     expect(
       validateContactSubmission(

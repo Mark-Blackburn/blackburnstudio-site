@@ -15,6 +15,11 @@ vi.mock("resend", () => {
 import { submitContactForm } from "@/lib/actions/submitContactForm";
 import { CONTACT_MAX_FIELD_LENGTH } from "@/lib/contact/contactSubmission";
 
+const invalidRuntimeResult = {
+  success: false,
+  errors: [{ field: "form", message: "Form submission failed validation" }],
+};
+
 function buildFormData(overrides: Partial<Parameters<typeof submitContactForm>[0]> = {}) {
   const seed = Math.random().toString(36).slice(2);
   return {
@@ -31,6 +36,12 @@ function buildFormData(overrides: Partial<Parameters<typeof submitContactForm>[0
     honeypot: "",
     ...overrides,
   };
+}
+
+function submitRuntimeValue(value: unknown) {
+  return submitContactForm(
+    value as Parameters<typeof submitContactForm>[0],
+  );
 }
 
 describe("submitContactForm message limits", () => {
@@ -132,6 +143,40 @@ describe("submitContactForm message limits", () => {
       errors: [{ field: "name", message: "Please enter your name." }],
     });
     expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: 'consent: "false"', value: { consent: "false" } },
+    {
+      label: "a non-string service",
+      value: { services: ["photography", 42] },
+    },
+    { label: "an object name", value: { name: { nested: "name" } } },
+    { label: "null", value: null },
+    { label: "a primitive", value: "invalid submission" },
+  ])("fails closed for runtime input with $label", async ({ value }) => {
+    const result = await submitRuntimeValue(value);
+
+    expect(result).toEqual(invalidRuntimeResult);
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it("does not consume rate-limit capacity for malformed runtime input", async () => {
+    const email = `malformed-${Math.random().toString(36).slice(2)}@example.com`;
+
+    for (let submission = 0; submission < 6; submission += 1) {
+      const result = await submitRuntimeValue({
+        ...buildFormData({ email }),
+        consent: "false",
+      });
+
+      expect(result).toEqual(invalidRuntimeResult);
+    }
+
+    const validResult = await submitContactForm(buildFormData({ email }));
+
+    expect(validResult.success).toBe(true);
+    expect(sendMock).toHaveBeenCalledTimes(1);
   });
 
   it("accepts 9-digit autofill mobile and sends canonical phone", async () => {

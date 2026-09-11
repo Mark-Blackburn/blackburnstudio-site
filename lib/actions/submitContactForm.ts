@@ -4,6 +4,7 @@ import { Resend } from "resend";
 
 import { createContactEmailContent } from "@/lib/contact/contactEmail";
 import {
+  decodeContactSubmissionRequest,
   prepareContactSubmission,
   type ContactSubmissionRequest,
   type ContactSubmissionResult,
@@ -48,9 +49,19 @@ export async function submitContactForm(
   formData: ContactSubmissionRequest,
 ): Promise<ContactSubmissionResult> {
   try {
-    const validationErrors = validateContactSubmission(formData);
+    const decodedFormData = decodeContactSubmissionRequest(formData);
+    if (!decodedFormData) {
+      return {
+        success: false,
+        errors: [
+          { field: "form", message: "Form submission failed validation" },
+        ],
+      };
+    }
+
+    const validationErrors = validateContactSubmission(decodedFormData);
     if (validationErrors.length > 0) {
-      if (formData.honeypot.trim()) {
+      if (decodedFormData.honeypot.trim()) {
         console.log("[contact-form] Honeypot triggered");
       }
 
@@ -60,7 +71,7 @@ export async function submitContactForm(
       };
     }
 
-    const submission = prepareContactSubmission(formData);
+    const submission = prepareContactSubmission(decodedFormData);
     if (!checkRateLimit(submission.email.toLowerCase())) {
       console.log("[contact-form] Rate limit exceeded");
       return {
