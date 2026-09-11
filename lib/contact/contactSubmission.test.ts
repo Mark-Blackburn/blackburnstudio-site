@@ -364,6 +364,18 @@ describe("validateContactSubmission", () => {
       field: "requiredDate",
       message: "Enter a valid date.",
     });
+
+    expect(
+      validateContactSubmission(
+        buildSubmission({
+          timing: "fixed-date",
+          requiredDate: "2027-02-30",
+        }),
+      ),
+    ).toContainEqual({
+      field: "requiredDate",
+      message: "Enter a valid date.",
+    });
   });
 
   it("accepts a message exactly at the established limit", () => {

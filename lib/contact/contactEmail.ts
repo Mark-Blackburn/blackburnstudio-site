@@ -74,6 +74,7 @@ export function createContactEmailContent(
   const timingDisplay = data.timing
     ? TIMING_DISPLAY_NAMES[data.timing] || data.timing
     : "Not specified";
+  const emailHref = `mailto:${encodeURIComponent(data.email)}`;
 
   const text = `New Blackburn Studio Enquiry
 
@@ -124,7 +125,7 @@ Submitted: ${submissionTime}
 
     <div class="field">
       <div class="label">Email</div>
-      <div class="value"><a href="mailto:${escapeHtml(data.email)}">${escapeHtml(data.email)}</a></div>
+      <div class="value"><a href="${escapeHtml(emailHref)}">${escapeHtml(data.email)}</a></div>
     </div>
 
     <div class="field">

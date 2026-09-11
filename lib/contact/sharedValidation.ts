@@ -162,6 +162,9 @@ export function isValidRequiredDate(value: string): boolean {
     return false;
   }
 
-  const parsed = new Date(`${trimmed}T00:00:00`);
-  return !Number.isNaN(parsed.getTime());
+  const parsed = new Date(`${trimmed}T00:00:00.000Z`);
+  return (
+    !Number.isNaN(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 10) === trimmed
+  );
 }
