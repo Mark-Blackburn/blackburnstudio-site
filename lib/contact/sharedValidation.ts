@@ -51,7 +51,16 @@ export function getSetupState(selectedServices: string[]): {
 }
 
 export function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  const trimmed = value.trim();
+  if (!trimmed) {
+    return false;
+  }
+
+  if (/[\u0000-\u001F\u007F-\u009F]/.test(trimmed)) {
+    return false;
+  }
+
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed);
 }
 
 export type AustralianPhoneType = "mobile" | "landline";

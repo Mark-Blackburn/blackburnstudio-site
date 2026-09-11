@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isValidEmail,
   isValidRequiredDate,
   parseAustralianPhone,
 } from "@/lib/contact/sharedValidation";
@@ -57,6 +58,26 @@ describe("parseAustralianPhone", () => {
     "+1 555 123 4567",
   ])("rejects invalid number %s", (input) => {
     expect(parseAustralianPhone(input)).toEqual({ valid: false });
+  });
+});
+
+describe("isValidEmail", () => {
+  it.each([
+    "attacker\u0000@example.com",
+    "attacker\u0001@example.com",
+    "attacker\u001F@example.com",
+    "attacker\u007F@example.com",
+    "attacker\u009F@example.com",
+  ])("rejects control character email %s", (input) => {
+    expect(isValidEmail(input)).toBe(false);
+  });
+
+  it.each([
+    "test@example.com",
+    " test@example.com ",
+    "mark@example.co.uk",
+  ])("accepts normal email %s", (input) => {
+    expect(isValidEmail(input)).toBe(true);
   });
 });
 

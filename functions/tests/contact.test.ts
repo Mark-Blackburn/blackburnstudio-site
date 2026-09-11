@@ -329,6 +329,27 @@ describe("contact Function HTTP contract", () => {
     expect(JSON.stringify(harness.logs)).not.toContain(name);
   });
 
+  it("rejects an email containing a control character with a controlled validation response", async () => {
+    const harness = createHarness();
+    const response = await harness.handler(
+      createRequest(
+        JSON.stringify({
+          ...validSubmission,
+          email: "attacker\u0000@example.com",
+        }),
+      ),
+      harness.context,
+    );
+
+    expect(response.status).toBe(400);
+    expect(response.jsonBody).toEqual({
+      success: false,
+      errors: [{ field: "email", message: "Enter a valid email address." }],
+    });
+    expectNoStore(response);
+    expect(harness.send).not.toHaveBeenCalled();
+  });
+
   it("rejects an oversized field instead of sending a truncated value", async () => {
     const harness = createHarness();
     const response = await harness.handler(
