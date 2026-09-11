@@ -241,9 +241,7 @@ export function validateContactSubmission(
       field: "phone",
       message: "Please provide a phone number if phone is preferred.",
     });
-  }
-
-  if (phoneClean && !isValidAustralianPhone(phoneClean)) {
+  } else if (phoneClean && !isValidAustralianPhone(phoneClean)) {
     errors.push({
       field: "phone",
       message: "Enter a valid Australian phone number.",

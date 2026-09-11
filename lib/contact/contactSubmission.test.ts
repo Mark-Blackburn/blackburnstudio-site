@@ -228,6 +228,60 @@ describe("validateContactSubmission", () => {
     });
   });
 
+  it("prioritizes phone length over phone format", () => {
+    const errors = validateContactSubmission(
+      buildSubmission({
+        phone: `+61${"1".repeat(CONTACT_MAX_FIELD_LENGTH)}`,
+      }),
+    );
+
+    expect(errors.filter((error) => error.field === "phone")).toEqual([
+      { field: "phone", message: "Phone number is too long." },
+    ]);
+  });
+
+  it("returns a single format error for a normal-length invalid phone", () => {
+    const errors = validateContactSubmission(
+      buildSubmission({ phone: "123" }),
+    );
+
+    expect(errors.filter((error) => error.field === "phone")).toEqual([
+      {
+        field: "phone",
+        message: "Enter a valid Australian phone number.",
+      },
+    ]);
+  });
+
+  it("returns a single required-phone error when phone is empty and preferred", () => {
+    const errors = validateContactSubmission(
+      buildSubmission({ contactMethod: "phone", phone: "" }),
+    );
+
+    expect(errors.filter((error) => error.field === "phone")).toEqual([
+      {
+        field: "phone",
+        message: "Please provide a phone number if phone is preferred.",
+      },
+    ]);
+  });
+
+  it("returns no phone error when phone is empty and email is preferred", () => {
+    const errors = validateContactSubmission(
+      buildSubmission({ contactMethod: "email", phone: "" }),
+    );
+
+    expect(errors.filter((error) => error.field === "phone")).toEqual([]);
+  });
+
+  it("returns no phone error for a valid Australian phone", () => {
+    const errors = validateContactSubmission(
+      buildSubmission({ phone: "0412 345 678" }),
+    );
+
+    expect(errors.filter((error) => error.field === "phone")).toEqual([]);
+  });
+
   it("accepts a normal valid service", () => {
     expect(
       validateContactSubmission(
