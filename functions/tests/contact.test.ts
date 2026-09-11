@@ -1,6 +1,7 @@
 import { HttpRequest, InvocationContext } from "@azure/functions";
 import { describe, expect, it, vi } from "vitest";
 
+import { CONTACT_MAX_FIELD_LENGTH } from "../../lib/contact/contactSubmission";
 import {
   CONTACT_RATE_LIMIT_MAX_TRACKED_KEYS,
   CONTACT_REQUEST_MAX_BYTES,
@@ -275,6 +276,35 @@ describe("contact Function HTTP contract", () => {
       ]),
     });
     expectNoStore(response);
+  });
+
+  it("rejects an oversized raw service without calling transport", async () => {
+    const harness = createHarness();
+    const service = `new-website${" ".repeat(
+      CONTACT_MAX_FIELD_LENGTH - "new-website".length + 1,
+    )}`;
+    const response = await harness.handler(
+      createRequest(
+        JSON.stringify({
+          ...validSubmission,
+          services: [service],
+        }),
+      ),
+      harness.context,
+    );
+
+    expect(response.status).toBe(400);
+    expect(response.jsonBody).toEqual({
+      success: false,
+      errors: [
+        {
+          field: "services",
+          message: "One or more services are invalid.",
+        },
+      ],
+    });
+    expectNoStore(response);
+    expect(harness.send).not.toHaveBeenCalled();
   });
 
   it.each([

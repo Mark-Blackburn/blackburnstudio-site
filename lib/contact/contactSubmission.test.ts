@@ -105,6 +105,37 @@ describe("decodeContactSubmissionRequest", () => {
 
     expect(decodeContactSubmissionRequest(value)).toBeNull();
   });
+
+  it.each([
+    {
+      label: "a leading hole",
+      services: (() => {
+        const services = new Array<string>(2);
+        services[1] = "new-website";
+        return services;
+      })(),
+    },
+    {
+      label: "a trailing hole",
+      services: (() => {
+        const services = ["new-website"];
+        services.length = 2;
+        return services;
+      })(),
+    },
+    { label: "only holes", services: new Array<string>(2) },
+    {
+      label: "an explicit undefined entry",
+      services: ["new-website", undefined],
+    },
+  ])("rejects services with $label", ({ services }) => {
+    expect(
+      decodeContactSubmissionRequest({
+        ...buildSubmission(),
+        services,
+      }),
+    ).toBeNull();
+  });
 });
 
 describe("validateContactSubmission", () => {
@@ -195,6 +226,32 @@ describe("validateContactSubmission", () => {
       field: "email",
       message: "Email address is too long.",
     });
+  });
+
+  it("accepts a normal valid service", () => {
+    expect(
+      validateContactSubmission(
+        buildSubmission({ services: ["new-website"] }),
+      ),
+    ).toEqual([]);
+  });
+
+  it.each([
+    "x".repeat(CONTACT_MAX_FIELD_LENGTH + 1),
+    `new-website${" ".repeat(
+      CONTACT_MAX_FIELD_LENGTH - "new-website".length + 1,
+    )}`,
+    `new-website${"<i></i>".repeat(70)}`,
+  ])("rejects an oversized raw service entry", (service) => {
+    expect(service.length).toBeGreaterThan(CONTACT_MAX_FIELD_LENGTH);
+    expect(
+      validateContactSubmission(buildSubmission({ services: [service] })),
+    ).toEqual([
+      {
+        field: "services",
+        message: "One or more services are invalid.",
+      },
+    ]);
   });
 
   it.each(["phone", " phone "])(

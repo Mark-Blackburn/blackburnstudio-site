@@ -179,6 +179,49 @@ describe("submitContactForm message limits", () => {
     expect(sendMock).toHaveBeenCalledTimes(1);
   });
 
+  it("fails closed for sparse services without consuming rate-limit capacity", async () => {
+    const email = `sparse-${Math.random().toString(36).slice(2)}@example.com`;
+    const services = new Array<string>(2);
+    services[1] = "new-website";
+
+    for (let submission = 0; submission < 6; submission += 1) {
+      const result = await submitRuntimeValue({
+        ...buildFormData({ email }),
+        services,
+      });
+
+      expect(result).toEqual(invalidRuntimeResult);
+    }
+
+    const validResult = await submitContactForm(buildFormData({ email }));
+
+    expect(validResult.success).toBe(true);
+    expect(sendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("rejects an oversized raw service without calling transport", async () => {
+    const result = await submitContactForm(
+      buildFormData({
+        services: [
+          `new-website${" ".repeat(
+            CONTACT_MAX_FIELD_LENGTH - "new-website".length + 1,
+          )}`,
+        ],
+      }),
+    );
+
+    expect(result).toEqual({
+      success: false,
+      errors: [
+        {
+          field: "services",
+          message: "One or more services are invalid.",
+        },
+      ],
+    });
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
   it("accepts 9-digit autofill mobile and sends canonical phone", async () => {
     const result = await submitContactForm(
       buildFormData({

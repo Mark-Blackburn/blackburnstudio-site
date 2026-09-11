@@ -100,6 +100,27 @@ function optionalString(
   return field === undefined || typeof field === "string" ? field ?? "" : null;
 }
 
+function decodeServices(value: unknown): string[] | null {
+  if (value === undefined) {
+    return [];
+  }
+
+  if (!Array.isArray(value)) {
+    return null;
+  }
+
+  const services: string[] = [];
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.hasOwn(value, index) || typeof value[index] !== "string") {
+      return null;
+    }
+
+    services.push(value[index]);
+  }
+
+  return services;
+}
+
 export function decodeContactSubmissionRequest(
   value: unknown,
 ): ContactSubmissionRequest | null {
@@ -116,7 +137,7 @@ export function decodeContactSubmissionRequest(
   const timing = optionalString(value, "timing");
   const requiredDate = optionalString(value, "requiredDate");
   const honeypot = optionalString(value, "honeypot");
-  const servicesValue = value.services;
+  const services = decodeServices(value.services);
   const consentValue = value.consent;
 
   if (
@@ -129,9 +150,7 @@ export function decodeContactSubmissionRequest(
     timing === null ||
     requiredDate === null ||
     honeypot === null ||
-    (servicesValue !== undefined &&
-      (!Array.isArray(servicesValue) ||
-        !servicesValue.every((service) => typeof service === "string"))) ||
+    services === null ||
     (consentValue !== undefined && typeof consentValue !== "boolean")
   ) {
     return null;
@@ -141,7 +160,7 @@ export function decodeContactSubmissionRequest(
     name,
     email,
     phone,
-    services: servicesValue ?? [],
+    services,
     setup,
     message,
     contactMethod,
@@ -232,11 +251,16 @@ export function validateContactSubmission(
   }
 
   const servicesClean = sanitizeContactServices(data.services);
-  if (servicesClean.length < 1) {
+  const servicesInvalid =
+    data.services.some(
+      (service) => service.length > CONTACT_MAX_FIELD_LENGTH,
+    ) || !servicesClean.every((service) => VALID_SERVICES.has(service));
+
+  if (servicesClean.length < 1 && !servicesInvalid) {
     errors.push({ field: "services", message: "Select at least one service." });
   }
 
-  if (!servicesClean.every((service) => VALID_SERVICES.has(service))) {
+  if (servicesInvalid) {
     errors.push({
       field: "services",
       message: "One or more services are invalid.",
