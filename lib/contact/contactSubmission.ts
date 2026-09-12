@@ -49,7 +49,7 @@ const VALID_SERVICES = new Set<string>(CONTACT_SERVICES);
 const VALID_SETUP_OPTIONS = new Set<string>(CONTACT_SETUP_OPTIONS);
 const VALID_CONTACT_METHODS = new Set<string>(CONTACT_METHODS);
 const VALID_TIMINGS = new Set<string>(CONTACT_TIMINGS);
-const SINGLE_LINE_CONTROL_CHARACTERS = /[\u0000-\u001F\u007F]/;
+const SINGLE_LINE_CONTROL_CHARACTERS = /[\u0000-\u001F\u007F-\u009F]/;
 
 export interface ContactSubmissionRequest {
   name: string;

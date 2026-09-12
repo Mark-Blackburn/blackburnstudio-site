@@ -307,27 +307,33 @@ describe("contact Function HTTP contract", () => {
     expect(harness.send).not.toHaveBeenCalled();
   });
 
-  it.each([
+   it.each([
     "Mark\r\nInjected",
     "Mark\nInjected",
     "Mark\tInjected",
     "Mark\u0000Injected",
-  ])("rejects control characters before constructing the email subject", async (name) => {
-    const harness = createHarness();
-    const response = await harness.handler(
-      createRequest(JSON.stringify({ ...validSubmission, name })),
-      harness.context,
-    );
+    "Mark\u007FInjected",
+    "Mark\u0085Injected",
+    "Mark\u009FInjected",
+  ])(
+    "rejects control characters before constructing the email subject",
+    async (name) => {
+      const harness = createHarness();
+      const response = await harness.handler(
+        createRequest(JSON.stringify({ ...validSubmission, name })),
+        harness.context,
+      );
 
-    expect(response.status).toBe(400);
-    expect(response.jsonBody).toEqual({
-      success: false,
-      errors: [{ field: "name", message: "Please enter your name." }],
-    });
-    expectNoStore(response);
-    expect(harness.send).not.toHaveBeenCalled();
-    expect(JSON.stringify(harness.logs)).not.toContain(name);
-  });
+      expect(response.status).toBe(400);
+      expect(response.jsonBody).toEqual({
+        success: false,
+        errors: [{ field: "name", message: "Please enter your name." }],
+      });
+      expectNoStore(response);
+      expect(harness.send).not.toHaveBeenCalled();
+      expect(JSON.stringify(harness.logs)).not.toContain(name);
+    },
+  );
 
   it("rejects an email containing a control character with a controlled validation response", async () => {
     const harness = createHarness();
