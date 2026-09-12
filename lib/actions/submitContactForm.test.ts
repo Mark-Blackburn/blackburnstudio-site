@@ -199,6 +199,30 @@ describe("submitContactForm message limits", () => {
     expect(sendMock).toHaveBeenCalledTimes(1);
   });
 
+  it("bounds rate-limit keys by evicting the oldest key", async () => {
+    const oldestEmail = `oldest-${Math.random().toString(36).slice(2)}@example.com`;
+
+    for (let submission = 0; submission < 5; submission += 1) {
+      expect(
+        (await submitContactForm(buildFormData({ email: oldestEmail }))).success,
+      ).toBe(true);
+    }
+
+    for (let index = 0; index < 100; index += 1) {
+      const result = await submitContactForm(
+        buildFormData({
+          email: `eviction-${Math.random().toString(36).slice(2)}-${index}@example.com`,
+        }),
+      );
+
+      expect(result.success).toBe(true);
+    }
+
+    expect(
+      (await submitContactForm(buildFormData({ email: oldestEmail }))).success,
+    ).toBe(true);
+  });
+
   it("rejects an oversized raw service without calling transport", async () => {
     const result = await submitContactForm(
       buildFormData({

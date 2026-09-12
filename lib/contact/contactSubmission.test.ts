@@ -187,15 +187,28 @@ describe("validateContactSubmission", () => {
   });
 
   it.each([
-    "Mark\r\nInjected",
-    "Mark\nInjected",
-    "Mark\tInjected",
-    "Mark\u0000Injected",
-  ])("rejects control characters in the single-line name", (name) => {
-    expect(validateContactSubmission(buildSubmission({ name }))).toContainEqual(
-      { field: "name", message: "Please enter your name." },
-    );
-  });
+  "Mark\r\nInjected",
+  "Mark\nInjected",
+  "Mark\tInjected",
+  "Mark\u0000Injected",
+  "Mark\u007FInjected",
+  "Mark\u0085Injected",
+  "Mark\u009FInjected",
+  "Mark\u2028Injected",
+  "Mark\u2029Injected",
+])("rejects control characters in the single-line name", (name) => {
+  expect(validateContactSubmission(buildSubmission({ name }))).toContainEqual(
+    { field: "name", message: "Please enter your name." },
+  );
+});
+
+it("accepts ordinary Unicode characters in the name", () => {
+  expect(
+    validateContactSubmission(
+      buildSubmission({ name: "José François" }),
+    ),
+  ).toEqual([]);
+});
 
   it("accepts a name exactly at the field limit", () => {
     expect(

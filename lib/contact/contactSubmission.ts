@@ -4,6 +4,7 @@ import {
   isValidEmail,
   isValidRequiredDate,
   parseAustralianPhone,
+  normalizeOuterAsciiSpaces,
 } from "./sharedValidation";
 
 export const CONTACT_MAX_FIELD_LENGTH = 500;
@@ -49,7 +50,8 @@ const VALID_SERVICES = new Set<string>(CONTACT_SERVICES);
 const VALID_SETUP_OPTIONS = new Set<string>(CONTACT_SETUP_OPTIONS);
 const VALID_CONTACT_METHODS = new Set<string>(CONTACT_METHODS);
 const VALID_TIMINGS = new Set<string>(CONTACT_TIMINGS);
-const SINGLE_LINE_CONTROL_CHARACTERS = /[\u0000-\u001F\u007F-\u009F]/;
+const SINGLE_LINE_CONTROL_CHARACTERS =
+  /[\u0000-\u001F\u007F-\u009F\u2028\u2029]/;
 
 export interface ContactSubmissionRequest {
   name: string;
@@ -220,12 +222,12 @@ export function validateContactSubmission(
     errors.push({ field: "name", message: "Please enter your name." });
   }
 
-  const emailClean = sanitizeContactInput(data.email);
+  const emailClean = normalizeOuterAsciiSpaces(data.email);
   if (!emailClean) {
     errors.push({ field: "email", message: "Please enter your email address." });
   } else if (data.email.length > CONTACT_MAX_FIELD_LENGTH) {
     errors.push({ field: "email", message: "Email address is too long." });
-  } else if (!isValidEmail(emailClean)) {
+  } else if (!isValidEmail(data.email)) {
     errors.push({ field: "email", message: "Enter a valid email address." });
   }
 

@@ -11,10 +11,11 @@ import {
   validateContactSubmission,
 } from "@/lib/contact/contactSubmission";
 
-// Best-effort in-memory rate limiting only; not distributed across serverless instances.
+// Best-effort bounded in-memory rate limiting only; not distributed across serverless instances.
 const submissionTimestamps: Map<string, number[]> = new Map();
 const RATE_LIMIT_WINDOW_MS = 3600000;
 const MAX_SUBMISSIONS_PER_HOUR = 5;
+const MAX_TRACKED_RATE_LIMIT_KEYS = 100;
 
 function cleanupRateLimit(now: number): void {
   for (const [entryKey, timestamps] of submissionTimestamps.entries()) {
@@ -38,6 +39,16 @@ function checkRateLimit(key: string): boolean {
 
   if (recentTimestamps.length >= MAX_SUBMISSIONS_PER_HOUR) {
     return false;
+  }
+
+  if (
+    !submissionTimestamps.has(key) &&
+    submissionTimestamps.size >= MAX_TRACKED_RATE_LIMIT_KEYS
+  ) {
+    const oldestKey = submissionTimestamps.keys().next().value;
+    if (oldestKey !== undefined) {
+      submissionTimestamps.delete(oldestKey);
+    }
   }
 
   recentTimestamps.push(now);

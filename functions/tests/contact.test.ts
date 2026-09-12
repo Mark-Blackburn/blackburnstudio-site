@@ -341,7 +341,7 @@ describe("contact Function HTTP contract", () => {
       createRequest(
         JSON.stringify({
           ...validSubmission,
-          email: "attacker\u0000@example.com",
+          email: "\rattacker@example.com",
         }),
       ),
       harness.context,

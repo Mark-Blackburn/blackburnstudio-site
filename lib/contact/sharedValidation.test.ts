@@ -63,11 +63,17 @@ describe("parseAustralianPhone", () => {
 
 describe("isValidEmail", () => {
   it.each([
+    "\rattacker@example.com",
     "attacker\u0000@example.com",
     "attacker\u0001@example.com",
     "attacker\u001F@example.com",
     "attacker\u007F@example.com",
     "attacker\u009F@example.com",
+    "attacker@example.com\r",
+    "\u00A0test@example.com",
+    "test@example.com\u00A0",
+    "\u2028test@example.com",
+    "test@example.com\u2029",
   ])("rejects control character email %s", (input) => {
     expect(isValidEmail(input)).toBe(false);
   });
@@ -76,8 +82,39 @@ describe("isValidEmail", () => {
     "test@example.com",
     " test@example.com ",
     "mark@example.co.uk",
+    "test+tag@example.com",
   ])("accepts normal email %s", (input) => {
     expect(isValidEmail(input)).toBe(true);
+  });
+
+  it("normalizes only outer ASCII spaces", () => {
+    expect(isValidEmail("  test@example.com  ")).toBe(true);
+  });
+
+  it.each([
+    "attacker@example.com?bcc=evil%40example.com",
+    "attacker@example.com&bcc=evil",
+    "attacker@example.com#fragment",
+    "attacker@example..com",
+    "attacker@-example.com",
+    "attacker@example-.com",
+    "attacker..name@example.com",
+    "attacker@example.com<script>",
+    "attacker@exämple.com",
+  ])("rejects email values that are not transport-safe addresses", (input) => {
+    expect(isValidEmail(input)).toBe(false);
+  });
+
+  it("enforces local-part, domain-label, and total address limits", () => {
+    const validAtMaximumLength = `${"a".repeat(64)}@${"b".repeat(63)}.${"c".repeat(63)}.${"d".repeat(61)}`;
+    const overMaximumLength = `${"a".repeat(64)}@${"b".repeat(63)}.${"c".repeat(63)}.${"d".repeat(62)}`;
+
+    expect(validAtMaximumLength).toHaveLength(254);
+    expect(isValidEmail(validAtMaximumLength)).toBe(true);
+    expect(isValidEmail(`a${"b".repeat(64)}@example.com`)).toBe(false);
+    expect(isValidEmail(`attacker@${"a".repeat(64)}.com`)).toBe(false);
+    expect(overMaximumLength).toHaveLength(255);
+    expect(isValidEmail(overMaximumLength)).toBe(false);
   });
 });
 
