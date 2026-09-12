@@ -50,8 +50,51 @@ export function getSetupState(selectedServices: string[]): {
   };
 }
 
+export function normalizeOuterAsciiSpaces(value: string): string {
+  return value.replace(/^(?: )+|(?: )+$/g, "");
+}
+
 export function isValidEmail(value: string): boolean {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value.trim());
+  if (/[\u0000-\u001F\u007F-\u009F]/.test(value)) {
+    return false;
+  }
+
+  const normalized = normalizeOuterAsciiSpaces(value);
+  if (
+    !normalized ||
+    normalized.length > 254 ||
+    /[^\x21-\x7E]/.test(normalized)
+  ) {
+    return false;
+  }
+
+  const atIndex = normalized.indexOf("@");
+  if (atIndex <= 0 || atIndex !== normalized.lastIndexOf("@")) {
+    return false;
+  }
+
+  const localPart = normalized.slice(0, atIndex);
+  const domain = normalized.slice(atIndex + 1);
+  if (
+    localPart.length > 64 ||
+    domain.length > 253 ||
+    !/^[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[A-Za-z0-9!#$%&'*+/=?^_`{|}~-]+)*$/.test(
+      localPart,
+    )
+  ) {
+    return false;
+  }
+
+  const labels = domain.split(".");
+  return (
+    labels.length >= 2 &&
+    /^[A-Za-z]{2,63}$/.test(labels.at(-1) ?? "") &&
+    labels.every(
+      (label) =>
+        label.length <= 63 &&
+        /^[A-Za-z0-9](?:[A-Za-z0-9-]*[A-Za-z0-9])?$/.test(label),
+    )
+  );
 }
 
 export type AustralianPhoneType = "mobile" | "landline";
@@ -162,6 +205,9 @@ export function isValidRequiredDate(value: string): boolean {
     return false;
   }
 
-  const parsed = new Date(`${trimmed}T00:00:00`);
-  return !Number.isNaN(parsed.getTime());
+  const parsed = new Date(`${trimmed}T00:00:00.000Z`);
+  return (
+    !Number.isNaN(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 10) === trimmed
+  );
 }

@@ -1,0 +1,39 @@
+name: Blackburn Studio Function CI
+
+on:
+  pull_request:
+    branches:
+      - main
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  function_ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: functions
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: ".node-version"
+          cache: "npm"
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Function dependencies
+        run: npm ci
+
+      - name: Test Function
+        run: npm run test:run
+
+      - name: Typecheck Function
+        run: npm run typecheck
+
+      - name: Build Function
+        run: npm run build

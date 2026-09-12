@@ -1,0 +1,10 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "node",
+    "RESEND_API_KEY": "",
+    "CONTACT_FROM_EMAIL": "",
+    "CONTACT_TO_EMAIL": ""
+  }
+}

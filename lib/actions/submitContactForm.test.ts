@@ -13,6 +13,12 @@ vi.mock("resend", () => {
 });
 
 import { submitContactForm } from "@/lib/actions/submitContactForm";
+import { CONTACT_MAX_FIELD_LENGTH } from "@/lib/contact/contactSubmission";
+
+const invalidRuntimeResult = {
+  success: false,
+  errors: [{ field: "form", message: "Form submission failed validation" }],
+};
 
 function buildFormData(overrides: Partial<Parameters<typeof submitContactForm>[0]> = {}) {
   const seed = Math.random().toString(36).slice(2);
@@ -30,6 +36,12 @@ function buildFormData(overrides: Partial<Parameters<typeof submitContactForm>[0
     honeypot: "",
     ...overrides,
   };
+}
+
+function submitRuntimeValue(value: unknown) {
+  return submitContactForm(
+    value as Parameters<typeof submitContactForm>[0],
+  );
 }
 
 describe("submitContactForm message limits", () => {
@@ -104,6 +116,136 @@ describe("submitContactForm message limits", () => {
     expect(sendMock).not.toHaveBeenCalled();
   });
 
+  it.each([
+    "Mark\r\nInjected",
+    "Mark\nInjected",
+    "Mark\tInjected",
+    "Mark\u0000Injected",
+  ])("rejects control characters before they reach the email subject", async (name) => {
+    const result = await submitContactForm(buildFormData({ name }));
+
+    expect(result).toEqual({
+      success: false,
+      errors: [{ field: "name", message: "Please enter your name." }],
+    });
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects an oversized name instead of sending a truncated subject", async () => {
+    const result = await submitContactForm(
+      buildFormData({
+        name: "A".repeat(CONTACT_MAX_FIELD_LENGTH + 1),
+      }),
+    );
+
+    expect(result).toEqual({
+      success: false,
+      errors: [{ field: "name", message: "Please enter your name." }],
+    });
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    { label: 'consent: "false"', value: { consent: "false" } },
+    {
+      label: "a non-string service",
+      value: { services: ["photography", 42] },
+    },
+    { label: "an object name", value: { name: { nested: "name" } } },
+    { label: "null", value: null },
+    { label: "a primitive", value: "invalid submission" },
+  ])("fails closed for runtime input with $label", async ({ value }) => {
+    const result = await submitRuntimeValue(value);
+
+    expect(result).toEqual(invalidRuntimeResult);
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
+  it("does not consume rate-limit capacity for malformed runtime input", async () => {
+    const email = `malformed-${Math.random().toString(36).slice(2)}@example.com`;
+
+    for (let submission = 0; submission < 6; submission += 1) {
+      const result = await submitRuntimeValue({
+        ...buildFormData({ email }),
+        consent: "false",
+      });
+
+      expect(result).toEqual(invalidRuntimeResult);
+    }
+
+    const validResult = await submitContactForm(buildFormData({ email }));
+
+    expect(validResult.success).toBe(true);
+    expect(sendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("fails closed for sparse services without consuming rate-limit capacity", async () => {
+    const email = `sparse-${Math.random().toString(36).slice(2)}@example.com`;
+    const services = new Array<string>(2);
+    services[1] = "new-website";
+
+    for (let submission = 0; submission < 6; submission += 1) {
+      const result = await submitRuntimeValue({
+        ...buildFormData({ email }),
+        services,
+      });
+
+      expect(result).toEqual(invalidRuntimeResult);
+    }
+
+    const validResult = await submitContactForm(buildFormData({ email }));
+
+    expect(validResult.success).toBe(true);
+    expect(sendMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("bounds rate-limit keys by evicting the oldest key", async () => {
+    const oldestEmail = `oldest-${Math.random().toString(36).slice(2)}@example.com`;
+
+    for (let submission = 0; submission < 5; submission += 1) {
+      expect(
+        (await submitContactForm(buildFormData({ email: oldestEmail }))).success,
+      ).toBe(true);
+    }
+
+    for (let index = 0; index < 100; index += 1) {
+      const result = await submitContactForm(
+        buildFormData({
+          email: `eviction-${Math.random().toString(36).slice(2)}-${index}@example.com`,
+        }),
+      );
+
+      expect(result.success).toBe(true);
+    }
+
+    expect(
+      (await submitContactForm(buildFormData({ email: oldestEmail }))).success,
+    ).toBe(true);
+  });
+
+  it("rejects an oversized raw service without calling transport", async () => {
+    const result = await submitContactForm(
+      buildFormData({
+        services: [
+          `new-website${" ".repeat(
+            CONTACT_MAX_FIELD_LENGTH - "new-website".length + 1,
+          )}`,
+        ],
+      }),
+    );
+
+    expect(result).toEqual({
+      success: false,
+      errors: [
+        {
+          field: "services",
+          message: "One or more services are invalid.",
+        },
+      ],
+    });
+    expect(sendMock).not.toHaveBeenCalled();
+  });
+
   it("accepts 9-digit autofill mobile and sends canonical phone", async () => {
     const result = await submitContactForm(
       buildFormData({
@@ -114,5 +256,23 @@ describe("submitContactForm message limits", () => {
     expect(result.success).toBe(true);
     expect(sendMock).toHaveBeenCalledTimes(1);
     expect(sendMock.mock.calls[0][0].text).toContain("Phone: +61424961192");
+  });
+
+  it("does not log the submitter email when rate limiting", async () => {
+    const email = `rate-limit-${Math.random().toString(36).slice(2)}@example.com`;
+    const logSpy = vi.spyOn(console, "log").mockImplementation(() => undefined);
+
+    try {
+      for (let submission = 0; submission < 6; submission += 1) {
+        await submitContactForm(buildFormData({ email }));
+      }
+
+      expect(logSpy).toHaveBeenCalledWith(
+        "[contact-form] Rate limit exceeded",
+      );
+      expect(JSON.stringify(logSpy.mock.calls)).not.toContain(email);
+    } finally {
+      logSpy.mockRestore();
+    }
   });
 });
