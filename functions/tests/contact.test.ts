@@ -419,6 +419,32 @@ describe("contact Function HTTP contract", () => {
     expect(harness.send).not.toHaveBeenCalled();
   });
 
+  it("returns a safe 503 when the rate limiter throws", async () => {
+    const secret = "private-rate-limiter-error";
+    const harness = createHarness({
+      rateLimiter: {
+        async consume() {
+          throw new Error(secret);
+        },
+      },
+    });
+
+    const response = await harness.handler(
+      createRequest(JSON.stringify(validSubmission)),
+      harness.context,
+    );
+
+    expect(response.status).toBe(503);
+    expect(response.jsonBody).toEqual({
+      success: false,
+      message:
+        "Unable to process enquiry. Please try again or contact us directly.",
+    });
+    expectNoStore(response);
+    expect(harness.send).not.toHaveBeenCalled();
+    expect(JSON.stringify(harness.logs)).not.toContain(secret);
+  });
+
   it("returns 503 without sending when Resend is not configured", async () => {
     const harness = createHarness({ environment: {} });
     const response = await harness.handler(

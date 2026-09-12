@@ -220,9 +220,21 @@ export function createContactHandler(
     }
 
     const submission = prepareContactSubmission(submissionRequest);
-    const rateLimitAllowed = await dependencies.rateLimiter.consume(
-      submission.email.toLowerCase(),
-    );
+    let rateLimitAllowed: boolean;
+
+    try {
+      rateLimitAllowed = await dependencies.rateLimiter.consume(
+        submission.email.toLowerCase(),
+      );
+    } catch {
+      context.error("[contact-api] Rate limiter failed");
+
+      return jsonResponse(503, {
+        success: false,
+        message:
+          "Unable to process enquiry. Please try again or contact us directly.",
+      });
+    }
     if (!rateLimitAllowed) {
       context.warn("[contact-api] Rate limit exceeded");
       return jsonResponse(429, {
