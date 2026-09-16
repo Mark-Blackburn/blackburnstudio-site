@@ -66,6 +66,7 @@ export default function RichDigitalWorkSection({
 }: RichDigitalWorkSectionProps) {
   const platform = secondaryDigitalProjects.platform;
   const workflows = secondaryDigitalProjects.workflows;
+  const tradesDemo = secondaryDigitalProjects.tradesDemo;
   const coaching = secondaryDigitalProjects.coaching;
 
   return (
@@ -347,6 +348,41 @@ export default function RichDigitalWorkSection({
               ))}
             </ul>
           </article>
+
+          <a
+            href={tradesDemo.href}
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label={tradesDemo.ariaLabel}
+            className="group flex min-w-0 flex-col rounded-3xl border border-studio-border bg-studio-surface p-7 transition hover:border-white/30 hover:bg-studio-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70 focus-visible:ring-offset-2 focus-visible:ring-offset-studio-base md:p-8 lg:col-span-2"
+          >
+            <CardHeader
+              label={tradesDemo.label}
+              title={tradesDemo.title}
+              actionLabel={tradesDemo.linkLabel}
+              actionHref={tradesDemo.href}
+            />
+            <p className="mt-5 max-w-[86ch] text-sm leading-relaxed text-studio-muted md:text-base">
+              {tradesDemo.description}
+            </p>
+            <div className="relative mt-7 overflow-hidden rounded-2xl border border-studio-border bg-studio-surface-soft">
+              <Image
+                src={tradesDemo.imageSrc}
+                alt={tradesDemo.imageAlt}
+                width={tradesDemo.imageWidth}
+                height={tradesDemo.imageHeight}
+                className="h-auto w-full object-cover"
+                sizes="(min-width: 1024px) 60rem, (min-width: 768px) 90vw, 100vw"
+              />
+            </div>
+            <ul className="mt-7 flex flex-wrap gap-x-3 gap-y-3">
+              {tradesDemo.tags.map((tag) => (
+                <li key={tag}>
+                  <StudioTag>{tag}</StudioTag>
+                </li>
+              ))}
+            </ul>
+          </a>
 
           <a
             href={coaching.href}

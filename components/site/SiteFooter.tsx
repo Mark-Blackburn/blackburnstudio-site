@@ -25,6 +25,12 @@ export default function SiteFooter() {
             Digital
           </Link>
           <Link
+            href="/digital/websites#trades-websites"
+            className="transition-colors hover:text-studio-text"
+          >
+            Trades websites
+          </Link>
+          <Link
             href="/tools"
             className="transition-colors hover:text-studio-text"
           >
