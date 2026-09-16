@@ -13,7 +13,7 @@ import { createPageMetadata } from "@/lib/siteConfig";
 export const metadata = createPageMetadata({
   title: "Website Design and Development",
   description:
-    "Practical website design and development for businesses and organisations, including new builds, rebuilds, content structure and ongoing improvement.",
+    "Practical website design and development for businesses and organisations, including purpose-built websites for local trade businesses, new builds, rebuilds and ongoing improvement.",
   path: "/digital/websites",
 });
 
@@ -95,6 +95,69 @@ export default function DigitalWebsitesPage() {
             footerText="A clearer, more reliable website with fewer technical and content problems."
             className="h-full"
           />
+        </section>
+
+        <section
+          id="trades-websites"
+          className="mt-16 scroll-mt-28 rounded-3xl border border-studio-border bg-studio-surface px-7 py-10 md:mt-20 md:scroll-mt-32 md:px-10 md:py-12"
+          aria-labelledby="trades-websites-heading"
+        >
+          <SectionEyebrow className="text-[#765d34]">Websites for trades</SectionEyebrow>
+          <h2
+            id="trades-websites-heading"
+            className="mt-3 max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+          >
+            A practical website foundation for local trade businesses
+          </h2>
+          <div className="mt-6 max-w-[72ch] space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+            <p>
+              Blackburn Studio has developed a reusable trades website framework
+              for electricians, plumbers, builders and other local service
+              businesses. It gives each business a professionally structured,
+              custom-branded site without starting every project from scratch.
+            </p>
+            <p>
+              The framework is designed around the things trade customers actually
+              need to find: services, recent projects, service areas, clear contact
+              details and an easy enquiry path. It can also include a service-area
+              map and photo-enabled enquiry form, with managed hosting and ongoing
+              support available after launch.
+            </p>
+          </div>
+
+          <div className="mt-7 flex flex-wrap gap-2.5">
+            {[
+              "Custom branding",
+              "Service pages",
+              "Project showcase",
+              "Service-area map",
+              "Photo enquiries",
+              "Mobile-first",
+              "SEO foundations",
+              "Managed hosting",
+            ].map((tag) => (
+              <StudioTag key={tag}>{tag}</StudioTag>
+            ))}
+          </div>
+
+          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <StudioButton
+              href="https://trades-demo.theblackburn.studio"
+              external
+              variant="primary"
+              tone="light"
+            >
+              View the live trades demo
+            </StudioButton>
+            <StudioButton href="/contact" variant="secondary" tone="light">
+              Discuss a trades website
+            </StudioButton>
+          </div>
+          <p className="mt-5 max-w-[68ch] text-sm leading-relaxed text-studio-dim">
+            The live demo uses the fictional Blackburn &amp; Co Electrical business
+            to show the layout, service pages, projects, service-area mapping and
+            enquiry experience in a realistic setting.
+          </p>
         </section>
 
         <section
