@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 
 import {
@@ -124,6 +125,26 @@ export default function DigitalWebsitesPage() {
               support available after launch.
             </p>
           </div>
+
+          <a
+            href="https://trades-demo.theblackburn.studio"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="View the Blackburn Studio trades website demo (opens in a new tab)"
+            className="group relative mt-8 block overflow-hidden rounded-2xl border border-studio-border bg-studio-surface-soft focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111] focus-visible:ring-offset-4 focus-visible:ring-offset-studio-surface"
+          >
+            <Image
+              src="/images/digital/trades-demo-home.webp"
+              alt="Blackburn and Co Electrical demonstration website homepage showing the hero, trust signals and electrical service cards"
+              width={1039}
+              height={832}
+              className="h-auto w-full transition-transform duration-500 ease-out group-hover:scale-[1.005]"
+              sizes="(min-width: 1024px) 72rem, (min-width: 768px) 90vw, 100vw"
+            />
+            <span className="absolute right-4 bottom-4 rounded-full border border-black/10 bg-white/90 px-3 py-1.5 text-xs font-medium text-black shadow-sm backdrop-blur-sm md:right-5 md:bottom-5">
+              View live demo <span aria-hidden="true">↗</span>
+            </span>
+          </a>
 
           <div className="mt-7 flex flex-wrap gap-2.5">
             {[
