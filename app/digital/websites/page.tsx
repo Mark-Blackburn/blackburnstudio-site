@@ -148,6 +148,7 @@ export default function DigitalWebsitesPage() {
               tone="light"
             >
               View the live trades demo
+              <span className="sr-only"> (opens in a new tab)</span>
             </StudioButton>
             <StudioButton href="/contact" variant="secondary" tone="light">
               Discuss a trades website
