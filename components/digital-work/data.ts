@@ -72,6 +72,28 @@ export const secondaryDigitalProjects = {
       "Reporting",
     ],
   },
+  tradesDemo: {
+    id: "trades-website-demo",
+    title: "Trades website platform demo",
+    label: "Blackburn Studio demonstration",
+    description:
+      "A complete fictional electrical-business website built to demonstrate Blackburn Studio's configurable trades website platform, including services, projects, service-area mapping, trust content and photo-enabled enquiries.",
+    tags: [
+      "Trades website platform",
+      "Custom branding",
+      "Service-area mapping",
+      "Photo enquiries",
+      "Managed hosting",
+    ],
+    href: "https://trades-demo.theblackburn.studio",
+    linkLabel: "Live demo",
+    ariaLabel: "View the Blackburn Studio trades website demo (opens in a new tab)",
+    imageSrc: "/images/digital/trades-demo-home.webp",
+    imageAlt:
+      "Blackburn and Co Electrical demonstration website homepage showing the hero, trust signals and electrical service cards",
+    imageWidth: 1039,
+    imageHeight: 832,
+  },
   coaching: {
     id: "mark-blackburn-coaching",
     title: "Mark Blackburn Coaching",
