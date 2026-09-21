@@ -112,6 +112,34 @@ export default function ToolsPage() {
           </section>
 
           <section
+            aria-labelledby="tools-insight-heading"
+            className="mt-24 max-w-6xl md:mt-28"
+          >
+            <SectionEyebrow className="text-[#765d34]">Why these tools exist</SectionEyebrow>
+            <h2
+              id="tools-insight-heading"
+              className="mt-3 max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+            >
+              Built to remove small pieces of digital friction
+            </h2>
+            <p className="mt-5 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+              These tools are not a separate direction for Blackburn Studio.
+              They come from the same approach I use in digital projects: find
+              what is getting in the way, understand the problem, then make the
+              solution as straightforward as possible.
+            </p>
+            <div className="mt-8">
+              <StudioButton
+                href="/insights/why-im-building-free-tools"
+                variant="secondary"
+                tone="light"
+              >
+                Read why I’m building these tools
+              </StudioButton>
+            </div>
+          </section>
+
+          <section
             aria-labelledby="tools-contact-heading"
             className="tools-dark-workspace mt-24 max-w-6xl rounded-3xl border border-studio-border bg-studio-base px-7 py-11 md:mt-28 md:px-11 md:py-13"
           >
