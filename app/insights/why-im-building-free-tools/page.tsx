@@ -138,9 +138,10 @@ export default function WhyImBuildingFreeToolsPage() {
                 >
                   “
                 </span>
-                <p className="relative pt-7 text-xl italic leading-relaxed text-studio-text md:pt-8 md:text-[1.35rem]">
-                  If something keeps getting in the way, I usually want to know
-                  why. Quite often, there’s a simpler way to get the job done.
+                <p className="relative pt-7 text-lg italic leading-relaxed text-studio-text md:pt-8 md:text-xl">
+                  If something keeps getting in the way, I don’t just accept that it
+                  has to be so hard. Quite often, there’s a simpler way to get
+                  the job done.
                 </p>
               </div>
 
@@ -236,7 +237,7 @@ export default function WhyImBuildingFreeToolsPage() {
                 >
                   “
                 </span>
-                <p className="relative pt-7 text-xl italic leading-relaxed text-studio-text md:pt-8 md:text-[1.35rem]">
+                <p className="relative pt-7 text-lg italic leading-relaxed text-studio-text md:pt-8 md:text-xl">
                   Is there anything here that is making this harder than it needs
                   to be?
                 </p>
