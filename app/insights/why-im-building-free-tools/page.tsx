@@ -131,10 +131,16 @@ export default function WhyImBuildingFreeToolsPage() {
                 when working on websites and other digital projects.
               </p>
 
-              <div className="mt-8 rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-8 md:py-7">
-                <p className="text-lg font-medium leading-relaxed text-studio-text">
-                  Find the friction. Understand why it is happening. Then see if
-                  there is a simpler way to do it.
+              <div className="relative mt-8 overflow-hidden rounded-2xl border border-studio-border bg-studio-surface px-7 py-7 md:px-10 md:py-9">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-5 top-2 text-6xl leading-none text-[#b9955a]/35 md:left-7 md:top-3 md:text-7xl"
+                >
+                  “
+                </span>
+                <p className="relative pt-7 text-xl italic leading-relaxed text-studio-text md:pt-8 md:text-[1.35rem]">
+                  If something keeps getting in the way, I usually want to know
+                  why. Quite often, there’s a simpler way to get the job done.
                 </p>
               </div>
 
@@ -223,8 +229,14 @@ export default function WhyImBuildingFreeToolsPage() {
                 technical jargon. It is to answer a much more useful question:
               </p>
 
-              <div className="mt-8 rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-8 md:py-7">
-                <p className="text-lg font-medium leading-relaxed text-studio-text">
+              <div className="relative mt-8 overflow-hidden rounded-2xl border border-studio-border bg-studio-surface px-7 py-7 md:px-10 md:py-9">
+                <span
+                  aria-hidden="true"
+                  className="pointer-events-none absolute left-5 top-2 text-6xl leading-none text-[#b9955a]/35 md:left-7 md:top-3 md:text-7xl"
+                >
+                  “
+                </span>
+                <p className="relative pt-7 text-xl italic leading-relaxed text-studio-text md:pt-8 md:text-[1.35rem]">
                   Is there anything here that is making this harder than it needs
                   to be?
                 </p>
