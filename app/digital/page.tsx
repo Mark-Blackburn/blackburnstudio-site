@@ -344,7 +344,7 @@ export default function DigitalPage() {
 
           <section
             aria-labelledby="digital-insight-heading"
-            className="mt-24 max-w-264 border-t border-studio-border pt-12 md:mt-28 md:pt-16"
+            className="mt-24 max-w-264 md:mt-28"
           >
             <SectionEyebrow className="text-[#765d34]">From the studio</SectionEyebrow>
             <h2
@@ -358,13 +358,15 @@ export default function DigitalPage() {
               about why I’m building focused tools, and how the same thinking
               shapes the websites and digital systems I work on.
             </p>
-            <Link
-              href="/insights/why-im-building-free-tools"
-              className="mt-6 inline-flex items-center gap-1.5 text-sm text-studio-muted underline decoration-[#b9955a]/55 underline-offset-4 transition-colors hover:text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
-            >
-              Read the article
-              <span aria-hidden="true">→</span>
-            </Link>
+            <div className="mt-8">
+              <StudioButton
+                href="/insights/why-im-building-free-tools"
+                variant="secondary"
+                tone="light"
+              >
+                Read why I’m building these tools
+              </StudioButton>
+            </div>
           </section>
 
           <section
