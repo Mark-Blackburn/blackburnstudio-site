@@ -20,6 +20,8 @@ export const INDEXABLE_ROUTES = [
   "/tools/qr-code-generator",
   "/tools/qr-code-generator/app",
   "/tools/pdf-reducer",
+  "/insights",
+  "/insights/why-im-building-free-tools",
   "/work",
   "/work/portraits",
   "/work/families",
