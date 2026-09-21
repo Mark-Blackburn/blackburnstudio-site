@@ -343,6 +343,31 @@ export default function DigitalPage() {
           </section>
 
           <section
+            aria-labelledby="digital-insight-heading"
+            className="mt-24 max-w-264 border-t border-studio-border pt-12 md:mt-28 md:pt-16"
+          >
+            <SectionEyebrow className="text-[#765d34]">From the studio</SectionEyebrow>
+            <h2
+              id="digital-insight-heading"
+              className="mt-3 max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+            >
+              Why I’m building free tools at Blackburn Studio
+            </h2>
+            <p className="mt-5 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+              Small digital problems can still waste a lot of time. I’ve written
+              about why I’m building focused tools, and how the same thinking
+              shapes the websites and digital systems I work on.
+            </p>
+            <Link
+              href="/insights/why-im-building-free-tools"
+              className="mt-6 inline-flex items-center gap-1.5 text-sm text-studio-muted underline decoration-[#b9955a]/55 underline-offset-4 transition-colors hover:text-studio-text focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#111111]"
+            >
+              Read the article
+              <span aria-hidden="true">→</span>
+            </Link>
+          </section>
+
+          <section
             aria-labelledby="contact-heading"
             className="editorial-dark-section mt-24 max-w-264 rounded-3xl border border-studio-border bg-studio-base px-7 py-11 text-studio-muted md:mt-28 md:px-11 md:py-13"
           >
