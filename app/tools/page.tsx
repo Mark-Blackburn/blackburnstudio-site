@@ -113,7 +113,7 @@ export default function ToolsPage() {
 
           <section
             aria-labelledby="tools-insight-heading"
-            className="mt-24 max-w-6xl border-t border-studio-border pt-12 md:mt-28 md:pt-16"
+            className="mt-24 max-w-6xl md:mt-28"
           >
             <SectionEyebrow className="text-[#765d34]">Why these tools exist</SectionEyebrow>
             <h2
