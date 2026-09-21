@@ -47,7 +47,7 @@ export default function InsightsPage() {
 
           <section
             aria-labelledby="latest-insights-heading"
-            className="mt-20 border-t border-studio-border pt-12 md:mt-24 md:pt-16"
+            className="mt-20 md:mt-24"
           >
             <SectionEyebrow className="text-[#765d34]">Latest</SectionEyebrow>
             <h2
