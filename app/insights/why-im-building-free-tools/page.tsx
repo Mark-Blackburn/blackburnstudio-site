@@ -73,7 +73,7 @@ export default function WhyImBuildingFreeToolsPage() {
             </div>
           </header>
 
-          <div className="mt-14 max-w-[72ch] border-t border-studio-border pt-12 text-base leading-[1.8] text-studio-muted md:mt-16 md:pt-14 md:text-[1.08rem]">
+          <div className="mt-14 max-w-[72ch] text-base leading-[1.8] text-studio-muted md:mt-16 md:text-[1.08rem]">
             <p>
               Over the past few weeks, I’ve been adding practical tools to the
               Blackburn Studio website. They are deliberately focused. Each one
@@ -223,10 +223,12 @@ export default function WhyImBuildingFreeToolsPage() {
                 technical jargon. It is to answer a much more useful question:
               </p>
 
-              <blockquote className="mt-8 border-l-2 border-[#b9955a] pl-6 text-xl font-medium leading-relaxed text-studio-text md:text-2xl">
-                Is there anything here that is making this harder than it needs
-                to be?
-              </blockquote>
+              <div className="mt-8 rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-8 md:py-7">
+                <p className="text-lg font-medium leading-relaxed text-studio-text">
+                  Is there anything here that is making this harder than it needs
+                  to be?
+                </p>
+              </div>
 
               <p className="mt-8">
                 That might mean harder for a customer to use, harder for Google
