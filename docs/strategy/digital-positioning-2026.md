@@ -79,15 +79,15 @@ Blackburn Studio should not position itself as better simply because it uses dif
 
 The Digital offering should increasingly be explained through outcomes:
 
-### Websites and digital presence
+### Websites & digital presence
 
 New websites, rebuilds and practical improvements to how a business is found and understood online.
 
-### Domains, hosting and technical setup
+### Domains, hosting & technical setup
 
 Domains, hosting, DNS, SSL and migrations handled without unnecessary technical burden for the client.
 
-### Workflow and business systems
+### Workflow & business systems
 
 Microsoft 365, forms, SharePoint, workflow automation and custom tools that reduce friction in day-to-day work.
 
