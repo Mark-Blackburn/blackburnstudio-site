@@ -105,7 +105,7 @@ export default function AboutPage() {
                   </li>
                   <li className="py-5">
                     <p className="text-base font-medium text-studio-text">
-                      Websites and digital presence
+                      Websites & digital presence
                     </p>
                     <p className="mt-1 text-sm leading-relaxed text-studio-dim md:text-base">
                       New websites, rebuilds and practical improvements to how
@@ -120,7 +120,7 @@ export default function AboutPage() {
                     </p>
                   </li>
                   <li className="pt-5">
-                    <p className="text-base font-medium text-studio-text">Workflow and business systems</p>
+                    <p className="text-base font-medium text-studio-text">Workflow & business systems</p>
                     <p className="mt-1 text-sm leading-relaxed text-studio-dim md:text-base">
                       Forms, information management, SharePoint, automation and
                       custom digital tools.
