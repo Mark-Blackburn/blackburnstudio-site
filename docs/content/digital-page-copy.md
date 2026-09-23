@@ -1,6 +1,6 @@
 # Digital page copy
 
-Status: Draft for owner review
+Status: Historical launch copy. Superseded for current positioning by [digital-positioning-2026.md](../strategy/digital-positioning-2026.md) and the implemented copy in `app/digital/page.tsx`.
 
 ## Metadata
 
