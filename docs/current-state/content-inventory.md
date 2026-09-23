@@ -1,6 +1,17 @@
 # Blackburn Studio Content Inventory (Current State)
 
-Last reviewed: 2026-07-15
+Last reviewed: 2026-09-23
+
+## 2026-09-23 implementation delta
+
+Digital positioning now starts with the business problem and outcome rather than a predetermined website or software solution. The shared Digital taxonomy is:
+
+- Websites & digital presence
+- Domains, hosting & technical setup
+- Workflow & business systems
+- Ongoing digital support
+
+A dedicated `/digital/workflow-systems` category route now carries the broader workflow offer. `/digital/microsoft-365` remains a specific technology/service page beneath that capability.
 
 ## 2026-07-15 implementation delta
 
@@ -18,15 +29,15 @@ Known deferred item:
 
 ## Scope
 
-This inventory covers current public pages implemented in [app](../../app), with supporting references to shared components and content/data files.
+This inventory summarises the core public routes and content patterns implemented in [app](../../app), with supporting references to shared components and content/data files. For the exhaustive set of indexable public routes, use `INDEXABLE_ROUTES` in [lib/siteConfig.ts](../../lib/siteConfig.ts).
 
 ## Route inventory
 
 | Route | Page title | Page purpose | Primary heading | Major sections | Photography collection or data source | Primary call to action | Secondary calls to action | Metadata title | Metadata description | Internal links | External links | Contact details shown | Future review status |
 |---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| `/` | Home | Introduce Blackburn Studio and direct users to photography and digital pathways | Photography, websites and useful digital systems. | Hero, Studio split (Photography/Digital), Work (Portraits), About, Japan, Contact, Footer | Home portraits and Japan feature images from `/images` path and `getImagesWithBlur("images", japanSources)` in [app/page.tsx](../../app/page.tsx) | View photography | Explore digital, View selected work, mailto contact | Blackburn Studio — Photography and Digital (from root metadata) | Blackburn Studio creates photography, websites and digital workflows for people, businesses and community groups. (from root metadata) | `/work`, `/digital`, `/about`, `/contact` | None | `hello@theblackburn.studio` | Retain |
-| `/digital` | Website design, workflow improvement and digital platforms | Explain Digital offer across websites, workflows and platforms | Better websites and digital systems, shaped around how you work | Hero, Websites, Workflow/process, Platforms/portals, Method, Selected Digital work, Deeper capability, About, Contact | No dedicated Digital project image set used at launch; content-first project cards in [app/digital/page.tsx](../../app/digital/page.tsx) | Start a conversation | See selected work, About Mark Blackburn, mailto contact | Website design, workflow improvement and digital platforms - Blackburn Studio | Blackburn Studio creates clear websites, improves operational workflows and delivers practical digital platforms for businesses and organisations. | `/contact`, `#selected-digital-work`, `/about` | Mailto | `hello@theblackburn.studio` | Retain |
-| `/about` | About - Blackburn Studio | Introduce studio and practitioner context | Blackburn Studio | Intro plus practitioner/background paragraphs | N/A | None | Shared nav links | About - Blackburn Studio | Blackburn Studio is a photography and digital practice led by Mark Blackburn, focused on clear, practical delivery for businesses and organisations. | `/`, `/work`, `/digital`, `/contact` | None | None on page body | Retain |
+| `/` | Home | Introduce Blackburn Studio and direct users to Photography and Digital pathways | Photography and digital work, built around what you actually need. | Hero, Studio split (Digital/Photography), Featured Portraits, About, Contact, Footer | Home hero and portrait images from `/images` in [app/page.tsx](../../app/page.tsx) | Explore digital solutions | View portfolio, Explore digital, View photography, Start a conversation | Blackburn Studio — Photography and Digital | Blackburn Studio combines photography with practical digital problem solving for people, businesses and community organisations. | `/work`, `/digital`, `/about`, `/contact` | None | `hello@theblackburn.studio` | Retain |
+| `/digital` | Digital solutions for small business | Explain Blackburn Studio's problem-first Digital offer and route visitors into the right service category | Digital work should solve a business problem, not create another one. | Hero, Problem framing, Approach, Core services, Selected Digital work, Managed services, Ways to work together, Process, Insight, Contact | Digital project imagery from [components/digital-work/data](../../components/digital-work/data.ts) | Talk through what you need | Explore services, View digital work, Read the tools insight | Digital Solutions for Small Business - Blackburn Studio | Blackburn Studio helps small businesses improve how they are found, understood and contacted online through websites, digital systems and ongoing support. | `/contact`, `#services`, `/digital/websites`, `/digital/hosting-domains`, `/digital/workflow-systems`, `/digital/support`, `/work#digital-work` | None | Shared footer/contact route | Retain |
+| `/about` | About - Blackburn Studio | Introduce the studio, Mark's engineering background and the practical working approach | Blackburn Studio | Intro, profile, experience, What I work on, How I work, Engineering background, Contact CTA | Mark Blackburn profile image | Start a conversation | Photography, Digital | About - Blackburn Studio | Blackburn Studio is run by Mark Blackburn and combines photography with practical digital problem solving, websites, business systems and ongoing support. | `/`, `/work`, `/digital`, `/contact` | None | None on page body | Retain |
 | `/contact` | Contact - Blackburn Studio | Provide dedicated contact route for photography, website and workflow enquiries | Tell me what you're working on. | Intro, contact CTA, what-to-include guidance | N/A | `mailto:hello@theblackburn.studio` | Shared nav links | Contact - Blackburn Studio | Photography, website and workflow enquiries are welcome. | `/`, `/work`, `/digital`, `/about` | Mailto | `hello@theblackburn.studio` | Retain |
 | `/work` | Selected Work | Present category index to all photography series | Selected Work | Header/nav, Intro, Category card grid, Footer | Category cards use `/images/work-*.jpg` in [app/work/page.tsx](../../app/work/page.tsx) | View series (per card) | Header nav links | Selected Work - Blackburn Studio | A curated collection of portrait, family, couple and personal landscape work. | `/`, `/work`, `/about`, `/contact`, `/digital`, `/work/portraits`, `/work/families`, `/work/couples`, `/work/japan` | None | None on page body | Retain |
 | `/work/portraits` | Portraits series page | Display portrait gallery with lightbox browsing | Portraits | Header/nav, Intro, PortraitsGrid gallery, Back to work, Footer | `getImagesWithBlur()` default portrait sources in [lib/getImagesWithBlur.ts](../../lib/getImagesWithBlur.ts), rendered by [app/work/portraits/PortraitsGrid.tsx](../../app/work/portraits/PortraitsGrid.tsx) | Open image (gallery card) | Back to work, header nav links | Portraits - Blackburn Studio | Inherits root description (route defines title only) | `/`, `/work`, `/about`, `/contact`, `/digital` | None | None on page body | Retain |
@@ -102,7 +113,8 @@ Potential inconsistencies or duplication requiring review:
 
 Verified gaps:
 
-- No explicit service/pricing/process/about-team pages.
+- No public Digital pricing page.
+- No detailed Digital case-study routes.
 - No legal pages (privacy, terms, cookies) detected.
 
 Verified technical SEO coverage:
@@ -132,4 +144,4 @@ Requires verification:
 ### Known content debt
 
 - Repeated header/footer and recurring copy fragments increase maintenance effort.
-- Metadata completeness is inconsistent across category routes.
+- Core Digital content remains code-defined, so taxonomy or service-copy changes still require code updates.
