@@ -262,7 +262,7 @@ export default function DigitalSupportPage() {
           relatedHrefs={[
             "/digital/websites",
             "/digital/hosting-domains",
-            "/digital/microsoft-365",
+            "/digital/workflow-systems",
           ]}
           className="mt-16 md:mt-20"
         />

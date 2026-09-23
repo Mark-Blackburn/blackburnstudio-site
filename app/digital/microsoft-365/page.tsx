@@ -41,8 +41,15 @@ export default function Microsoft365Page() {
             SharePoint, forms and workflow automation.
           </p>
           <p className="mt-4 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Microsoft 365 should operate as a connected business system, not
-            simply a collection of licences.
+            Microsoft 365 is one option within Blackburn Studio&apos;s broader{" "}
+            <Link
+              href="/digital/workflow-systems"
+              className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
+            >
+              workflow and business systems
+            </Link>{" "}
+            work. The platform is used where it suits the problem rather than
+            being the starting assumption.
           </p>
           <p className="mt-4 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
             For domain connection, DNS and related email routing, see{" "}

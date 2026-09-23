@@ -1,14 +1,16 @@
-# Digital Page Content Brief
+# Digital Page Content Brief (Historical)
 
-Status: Proposed with launch implementation baseline
+> **Historical reference only.** This document records the launch-era Digital content direction used through July 2026. It has been superseded by the September 2026 problem-first positioning in [digital-positioning-2026.md](digital-positioning-2026.md). Do not use the service hierarchy, CTA targets, page structure or copy below as the current implementation specification. The current public implementation is [app/digital/page.tsx](../../app/digital/page.tsx).
 
-Last reviewed: 2026-07-13
+Status: Historical / superseded
 
-## Implementation status note
+Last reviewed: 2026-09-23
 
-The launch route `/digital` has now been implemented in [app/digital/page.tsx](../../app/digital/page.tsx) using a text-first structure aligned to this brief.
+## Historical implementation status
 
-Implemented decisions:
+The notes below describe the earlier launch baseline and are retained for decision history. They may no longer match the current `/digital` route.
+
+Launch-era implemented decisions:
 
 - Dedicated `/digital` route created.
 - Dedicated `/about` and `/contact` routes created and used by Digital CTA pathways.
@@ -21,13 +23,15 @@ Implemented decisions:
 - Supported scale reference appears as "main league site and 17 clubs" and is not framed as business-performance proof.
 - No testimonial, commission-result claim, or quantified outcome claims were added.
 
-Still pending from this strategy brief:
+Items that were still pending under the historical launch brief:
 
 - Final visual asset curation pass for Digital highlight imagery/diagrams (if approved for publication).
 - Full route-level OG/Twitter metadata completeness.
 - Any decision to introduce detailed project routes (`/digital/projects/[slug]`) remains deferred.
 
-## Purpose
+## Historical purpose
+
+This section records the original launch purpose. It is not the current Digital page brief.
 
 Define the launch structure, messages, content hierarchy, project-highlight presentation, and conversion pathway for `/digital`.
 

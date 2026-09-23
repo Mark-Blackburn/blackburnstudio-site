@@ -5,13 +5,14 @@ export const SITE_URL = "https://www.theblackburn.studio";
 export const SITE_EMAIL = "hello@theblackburn.studio";
 export const DEFAULT_TITLE = "Blackburn Studio — Photography and Digital";
 export const DEFAULT_DESCRIPTION =
-  "Blackburn Studio creates photography, websites and digital workflows for people, businesses and community groups.";
+  "Blackburn Studio combines photography with practical digital problem solving for people, businesses and community organisations.";
 
 export const INDEXABLE_ROUTES = [
   "/",
   "/digital",
   "/digital/websites",
   "/digital/hosting-domains",
+  "/digital/workflow-systems",
   "/digital/microsoft-365",
   "/digital/support",
   "/tools",

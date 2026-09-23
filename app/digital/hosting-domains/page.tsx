@@ -324,7 +324,7 @@ export default function HostingDomainsPage() {
           currentPath="/digital/hosting-domains"
           relatedHrefs={[
             "/digital/websites",
-            "/digital/microsoft-365",
+            "/digital/workflow-systems",
             "/digital/support",
           ]}
           className="mt-16 md:mt-20"
