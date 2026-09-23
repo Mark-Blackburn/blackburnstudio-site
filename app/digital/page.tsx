@@ -16,37 +16,38 @@ import { SectionEyebrow, StudioButton } from "@/components/studio";
 import { createPageMetadata } from "@/lib/siteConfig";
 
 export const metadata = createPageMetadata({
-  title: "Digital Services | Websites, Hosting and Microsoft 365",
+  title: "Digital Solutions for Small Business",
   description:
-    "Blackburn Studio delivers managed digital services across websites, hosting, domains, Microsoft 365 and ongoing support for businesses and organisations.",
+    "Blackburn Studio helps small businesses improve how they are found, understood and contacted online through websites, digital systems and ongoing support.",
   path: "/digital",
 });
 
 const serviceCards = [
   {
-    title: "Websites",
+    title: "Websites and digital presence",
     summary:
-      "New websites, rebuilds, online stores and custom digital platforms.",
+      "New websites, rebuilds and practical improvements to how your business is found and understood online.",
     href: "/digital/websites",
-    tags: ["Website design", "WordPress", "Online stores", "Custom platforms"],
+    tags: ["Websites", "Local discovery", "Content", "Online stores"],
   },
   {
-    title: "Domains and managed hosting",
+    title: "Domains, hosting and technical setup",
     summary:
-      "Managed domains, Australian hosting, DNS, SSL and website migrations.",
+      "Managed domains, Australian hosting, DNS, SSL and website migrations without the technical runaround.",
     href: "/digital/hosting-domains",
     tags: ["Domains", "Hosting", "DNS", "SSL"],
   },
   {
-    title: "Microsoft 365 and business systems",
+    title: "Workflow and business systems",
     summary:
-      "Business email, Teams, SharePoint and practical workflow automation.",
+      "Microsoft 365, forms, SharePoint and practical automation that reduces friction in day-to-day work.",
     href: "/digital/microsoft-365",
-    tags: ["Microsoft 365", "Teams", "SharePoint", "Automation"],
+    tags: ["Microsoft 365", "Forms", "SharePoint", "Automation"],
   },
   {
     title: "Ongoing digital support",
-    summary: "Maintenance, troubleshooting and continued digital improvement.",
+    summary:
+      "Maintenance, troubleshooting and continued improvement across your digital setup.",
     href: "/digital/support",
     tags: ["Website care", "Technical support", "Security", "Improvements"],
   },
@@ -62,8 +63,8 @@ const processStages = [
     text: "Agree on the most practical approach, priorities and level of support.",
   },
   {
-    title: "Build and launch",
-    text: "Create, configure or improve the website or system, then test it properly before release.",
+    title: "Improve or build",
+    text: "Fix, configure or build the parts that will make a useful difference, then test them properly.",
   },
   {
     title: "Support and improve",
@@ -80,23 +81,23 @@ export default function DigitalPage() {
         <div className="mx-auto w-full max-w-328 px-6 pt-14 pb-20 md:px-8 md:pt-20 md:pb-28">
           <section aria-labelledby="digital-hero-heading" className="max-w-[76ch]">
             <SectionEyebrow className="text-sm tracking-[0.24em] text-[#765d34]">
-              Digital services
+              Digital
             </SectionEyebrow>
             <h1
               id="digital-hero-heading"
               className="mt-5 max-w-[22ch] text-4xl font-medium leading-[1.05] tracking-tight text-studio-text md:text-6xl"
             >
-              Websites, hosting and digital systems - built properly and looked
-              after.
+              Digital work should solve a business problem, not create another
+              one.
             </h1>
             <p className="mt-7 max-w-[66ch] text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
-              Blackburn Studio helps businesses and organisations create better
-              websites, manage the services behind them and improve the systems
-              they rely on every day.
+              Blackburn Studio helps small businesses improve how customers
+              find them, what they see when they arrive, how easily they can get
+              in touch and how the systems behind the business work.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <StudioButton href="/contact" variant="primary" tone="light">
-                Start a conversation
+                Talk through what you need
               </StudioButton>
               <StudioButton href="#services" variant="secondary" tone="light">
                 Explore services
@@ -114,17 +115,48 @@ export default function DigitalPage() {
               id="intro-heading"
               className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
             >
-              A website rarely operates by itself
+              Start with what is getting in the way
             </h2>
             <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
               <p>
-                A website depends on domains, hosting, email, security, software
-                and ongoing support.
+                A slow website, weak local visibility, missed enquiries or a
+                messy internal process can all look like technology problems
+                from the outside. The useful starting point is to understand
+                what is actually happening before deciding what to build.
               </p>
               <p>
-                Blackburn Studio brings those pieces together, giving you one
-                point of contact who understands the complete setup and can help
-                from initial planning through to ongoing management.
+                Sometimes that means a new website. Sometimes it means improving
+                what you already have, fixing the surrounding setup or
+                simplifying a process that has grown awkward over time.
+              </p>
+            </div>
+          </section>
+
+          <section
+            aria-labelledby="approach-heading"
+            className="mt-20 max-w-[74ch] border-t border-studio-border pt-12 md:mt-24 md:pt-16"
+          >
+            <SectionEyebrow className="text-[#765d34]">Approach</SectionEyebrow>
+            <h2
+              id="approach-heading"
+              className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+            >
+              Practical problem solving, backed by engineering experience
+            </h2>
+            <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+              <p>
+                Before starting Blackburn Studio, I spent more than 26 years
+                working in engineering, leading teams around the world. That
+                background shapes the way I approach digital work today:
+                understand the problem first, work out what is actually getting
+                in the way, then build the simplest solution that does the job
+                properly.
+              </p>
+              <p>
+                That might mean improving an existing website, fixing how a
+                business is presented online, simplifying an enquiry process,
+                connecting systems that do not talk to each other or building
+                something new.
               </p>
             </div>
           </section>
@@ -139,7 +171,7 @@ export default function DigitalPage() {
               id="services-heading"
               className="mt-3 max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
             >
-              Practical digital services with clear management
+              Help where it actually makes a difference
             </h2>
             <div className="mt-10 grid gap-5 md:grid-cols-2 md:gap-6">
               {serviceCards.map((service) => (
@@ -242,18 +274,19 @@ export default function DigitalPage() {
               id="managed-heading"
               className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
             >
-              One point of contact for your complete online presence
+              You should not have to coordinate the whole technical setup
             </h2>
             <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
               <p>
-                Instead of coordinating separate developers, hosting companies,
-                domain registrars and software providers, Blackburn Studio can
-                manage the complete digital environment.
+                Instead of chasing separate developers, hosting companies,
+                domain registrars and software providers, you can have one point
+                of contact who understands how the pieces fit together.
               </p>
               <p>
-                Clients retain ownership of their domains, accounts and business
-                information. Blackburn Studio handles the technical work, explains
-                the options and helps keep everything operating reliably.
+                You retain ownership of your domains, accounts and business
+                information. Blackburn Studio handles the technical work,
+                explains the options and helps keep everything operating
+                reliably.
               </p>
             </div>
             <aside className="mt-10 max-w-[68ch] rounded-2xl border border-studio-border bg-studio-surface px-6 py-6 md:px-7 md:py-7">
@@ -281,25 +314,27 @@ export default function DigitalPage() {
               id="ways-heading"
               className="mt-3 max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
             >
-              Choose the engagement model that fits your needs
+              Start with the need, then choose the right level of help
             </h2>
             <div className="mt-10 grid gap-5 md:grid-cols-3 md:gap-6">
-              <DigitalInfoPanel title="Projects">
+              <DigitalInfoPanel title="Improve what you already have">
                 <p>
-                  Defined work such as a new website, rebuild, online store,
-                  Microsoft 365 migration or workflow implementation.
+                  Fix website issues, improve how the business is presented
+                  online, simplify forms and enquiries, or remove friction from
+                  an existing workflow.
                 </p>
               </DigitalInfoPanel>
-              <DigitalInfoPanel title="Managed services">
+              <DigitalInfoPanel title="Build something new">
                 <p>
-                  Ongoing management of hosting, domains, SSL, website
-                  maintenance, Microsoft 365 and technical support.
+                  Create a new website, online store, Microsoft 365 workflow or
+                  custom digital tool when a new build is the right answer.
                 </p>
               </DigitalInfoPanel>
-              <DigitalInfoPanel title="Support and improvements">
+              <DigitalInfoPanel title="Ongoing support">
                 <p>
-                  Practical help with troubleshooting, content changes, DNS,
-                  email, website improvements and other digital issues.
+                  Keep domains, hosting, websites, Microsoft 365 and other
+                  digital services working without having to manage every
+                  provider yourself.
                 </p>
               </DigitalInfoPanel>
             </div>
@@ -323,7 +358,7 @@ export default function DigitalPage() {
               id="process-heading"
               className="mt-3 max-w-[22ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
             >
-              A practical path from planning to ongoing support
+              Understand first, then build the right thing
             </h2>
             <ol className="mt-10 grid gap-x-6 gap-y-8 md:grid-cols-2 lg:grid-cols-4">
               {processStages.map((stage, index) => (
@@ -377,15 +412,16 @@ export default function DigitalPage() {
               id="contact-heading"
               className="max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
             >
-              Not sure which service you need?
+              Not sure what actually needs fixing?
             </h2>
             <p className="mt-5 max-w-[66ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-              Tell me what you are trying to achieve or what is currently causing
-              problems, and I&apos;ll help identify the most practical next step.
+              Tell me what is happening, what is getting in the way or what you
+              are trying to improve. We can work out the most practical next
+              step before deciding what needs to be built.
             </p>
             <div className="mt-8">
               <StudioButton href="/contact" variant="primary">
-                Discuss your digital setup
+                Talk through what you need
               </StudioButton>
             </div>
           </section>
