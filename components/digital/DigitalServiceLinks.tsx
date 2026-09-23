@@ -6,10 +6,13 @@ type DigitalServiceLink = {
 };
 
 const DIGITAL_SERVICE_LINKS: DigitalServiceLink[] = [
-  { label: "Websites", href: "/digital/websites" },
-  { label: "Domains & hosting", href: "/digital/hosting-domains" },
-  { label: "Microsoft 365", href: "/digital/microsoft-365" },
-  { label: "Ongoing support", href: "/digital/support" },
+  { label: "Websites & digital presence", href: "/digital/websites" },
+  {
+    label: "Domains, hosting & technical setup",
+    href: "/digital/hosting-domains",
+  },
+  { label: "Workflow & business systems", href: "/digital/workflow-systems" },
+  { label: "Ongoing digital support", href: "/digital/support" },
 ];
 
 type DigitalServicesSubnavProps = {
