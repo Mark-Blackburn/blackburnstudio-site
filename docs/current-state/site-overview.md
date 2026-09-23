@@ -1,6 +1,19 @@
 # Blackburn Studio Site Overview (Current State)
 
-Last reviewed: 2026-07-15
+Last reviewed: 2026-09-23
+
+## 2026-09-23 implementation update
+
+Blackburn Studio Digital now uses a problem-first, outcome-led service structure. Websites remain an important capability, but they are no longer presented as the default solution.
+
+Current Digital service categories:
+
+- Websites & digital presence
+- Domains, hosting & technical setup
+- Workflow & business systems
+- Ongoing digital support
+
+Microsoft 365 remains a specific implementation and support service under Workflow & business systems rather than a top-level category. The current positioning source is [docs/strategy/digital-positioning-2026.md](../strategy/digital-positioning-2026.md).
 
 ## 2026-07-15 implementation update
 
@@ -54,9 +67,9 @@ Verified evidence:
 
 The positioning language is practical and human-centred across both disciplines.
 
-Home messaging and structure explicitly combine photography, websites, and useful digital systems, including an early Photography/Digital split section.
+Home messaging combines photography with practical digital problem solving and provides clear pathways into the Photography and Digital disciplines.
 
-Digital service language is present on `/digital`, including websites, workflow/process improvement, and platforms/portals framing.
+Digital now leads with the business problem and desired outcome rather than a predetermined technology. The public service structure covers websites and digital presence, domains/hosting/technical setup, workflow and business systems, and ongoing digital support. Microsoft 365 is presented as one possible platform within the broader workflow and business-systems capability.
 
 These statements appear in [app/layout.tsx](../../app/layout.tsx), [app/page.tsx](../../app/page.tsx), [app/digital/page.tsx](../../app/digital/page.tsx), and routes under [app/work](../../app/work).
 
@@ -89,6 +102,11 @@ Verified App Router pages in repository:
 
 - `/` from [app/page.tsx](../../app/page.tsx)
 - `/digital` from [app/digital/page.tsx](../../app/digital/page.tsx)
+- `/digital/websites` from [app/digital/websites/page.tsx](../../app/digital/websites/page.tsx)
+- `/digital/hosting-domains` from [app/digital/hosting-domains/page.tsx](../../app/digital/hosting-domains/page.tsx)
+- `/digital/workflow-systems` from [app/digital/workflow-systems/page.tsx](../../app/digital/workflow-systems/page.tsx)
+- `/digital/microsoft-365` from [app/digital/microsoft-365/page.tsx](../../app/digital/microsoft-365/page.tsx)
+- `/digital/support` from [app/digital/support/page.tsx](../../app/digital/support/page.tsx)
 - `/about` from [app/about/page.tsx](../../app/about/page.tsx)
 - `/contact` from [app/contact/page.tsx](../../app/contact/page.tsx)
 - `/work` from [app/work/page.tsx](../../app/work/page.tsx)
@@ -114,26 +132,27 @@ Primary links:
 
 Implemented sections in [app/page.tsx](../../app/page.tsx):
 
-1. Hero section with background image, headline, supporting paragraph, and CTA buttons.
-2. Work section with "Primary" Portraits feature and linked image cards.
-3. About section with brand philosophy paragraph.
-4. Japan feature section with lead and supporting image cards.
-5. Contact section with mailto CTA.
+1. Hero section with background image, positioning copy and Digital/Photography CTA buttons.
+2. Studio split introducing the Digital and Photography pathways.
+3. Featured Portraits photography.
+4. About section introducing the practical problem-solving approach and engineering background.
+5. Contact section linking to the dedicated contact route and selected work.
 6. Shared footer with route links and email.
 
 ## Digital page structure
 
 Implemented sections in [app/digital/page.tsx](../../app/digital/page.tsx):
 
-1. Hero with dual CTA (`/contact`, `#selected-digital-work`).
-2. Websites capability section.
-3. Workflow and process improvement section.
-4. Platforms, portals and business systems section.
-5. How Blackburn Studio works (six-stage process).
-6. Selected Digital work highlights.
-7. Deeper capability section.
-8. About and credibility section linking to `/about`.
-9. Closing contact invitation linking to `/contact` and mailto.
+1. Problem-first hero with CTAs to `/contact` and `#services`.
+2. Shared Digital service navigation using the current outcome-led taxonomy.
+3. Problem framing explaining why the need should be understood before choosing technology.
+4. Engineering-background and practical problem-solving approach.
+5. Four core service cards: Websites & digital presence; Domains, hosting & technical setup; Workflow & business systems; Ongoing digital support.
+6. Selected Digital work.
+7. Managed-service explanation and engagement options.
+8. Four-stage process: Understand, Recommend, Improve or build, Support and improve.
+9. Link to the Blackburn Studio tools insight.
+10. Closing problem-led contact invitation.
 
 ## Work section structure
 
@@ -170,8 +189,8 @@ Sources: [app/work/page.tsx](../../app/work/page.tsx) and category route files u
 
 Primary CTAs observed:
 
-- "View photography" (`/work`) on home hero in [app/page.tsx](../../app/page.tsx)
-- "Explore digital" (`/digital`) on home hero in [app/page.tsx](../../app/page.tsx)
+- "Explore digital solutions" (`/digital`) on home hero in [app/page.tsx](../../app/page.tsx)
+- "View portfolio" (`/work`) on home hero in [app/page.tsx](../../app/page.tsx)
 - "View selected work" links to `/work` in home sections in [app/page.tsx](../../app/page.tsx)
 - "View series" links to each category in [app/work/page.tsx](../../app/work/page.tsx)
 - "Back to work" on all category pages under [app/work](../../app/work)
@@ -240,7 +259,7 @@ Requires verification:
 ### Known gaps and technical debt relevant at overview level
 
 - Repeated layout/navigation/footer markup across route files.
-- No explicit Digital-services content model or route grouping.
+- Digital service routes are code-defined and use a shared service-navigation model; there is not yet a CMS-backed Digital content model.
 - Metadata depth is inconsistent between routes.
 
 ## Strategic question
