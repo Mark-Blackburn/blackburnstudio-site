@@ -26,7 +26,7 @@ The studio's advantage is the combination of:
 
 ## Background / trust copy
 
-> Before starting Blackburn Studio, I spent more than 26 years working in engineering, leading teams around the world. That background shapes the way I approach digital work today: understand the problem first, work out what is actually getting in the way, then build the simplest solution that does the job properly.
+> Before starting Blackburn Studio, I spent more than 26 years working in engineering, leading teams around the world. That background shapes the way I approach digital work today: understand the problem first, work out what is actually getting in the way, then build what is needed to do the job properly.
 
 This should be visible in the Digital journey and About page rather than being buried as secondary biography.
 
