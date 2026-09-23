@@ -12,6 +12,7 @@ export const INDEXABLE_ROUTES = [
   "/digital",
   "/digital/websites",
   "/digital/hosting-domains",
+  "/digital/workflow-systems",
   "/digital/microsoft-365",
   "/digital/support",
   "/tools",
