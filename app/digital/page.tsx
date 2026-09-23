@@ -41,7 +41,7 @@ const serviceCards = [
     title: "Workflow and business systems",
     summary:
       "Microsoft 365, forms, SharePoint and practical automation that reduces friction in day-to-day work.",
-    href: "/digital/microsoft-365",
+    href: "/digital/workflow-systems",
     tags: ["Microsoft 365", "Forms", "SharePoint", "Automation"],
   },
   {
