@@ -8,7 +8,7 @@ import { createPageMetadata } from "@/lib/siteConfig";
 export const metadata = createPageMetadata({
   title: "About",
   description:
-    "Blackburn Studio is run by Mark Blackburn and combines photography with websites, managed digital services, Microsoft 365 and practical business-system support.",
+    "Blackburn Studio is run by Mark Blackburn and combines photography with practical digital problem solving, websites, business systems and ongoing support.",
   path: "/about",
 });
 
@@ -31,12 +31,12 @@ export default function AboutPage() {
             </h1>
             <div className="mt-9 max-w-[66ch] space-y-5 text-base leading-relaxed text-studio-muted md:mt-10 md:text-[1.08rem] md:leading-[1.78]">
               <p>
-                Blackburn Studio is run by Mark Blackburn. The work ranges
-                from portraits and family photography through to websites,
-                online stores, managed domains and hosting, Microsoft 365,
-                workflows, business systems and ongoing digital support. The
-                common thread is simple: understand what is needed, keep
-                things clear and make something useful.
+                Blackburn Studio is run by Mark Blackburn. The work combines
+                photography with practical digital problem solving for small
+                businesses, trades, sporting organisations and community
+                groups. That can include websites, online presence, managed
+                domains and hosting, Microsoft 365, workflows, custom tools and
+                ongoing support.
               </p>
               <p>
                 Some clients need a focused project. Others need steady
@@ -76,8 +76,9 @@ export default function AboutPage() {
               <div className="border-t border-studio-border pt-8">
                 <SectionEyebrow className="text-[#b9955a]">Experience</SectionEyebrow>
                 <p className="mt-4 text-base leading-relaxed text-studio-muted">
-                  Senior engineering leadership, website delivery, workflow
-                  design and practical managed support.
+                  More than 26 years in engineering, including leading teams
+                  around the world, alongside hands-on website, workflow and
+                  digital platform delivery.
                 </p>
               </div>
             </aside>
@@ -103,10 +104,12 @@ export default function AboutPage() {
                     </p>
                   </li>
                   <li className="py-5">
-                    <p className="text-base font-medium text-studio-text">Websites</p>
+                    <p className="text-base font-medium text-studio-text">
+                      Websites and digital presence
+                    </p>
                     <p className="mt-1 text-sm leading-relaxed text-studio-dim md:text-base">
-                      New websites, rebuilds, online stores and practical web
-                      platforms.
+                      New websites, rebuilds and practical improvements to how
+                      a business is found and understood online.
                     </p>
                   </li>
                   <li className="py-5">
@@ -169,23 +172,27 @@ export default function AboutPage() {
               id="background-heading"
               className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
             >
-              Mark’s background
+              Engineering background
             </h2>
             <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
               <p>
-                Mark brings senior engineering and technical leadership
-                experience into hands-on website, managed-service, workflow
-                and platform work.
+                Before starting Blackburn Studio, I spent more than 26 years
+                working in engineering, leading teams around the world. That
+                background shapes the way I approach digital work today:
+                understand the problem first, work out what is actually getting
+                in the way, then build the simplest solution that does the job
+                properly.
               </p>
               <p>
-                He works with small businesses, trades, sporting
-                organisations, and volunteer community organisations that
-                need clearer delivery across content, systems and ongoing
-                support without extra complexity.
+                That becomes especially useful when the job does not fit neatly
+                into a website box. A problem might involve content, customer
+                experience, Microsoft 365, forms, data, hosting or several of
+                those at once.
               </p>
               <p>
-                The studio also brings clear images that help explain the
-                work, services and decisions.
+                Because photography is part of the same studio, I can also
+                create the images needed to explain the business and its work
+                properly.
               </p>
             </div>
           </section>
