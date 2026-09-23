@@ -198,8 +198,8 @@ export default function Home() {
               Before starting Blackburn Studio, I spent more than 26 years
               working in engineering, leading teams around the world. That
               background still shapes how I work: understand the problem first,
-              work out what is getting in the way, then build the simplest
-              solution that does the job properly.
+              work out what is getting in the way, then build what is needed
+              to do the job properly.
             </p>
           </div>
         </section>
