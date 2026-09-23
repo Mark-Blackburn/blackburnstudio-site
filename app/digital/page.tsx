@@ -24,21 +24,21 @@ export const metadata = createPageMetadata({
 
 const serviceCards = [
   {
-    title: "Websites and digital presence",
+    title: "Websites & digital presence",
     summary:
       "New websites, rebuilds and practical improvements to how your business is found and understood online.",
     href: "/digital/websites",
     tags: ["Websites", "Local discovery", "Content", "Online stores"],
   },
   {
-    title: "Domains, hosting and technical setup",
+    title: "Domains, hosting & technical setup",
     summary:
       "Managed domains, Australian hosting, DNS, SSL and website migrations without the technical runaround.",
     href: "/digital/hosting-domains",
     tags: ["Domains", "Hosting", "DNS", "SSL"],
   },
   {
-    title: "Workflow and business systems",
+    title: "Workflow & business systems",
     summary:
       "Microsoft 365, forms, SharePoint and practical automation that reduces friction in day-to-day work.",
     href: "/digital/workflow-systems",
