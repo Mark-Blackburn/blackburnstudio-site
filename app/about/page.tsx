@@ -113,17 +113,30 @@ export default function AboutPage() {
                     </p>
                   </li>
                   <li className="py-5">
-                    <p className="text-base font-medium text-studio-text">Managed digital services</p>
+                    <p className="text-base font-medium text-studio-text">
+                      Domains, hosting & technical setup
+                    </p>
                     <p className="mt-1 text-sm leading-relaxed text-studio-dim md:text-base">
-                      Domains, hosting, DNS, SSL, Microsoft 365 and ongoing
-                      administration.
+                      Managed domains, hosting, DNS, SSL and the technical setup
+                      behind your online presence.
+                    </p>
+                  </li>
+                  <li className="py-5">
+                    <p className="text-base font-medium text-studio-text">
+                      Workflow & business systems
+                    </p>
+                    <p className="mt-1 text-sm leading-relaxed text-studio-dim md:text-base">
+                      Forms, information management, automation and custom tools
+                      that reduce friction in day-to-day work.
                     </p>
                   </li>
                   <li className="pt-5">
-                    <p className="text-base font-medium text-studio-text">Workflow & business systems</p>
+                    <p className="text-base font-medium text-studio-text">
+                      Ongoing digital support
+                    </p>
                     <p className="mt-1 text-sm leading-relaxed text-studio-dim md:text-base">
-                      Forms, information management, SharePoint, automation and
-                      custom digital tools.
+                      Maintenance, troubleshooting, administration and continued
+                      improvement across the digital setup.
                     </p>
                   </li>
                 </ul>
