@@ -3,6 +3,7 @@ import Link from "next/link";
 type DigitalServiceLink = {
   label: string;
   href: string;
+  childPaths?: string[];
 };
 
 const DIGITAL_SERVICE_LINKS: DigitalServiceLink[] = [
@@ -11,7 +12,11 @@ const DIGITAL_SERVICE_LINKS: DigitalServiceLink[] = [
     label: "Domains, hosting & technical setup",
     href: "/digital/hosting-domains",
   },
-  { label: "Workflow & business systems", href: "/digital/workflow-systems" },
+  {
+    label: "Workflow & business systems",
+    href: "/digital/workflow-systems",
+    childPaths: ["/digital/microsoft-365"],
+  },
   { label: "Ongoing digital support", href: "/digital/support" },
 ];
 
@@ -48,7 +53,9 @@ export function DigitalServicesSubnav({
       </p>
       <ul className="mt-4 flex flex-wrap items-center gap-x-2.5 gap-y-3 md:mt-5 md:gap-x-3 md:gap-y-3.5">
         {DIGITAL_SERVICE_LINKS.map((service) => {
-          const isActive = currentPath === service.href;
+          const isActive =
+            currentPath === service.href ||
+            service.childPaths?.includes(currentPath ?? "") === true;
 
           return (
             <li key={service.href}>
