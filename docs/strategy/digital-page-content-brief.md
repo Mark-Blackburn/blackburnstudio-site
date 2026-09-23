@@ -1,5 +1,7 @@
 # Digital Page Content Brief
 
+> September 2026: the public Digital positioning has moved from a website-led service hierarchy to a problem-first, business-outcome approach. See [digital-positioning-2026.md](digital-positioning-2026.md). The implemented copy in `app/digital/page.tsx` is the current source of truth.
+
 Status: Proposed with launch implementation baseline
 
 Last reviewed: 2026-07-13
