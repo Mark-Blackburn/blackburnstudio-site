@@ -180,8 +180,7 @@ export default function AboutPage() {
                 working in engineering, leading teams around the world. That
                 background shapes the way I approach digital work today:
                 understand the problem first, work out what is actually getting
-                in the way, then build the simplest solution that does the job
-                properly.
+                in the way, then build what is needed to do the job properly.
               </p>
               <p>
                 That becomes especially useful when the job does not fit neatly
