@@ -44,13 +44,16 @@ export default function Home() {
           where the bottom-anchored hero content can crowd the header. */}
         <div className="relative z-30 mx-auto flex h-[calc(82vh-72px)] w-full max-w-6xl flex-col justify-end px-6 pb-16 [@media(max-height:760px)]:pb-8 md:h-[calc(78vh-72px)] md:px-8 md:pb-28 lg:pb-32 [@media(min-width:768px)_and_(max-height:768px)]:!pb-0">
           <h1 className="rise-in mt-24 max-w-[90%] text-4xl font-medium leading-[1.1] tracking-tight text-white sm:text-5xl [@media(max-height:760px)]:mt-10 [@media(max-height:760px)]:text-3xl [@media(max-height:760px)]:leading-[1.15] md:mt-0 md:max-w-xl md:text-6xl">
-            Photography, websites and practical digital services.
+            Photography and digital work, built around what you actually need.
           </h1>
           <p
             className="rise-in mt-6 max-w-xl text-[15px] leading-relaxed text-neutral-300 [@media(max-height:760px)]:mt-3 [@media(max-height:760px)]:max-w-76 [@media(max-height:760px)]:text-[13px] [@media(max-height:760px)]:leading-snug md:text-base"
             style={{ animationDelay: "120ms" }}
           >
-            Blackburn Studio creates natural photography, builds clear and useful websites, and looks after the domains, hosting, Microsoft 365 and ongoing support behind them.
+            Blackburn Studio combines natural photography with practical digital
+            problem solving. From websites and online presence to workflows,
+            hosting and ongoing support, the focus is on making things clearer,
+            easier and more useful.
           </p>
           <div
             className="rise-in mt-8 flex w-full flex-col gap-3 [@media(max-height:760px)]:mt-4 [@media(max-height:760px)]:gap-2 md:mt-10 md:w-auto md:flex-row md:gap-4"
@@ -95,9 +98,9 @@ export default function Home() {
               </h3>
               <div className="flex-1">
                 <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
-                  Websites, managed domains and hosting, Microsoft 365,
-                  workflow improvements and practical digital systems for small
-                  businesses, clubs and community organisations.
+                  Help with how your business is found, presented and supported
+                  online, from websites and hosting to Microsoft 365, workflows
+                  and practical digital systems.
                 </p>
                 <p className="mt-3 text-[0.98rem] leading-relaxed text-studio-muted">
                   Recent work includes business websites, club platforms,
@@ -192,8 +195,11 @@ export default function Home() {
               result.
             </h2>
             <p className="mt-8 text-sm leading-loose text-studio-dim md:text-base">
-              Blackburn Studio combines photography, websites and managed
-              digital services without adding unnecessary complexity.
+              Before starting Blackburn Studio, I spent more than 26 years
+              working in engineering, leading teams around the world. That
+              background still shapes how I work: understand the problem first,
+              work out what is getting in the way, then build the simplest
+              solution that does the job properly.
             </p>
           </div>
         </section>
@@ -210,8 +216,9 @@ export default function Home() {
             Let&rsquo;s work together.
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-sm leading-relaxed text-studio-dim md:text-base">
-            Photography commissions, website projects, managed digital services
-            and ongoing support are all welcome.
+            Whether you need photography, a new website, help improving an
+            existing digital setup or someone to untangle a problem, start with
+            a conversation.
           </p>
           <div className="mt-9 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <StudioButton
