@@ -1,10 +1,13 @@
 import { app } from "@azure/functions";
 
-import { contactHandler } from "./contact";
+import { createContactHandler } from "./contact";
+import { createConfiguredContactRateLimiter } from "./azureContactRateLimiter";
 
 app.http("contact", {
   methods: ["POST"],
   authLevel: "anonymous",
   route: "contact",
-  handler: contactHandler,
+  handler: createContactHandler({
+    rateLimiter: createConfiguredContactRateLimiter(),
+  }),
 });

@@ -3,6 +3,11 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "node",
+    "AZURE_FUNCTIONS_ENVIRONMENT": "Development",
+    "CONTACT_RATE_LIMIT_MODE": "memory",
+    "CONTACT_RATE_LIMIT_TABLE_ENDPOINT": "",
+    "CONTACT_RATE_LIMIT_TABLE_NAME": "",
+    "CONTACT_RATE_LIMIT_HMAC_KEY": "",
     "RESEND_API_KEY": "",
     "CONTACT_FROM_EMAIL": "",
     "CONTACT_TO_EMAIL": ""

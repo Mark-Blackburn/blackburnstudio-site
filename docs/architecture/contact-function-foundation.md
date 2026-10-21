@@ -85,18 +85,27 @@ should set them explicitly.
 Create an ignored `functions/local.settings.json` for local development and
 never commit secrets.
 
-## Temporary rate limiting
+## Shared rate limiting
 
-The Function currently uses a best-effort in-memory limiter with the existing
-five-submissions-per-email-per-hour policy. It is deliberately isolated behind
-the `ContactRateLimiter` interface.
+The Function registration now selects an explicitly configured limiter. With
+`CONTACT_RATE_LIMIT_MODE=table`, all instances share a rolling five-submissions-
+per-normalized-email-per-hour history in Azure Table Storage. Row keys are
+HMAC-SHA256 values with a purpose-specific prefix; raw addresses are never stored.
+Conditional creation and ETag replacement prevent concurrent requests from
+exceeding the allowance. Conflict retries are bounded to eight reads/writes;
+configuration errors, corrupt records, contention exhaustion and storage failures
+reach the handler's existing generic 503 path. No in-memory fallback occurs.
+The default handler factory also fails closed unless a limiter is injected.
 
-This limiter is not distributed. Its state is lost on cold start and is not
-shared across scaled Function instances. It bounds memory to 100 tracked email
-keys by evicting the oldest key when full. Eviction weakens rate-limit fidelity
-under heavy unique-key traffic, so this remains development-only rather than
-production-grade abuse protection. A durable or managed shared limiter is a
-hard prerequisite before the browser is cut over to `/api/contact`.
+The in-memory limiter remains available only through explicit `memory` mode
+with `AZURE_FUNCTIONS_ENVIRONMENT=Development` and no Azure hosting markers.
+It is for local development only, retains a 100-key bound, and is not a
+substitute for the Table implementation in deployed environments.
+
+See [the durable limiter deployment guide](contact-rate-limiter.md) for required
+settings, identity permissions, retention, live validation and remaining abuse
+controls. A per-email limit does not prevent abuse using many addresses. Shared
+storage alone does not make the public endpoint ready for cutover.
 
 ## Local development and validation
 
@@ -121,7 +130,7 @@ separately controlled test transport is available.
 A later slice must:
 
 1. provision and configure the Node 22 Function App;
-2. add durable shared rate limiting and operational abuse controls;
+2. configure and validate the durable Table limiter and operational abuse controls;
 3. deploy and verify the isolated `functions` package;
 4. link the bring-your-own Function App to the static-export SWA environment;
 5. validate same-origin `/api/contact` behavior in the deployed environment;
