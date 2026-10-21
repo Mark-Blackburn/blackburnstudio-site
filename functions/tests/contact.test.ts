@@ -548,3 +548,17 @@ describe("temporary in-memory contact rate limiter", () => {
     }
   });
 });
+
+
+it("fails closed when the handler is constructed without a limiter", async () => {
+  const send = vi.fn(async () => ({ error: false }));
+  const handler = createContactHandler({
+    environment: { RESEND_API_KEY: "test-api-key" },
+    createTransport: () => ({ send }),
+  });
+  const { context } = createContext();
+  const response = await handler(createRequest(JSON.stringify(validSubmission)), context);
+  expect(response.status).toBe(503);
+  expectNoStore(response);
+  expect(send).not.toHaveBeenCalled();
+});

@@ -146,7 +146,11 @@ const defaultDependencies: ContactHandlerDependencies = {
   createTransport: createResendTransport,
   environment: process.env,
   now: () => new Date(),
-  rateLimiter: createInMemoryContactRateLimiter(),
+  rateLimiter: {
+    consume() {
+      throw new Error("Contact rate limiter must be configured");
+    },
+  },
 };
 
 export function createContactHandler(
