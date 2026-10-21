@@ -76,6 +76,8 @@ production ingress controls. Keep those distinctions in the release record.
    ETag-safe retention, a controlled storage/configuration failure and recovery,
    storage contents inspection, and appropriate ingress/abuse and cost monitoring.
    Do not weaken table permissions or enable anonymous blobs to fix failures.
+   The opt-in timer and its dry-run/live checks are documented in
+   `contact-rate-limit-retention.md`; deploying it alone does not satisfy these gates.
 2. Verify the static PR checks and review the generated artifact. Preserve public
    build configuration, including analytics, image base and domain-management
    URL, in the corresponding GitHub Actions variables used by the static build.

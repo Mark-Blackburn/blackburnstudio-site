@@ -60,13 +60,12 @@ this mode; never copy it to deployed settings.
 ## Retention and abuse controls before cutover
 
 Azure Table Storage has no automatic TTL for these rows. Expired timestamps
-are discarded on the next submission, but inactive rows remain. Establish
-scheduled retention maintenance before public deployment. Delete rows whose
-service-maintained `Timestamp` is older than the approved retention interval
-(at least one hour plus a clock-skew margin), using the enumerated ETag so a
-concurrent submission cannot be deleted. Do not use wildcard deletion. The
-maintenance identity and schedule must be configured and tested separately.
-HMAC identifiers are pseudonymous data and still need a retention policy.
+are discarded on the next submission, but inactive rows remain. The optional
+`contactRateLimitRetention` timer supplies bounded cleanup with a 24-hour
+inactivity threshold, well beyond the one-hour rolling window. It is disabled
+unless explicitly configured. See [retention operation and validation](contact-rate-limit-retention.md)
+for dry-run, ETag safeguards, scheduling, limits, monitoring and live gates.
+HMAC identifiers are pseudonymous data and still need this retention policy.
 
 This limit applies per email, not per verified sender, IP or global endpoint.
 A caller changing addresses can bypass it and create additional rows. The

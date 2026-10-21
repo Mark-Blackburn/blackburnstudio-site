@@ -10,7 +10,7 @@ import {
 
 const PARTITION_KEY = "contact-email-v1";
 
-function storageErrorCode(error: unknown): unknown {
+export function storageErrorCode(error: unknown): unknown {
   if (typeof error !== "object" || error === null) return undefined;
   if (
     "details" in error &&
@@ -30,6 +30,32 @@ function storageErrorCode(error: unknown): unknown {
       return details.odataError.code;
   }
   return "code" in error ? error.code : undefined;
+}
+
+export function createContactRateLimitTableClient(
+  environment: NodeJS.ProcessEnv = process.env,
+): TableClient {
+  const endpoint = new URL(environment.CONTACT_RATE_LIMIT_TABLE_ENDPOINT ?? "");
+  const tableName = environment.CONTACT_RATE_LIMIT_TABLE_NAME ?? "";
+  if (
+    environment.CONTACT_RATE_LIMIT_MODE !== "table" ||
+    endpoint.protocol !== "https:" ||
+    endpoint.username ||
+    endpoint.password ||
+    endpoint.search ||
+    endpoint.hash ||
+    endpoint.pathname !== "/" ||
+    !/^[A-Za-z][A-Za-z0-9]{2,62}$/.test(tableName)
+  )
+    throw new Error("Invalid contact rate limiter storage configuration");
+  return new TableClient(
+    endpoint.origin,
+    tableName,
+    new DefaultAzureCredential(),
+    {
+      retryOptions: { maxRetries: 2 },
+    },
+  );
 }
 
 export function createAzureContactRateLimitStore(
@@ -61,11 +87,25 @@ export function createAzureContactRateLimitStore(
       });
     },
     async replace(key, timestamps, etag) {
-      await client.updateEntity(
-        { partitionKey: PARTITION_KEY, rowKey: key, timestamps },
-        "Replace",
-        { etag },
-      );
+      try {
+        await client.updateEntity(
+          { partitionKey: PARTITION_KEY, rowKey: key, timestamps },
+          "Replace",
+          { etag },
+        );
+      } catch (error) {
+        // Retention can remove an expired row after the limiter reads it.
+        // Reuse the bounded conflict path to re-read and conditionally create.
+        if (
+          hasStatus(error, 404) &&
+          storageErrorCode(error) === "ResourceNotFound"
+        )
+          throw Object.assign(
+            new Error("Rate-limit record changed concurrently"),
+            { statusCode: 412 },
+          );
+        throw error;
+      }
     },
   };
 }
@@ -88,33 +128,13 @@ export function createConfiguredContactRateLimiter(
         } else {
           if (mode !== "table")
             throw new Error("Durable contact rate limiter is not configured");
-          const endpoint = new URL(
-            environment.CONTACT_RATE_LIMIT_TABLE_ENDPOINT ?? "",
-          );
-          const tableName = environment.CONTACT_RATE_LIMIT_TABLE_NAME ?? "";
           const secret = environment.CONTACT_RATE_LIMIT_HMAC_KEY ?? "";
-          if (
-            endpoint.protocol !== "https:" ||
-            endpoint.username ||
-            endpoint.password ||
-            endpoint.search ||
-            endpoint.hash ||
-            endpoint.pathname !== "/" ||
-            !/^[A-Za-z][A-Za-z0-9]{2,62}$/.test(tableName) ||
-            !/^[a-fA-F0-9]{64}$/.test(secret)
-          ) {
+          if (!/^[a-fA-F0-9]{64}$/.test(secret)) {
             throw new Error(
               "Invalid contact rate limiter storage configuration",
             );
           }
-          const client = new TableClient(
-            endpoint.origin,
-            tableName,
-            new DefaultAzureCredential(),
-            {
-              retryOptions: { maxRetries: 2 },
-            },
-          );
+          const client = createContactRateLimitTableClient(environment);
           limiter = createDurableContactRateLimiter(
             createAzureContactRateLimitStore(client),
             secret,
