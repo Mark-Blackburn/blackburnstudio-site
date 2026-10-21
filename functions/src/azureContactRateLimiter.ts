@@ -10,6 +10,28 @@ import {
 
 const PARTITION_KEY = "contact-email-v1";
 
+function storageErrorCode(error: unknown): unknown {
+  if (typeof error !== "object" || error === null) return undefined;
+  if (
+    "details" in error &&
+    typeof error.details === "object" &&
+    error.details !== null
+  ) {
+    const details = error.details;
+    // Table SDK errors expose the service code through deserialized details.
+    if ("errorCode" in details && typeof details.errorCode === "string")
+      return details.errorCode;
+    if (
+      "odataError" in details &&
+      typeof details.odataError === "object" &&
+      details.odataError !== null &&
+      "code" in details.odataError
+    )
+      return details.odataError.code;
+  }
+  return "code" in error ? error.code : undefined;
+}
+
 export function createAzureContactRateLimitStore(
   client: TableClient,
 ): ContactRateLimitStore {
@@ -25,10 +47,7 @@ export function createAzureContactRateLimitStore(
         // A missing table/configuration is an outage, not an empty record.
         if (
           hasStatus(error, 404) &&
-          typeof error === "object" &&
-          error !== null &&
-          "code" in error &&
-          error.code === "ResourceNotFound"
+          storageErrorCode(error) === "ResourceNotFound"
         )
           return null;
         throw error;
