@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
   useSearchParams: useSearchParamsMock,
 }));
 
-vi.mock("@/lib/actions/submitContactForm", () => ({
+vi.mock("@contact-transport", () => ({
   submitContactForm: vi.fn(),
 }));
 

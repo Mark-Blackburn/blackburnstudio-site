@@ -1,0 +1,241 @@
+import assert from "node:assert/strict";
+import { createServer } from "node:http";
+import { readFile, readdir, stat } from "node:fs/promises";
+import { extname, join, resolve, sep } from "node:path";
+import { fileURLToPath } from "node:url";
+import { chromium } from "playwright";
+
+const root = fileURLToPath(new URL("../out/", import.meta.url));
+const config = JSON.parse(
+  await readFile(join(root, "staticwebapp.config.json"), "utf8"),
+);
+assert.deepEqual(
+  config.routes.map((rule) => [rule.route, rule.rewrite]),
+  [["/clients/*", "/clients.html"]],
+);
+assert.equal(
+  config.navigationFallback,
+  undefined,
+  "A global fallback would hide API and asset 404s",
+);
+for (const name of [
+  "index.html",
+  "contact.html",
+  "clients.html",
+  "404.html",
+  "robots.txt",
+  "sitemap.xml",
+])
+  assert.ok((await stat(join(root, name))).isFile(), `Missing export: ${name}`);
+assert.doesNotMatch(
+  await readFile(join(root, "clients.html"), "utf8"),
+  /Sample Photography Gallery/,
+);
+
+async function checkClientBundles(directory) {
+  for (const entry of await readdir(directory, { withFileTypes: true })) {
+    const file = join(directory, entry.name);
+    if (entry.isDirectory()) await checkClientBundles(file);
+    else if (entry.name.endsWith(".ts"))
+      assert.fail(`Uncompiled TypeScript asset in static output: ${file}`);
+    else if (entry.name.endsWith(".js"))
+      assert.doesNotMatch(
+        await readFile(file, "utf8"),
+        /RESEND_API_KEY|api\.resend\.com|contact-email-v1:/,
+        `Server-only contact code in ${file}`,
+      );
+  }
+}
+await checkClientBundles(join(root, "_next", "static"));
+
+const mime = {
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".css": "text/css",
+  ".json": "application/json",
+  ".txt": "text/plain",
+  ".xml": "application/xml",
+  ".svg": "image/svg+xml",
+  ".webp": "image/webp",
+  ".woff2": "font/woff2",
+  ".wasm": "application/wasm",
+};
+// Small local host models exported files and the narrow SWA rewrite only.
+// Actual SWA routing and backend integration are separate live cutover gates.
+const server = createServer(async (req, res) => {
+  try {
+    let pathname = decodeURIComponent(
+      new URL(req.url, "http://localhost").pathname,
+    );
+    if (pathname.startsWith("/clients/")) pathname = "/clients.html";
+    const target = resolve(root, `.${pathname}`);
+    if (target !== resolve(root) && !target.startsWith(resolve(root) + sep)) {
+      res.writeHead(404).end();
+      return;
+    }
+    const candidates =
+      pathname === "/"
+        ? [join(root, "index.html")]
+        : [target, target + ".html"];
+    for (const candidate of candidates) {
+      try {
+        if (!(await stat(candidate)).isFile()) continue;
+        res.writeHead(200, {
+          "Content-Type":
+            mime[extname(candidate)] ?? "application/octet-stream",
+        });
+        res.end(await readFile(candidate));
+        return;
+      } catch (error) {
+        if (error.code !== "ENOENT" && error.code !== "ENOTDIR") throw error;
+      }
+    }
+    res.writeHead(404, { "Content-Type": "text/html" });
+    res.end(await readFile(join(root, "404.html")));
+  } catch {
+    res.writeHead(500).end();
+  }
+});
+await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
+const origin = `http://127.0.0.1:${server.address().port}`;
+let browser;
+try {
+  const sitemap = await readFile(join(root, "sitemap.xml"), "utf8");
+  for (const [, url] of sitemap.matchAll(/<loc>([^<]+)<\/loc>/g)) {
+    const route = new URL(url).pathname;
+    assert.equal(
+      (await fetch(origin + route)).status,
+      200,
+      `Public route ${route}`,
+    );
+  }
+  for (const path of [
+    "/missing-page",
+    "/api/contact",
+    "/_next/missing.js",
+    "/.swa/missing",
+    "/images/missing.webp",
+  ])
+    assert.equal((await fetch(origin + path)).status, 404, path);
+
+  browser = await chromium.launch({
+    headless: true,
+    ...(process.env.BLACKBURN_SMOKE_CHROMIUM_EXECUTABLE
+      ? { executablePath: process.env.BLACKBURN_SMOKE_CHROMIUM_EXECUTABLE }
+      : {}),
+  });
+  const page = await browser.newPage();
+  const pageErrors = [];
+  page.on("pageerror", (error) => pageErrors.push(error.message));
+  await page.route("**/*", (route) =>
+    new URL(route.request().url()).origin === origin
+      ? route.continue()
+      : route.abort(),
+  );
+  for (const path of [
+    "/clients/g_7Rk3mN9xQ2vL8pT4",
+    "/clients/g_7Rk3mN9xQ2vL8pT4/",
+  ]) {
+    await page.goto(origin + path);
+    await page
+      .getByRole("heading", { name: "Sample Photography Gallery" })
+      .waitFor();
+    await page.reload();
+    await page
+      .getByRole("heading", { name: "Sample Photography Gallery" })
+      .waitFor();
+  }
+  for (const path of [
+    "/clients/g_unknown",
+    "/clients/g_unknown/deeper",
+    "/clients",
+  ]) {
+    await page.goto(origin + path);
+    await page
+      .getByRole("heading", { name: "This gallery is unavailable." })
+      .waitFor();
+  }
+  let response = { status: 503, body: { success: false } };
+  const requests = [];
+  await page.route("**/api/contact", async (route) => {
+    assert.equal(route.request().method(), "POST");
+    assert.equal(new URL(route.request().url()).origin, origin);
+    requests.push(route.request().postDataJSON());
+    await route.fulfill({
+      status: response.status,
+      contentType: "application/json",
+      body: JSON.stringify(response.body),
+    });
+  });
+  await page.goto(origin + "/contact");
+  await page
+    .getByLabel("Name *", { exact: true })
+    .fill("Static export smoke test");
+  await page
+    .getByLabel("Email address *", { exact: true })
+    .fill("synthetic@example.com");
+  await page.getByLabel("Photography", { exact: true }).check();
+  await page
+    .getByLabel("Tell me about the photography you need *", { exact: true })
+    .fill("Simulated enquiry to verify the exported website form.");
+  await page
+    .getByLabel(
+      "I consent to Blackburn Studio using these details to respond to my enquiry. *",
+      { exact: true },
+    )
+    .check();
+  const send = page.getByRole("button", { name: "Send enquiry", exact: true });
+  await send.click();
+  await page
+    .getByText("Unable to confirm your enquiry was sent.", { exact: false })
+    .waitFor();
+  assert.equal(
+    await page.getByLabel("Name *", { exact: true }).inputValue(),
+    "Static export smoke test",
+  );
+  response = { status: 429, body: { success: false } };
+  await send.click();
+  await page
+    .getByText(
+      "Too many submissions. Please try again later or contact us directly.",
+      { exact: true },
+    )
+    .waitFor();
+  response = {
+    status: 400,
+    body: {
+      success: false,
+      errors: [
+        { field: "email", message: "Synthetic server validation error" },
+      ],
+    },
+  };
+  await send.click();
+  await page
+    .getByRole("button", { name: "Synthetic server validation error" })
+    .waitFor();
+  await page
+    .getByRole("button", { name: "Synthetic server validation error" })
+    .click();
+  assert.equal(
+    await page
+      .getByLabel("Email address *", { exact: true })
+      .evaluate((el) => el === document.activeElement),
+    true,
+  );
+  response = { status: 200, body: { success: true } };
+  await send.click();
+  await page
+    .getByRole("region", { name: "Enquiry submission success" })
+    .waitFor();
+  assert.equal(requests.length, 4, "No automatic contact retries");
+  assert.equal(requests[0].consent, true);
+  assert.deepEqual(requests[0].services, ["photography"]);
+  assert.deepEqual(pageErrors, [], "No browser runtime errors");
+  console.log(
+    "Static export smoke passed: public routes, 404 isolation, gallery deep links/refresh and contact 400/429/503/200. No email sent.",
+  );
+} finally {
+  await browser?.close();
+  await new Promise((resolve) => server.close(resolve));
+}

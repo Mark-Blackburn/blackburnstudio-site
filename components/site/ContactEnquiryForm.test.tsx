@@ -3,9 +3,9 @@ import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import ContactEnquiryForm from "@/components/site/ContactEnquiryForm";
-import { submitContactForm } from "@/lib/actions/submitContactForm";
+import { submitContactForm } from "@contact-transport";
 
-vi.mock("@/lib/actions/submitContactForm", () => ({
+vi.mock("@contact-transport", () => ({
   submitContactForm: vi.fn(),
 }));
 

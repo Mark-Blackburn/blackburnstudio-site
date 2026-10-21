@@ -138,3 +138,9 @@ A later slice must:
 7. remove the Server Action only after parity and rollback behavior are proven.
 
 No part of that cutover or Azure provisioning is performed in Slice 2A.
+
+The subsequent [static-site cutover preparation](static-site-cutover.md) adds an
+opt-in HTTP browser transport, static export and gated deployment workflow. The
+default build still uses the Server Action until the deployment switch is
+explicitly enabled and the Function backend is linked. The cutover guide records
+direct Function validation and the outstanding live production gates.

@@ -1,0 +1,18 @@
+{
+  "routes": [
+    {
+      "route": "/clients/*",
+      "rewrite": "/clients.html",
+      "headers": {
+        "Cache-Control": "no-store",
+        "X-Robots-Tag": "noindex, nofollow"
+      }
+    }
+  ],
+  "responseOverrides": {
+    "404": {
+      "rewrite": "/404.html",
+      "statusCode": 404
+    }
+  }
+}
