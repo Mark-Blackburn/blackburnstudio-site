@@ -1,0 +1,124 @@
+name: Blackburn Studio Function deployment
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'functions/**'
+      - 'lib/contact/**'
+      - '.node-version'
+      - '.github/workflows/functions-deploy.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+          cache-dependency-path: functions/package-lock.json
+
+      - name: Install Function dependencies
+        working-directory: functions
+        run: npm ci
+
+      - name: Test Function
+        working-directory: functions
+        run: npm run test:run
+
+      - name: Typecheck Function
+        working-directory: functions
+        run: npm run typecheck
+
+      - name: Build Function
+        working-directory: functions
+        run: npm run build
+
+      - name: Stage runtime files
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Path function-package | Out-Null
+          Copy-Item functions/dist function-package/dist -Recurse
+          Copy-Item functions/host.json, functions/package.json, functions/package-lock.json function-package/
+
+      - name: Install production dependencies in package
+        working-directory: function-package
+        run: npm ci --omit=dev
+
+      - name: Verify and archive package
+        shell: pwsh
+        run: |
+          $package = Get-Content function-package/package.json -Raw | ConvertFrom-Json
+          if (-not (Test-Path (Join-Path function-package $package.main))) {
+            throw 'Compiled Function entry point is missing.'
+          }
+          if (-not (Test-Path function-package/node_modules/@azure/functions/package.json)) {
+            throw 'Azure Functions runtime dependency is missing.'
+          }
+          foreach ($excluded in @('src', 'tests', 'local.settings.json', 'node_modules/vitest', 'node_modules/next')) {
+            if (Test-Path (Join-Path function-package $excluded)) {
+              throw "Unexpected deployment content: $excluded"
+            }
+          }
+          Add-Type -AssemblyName System.IO.Compression.FileSystem
+          [System.IO.Compression.ZipFile]::CreateFromDirectory(
+            (Join-Path $PWD 'function-package'),
+            (Join-Path $PWD 'functionapp.zip')
+          )
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: functionapp
+          path: functionapp.zip
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    if: github.event_name == 'workflow_dispatch' && github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: windows-latest
+    concurrency:
+      group: blackburnstudio-function-production
+      cancel-in-progress: false
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Check deployment identity configuration
+        shell: pwsh
+        env:
+          DEPLOY_CLIENT_ID: ${{ vars.AZURE_FUNCTIONS_DEPLOY_CLIENT_ID }}
+          DEPLOY_TENANT_ID: ${{ vars.AZURE_FUNCTIONS_DEPLOY_TENANT_ID }}
+          DEPLOY_SUBSCRIPTION_ID: ${{ vars.AZURE_FUNCTIONS_DEPLOY_SUBSCRIPTION_ID }}
+        run: |
+          foreach ($name in @('DEPLOY_CLIENT_ID', 'DEPLOY_TENANT_ID', 'DEPLOY_SUBSCRIPTION_ID')) {
+            $value = [Environment]::GetEnvironmentVariable($name)
+            $parsed = [guid]::Empty
+            if (-not [guid]::TryParse($value, [ref] $parsed) -or $parsed -eq [guid]::Empty) {
+              throw "Missing or invalid repository deployment variable: $name"
+            }
+          }
+
+      - uses: actions/download-artifact@v4
+        with:
+          name: functionapp
+
+      - name: Login to Azure using OIDC
+        uses: azure/login@v2
+        with:
+          client-id: ${{ vars.AZURE_FUNCTIONS_DEPLOY_CLIENT_ID }}
+          tenant-id: ${{ vars.AZURE_FUNCTIONS_DEPLOY_TENANT_ID }}
+          subscription-id: ${{ vars.AZURE_FUNCTIONS_DEPLOY_SUBSCRIPTION_ID }}
+
+      - name: Deploy Function package
+        uses: Azure/functions-action@v1
+        with:
+          app-name: func-blackburnstudio-api
+          package: functionapp.zip
