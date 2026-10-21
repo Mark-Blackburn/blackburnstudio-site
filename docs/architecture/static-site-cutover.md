@@ -39,7 +39,12 @@ website workflow:
 Merging this preparation does not change production contact traffic while the
 variable is unset. Static PR builds never deploy: SWA linked backends do not work
 in PR environments. Existing Hybrid PR previews continue until cutover.
-Both production deployment jobs share a concurrency group. Wait for existing
+Both production deployment jobs share a concurrency group.
+The static job also checks the current `main` commit immediately before upload,
+while holding that lock. A superseded push, manual run or rerun fails before
+uploading, and a branch lookup failure also stops deployment. This prevents an
+older build that finishes late from overwriting a newer production artifact;
+the lock alone does not guarantee chronological deployment order. Wait for existing
 website workflows to finish before changing the variable; an already scheduled
 job may have evaluated the previous value. Avoid main pushes during cutover.
 

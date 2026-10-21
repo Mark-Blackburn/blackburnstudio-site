@@ -62,6 +62,17 @@ jobs:
         with:
           name: static-website
           path: out
+      - name: Reject superseded production revision
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data } = await github.rest.repos.getBranch({
+              ...context.repo,
+              branch: 'main',
+            });
+            if (data.commit.sha !== context.sha) {
+              core.setFailed('Refusing to deploy: this revision has been superseded on main. Run the workflow for the current main revision.');
+            }
       - name: Deploy tested static output
         uses: Azure/static-web-apps-deploy@v1
         with:
