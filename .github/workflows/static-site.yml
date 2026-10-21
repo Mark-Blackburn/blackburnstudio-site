@@ -1,0 +1,85 @@
+name: Blackburn Studio static website
+
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, synchronize, reopened]
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      confirm_cutover:
+        description: "Production cutover gates in static-site-cutover.md have been completed"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    if: github.event_name != 'push' || vars.BLACKBURN_WEBSITE_RUNTIME == 'static'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - name: Test contact transport and form
+        run: npm run test:run -- lib/contact components/site/ContactEnquiryForm.test.tsx components/site/ContactEnquiryFormFromSearchParams.test.tsx app/clients/client-gallery-route.test.tsx
+      - name: Build static website
+        run: npm run build:static
+        env:
+          NEXT_PUBLIC_GA_MEASUREMENT_ID: ${{ vars.NEXT_PUBLIC_GA_MEASUREMENT_ID }}
+          NEXT_PUBLIC_IMAGE_BASE_URL: ${{ vars.NEXT_PUBLIC_IMAGE_BASE_URL }}
+          NEXT_PUBLIC_DOMAIN_MANAGEMENT_URL: ${{ vars.NEXT_PUBLIC_DOMAIN_MANAGEMENT_URL }}
+      - name: Install browser for static smoke test
+        run: npx playwright install --with-deps chromium
+      - name: Smoke test exported website with simulated contact API
+        run: npm run smoke:static
+      - uses: actions/upload-artifact@v4
+        with:
+          name: static-website
+          path: out
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 7
+
+  deploy:
+    needs: build
+    if: >-
+      github.ref == 'refs/heads/main' && vars.BLACKBURN_WEBSITE_RUNTIME == 'static' &&
+      (github.event_name == 'push' || (github.event_name == 'workflow_dispatch' && inputs.confirm_cutover))
+    runs-on: ubuntu-latest
+    concurrency:
+      group: blackburnstudio-website-production
+      cancel-in-progress: false
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: static-website
+          path: out
+      - name: Reject superseded production revision
+        uses: actions/github-script@v8
+        with:
+          script: |
+            const { data } = await github.rest.repos.getBranch({
+              ...context.repo,
+              branch: 'main',
+            });
+            if (data.commit.sha !== context.sha) {
+              core.setFailed('Refusing to deploy: this revision has been superseded on main. Run the workflow for the current main revision.');
+            }
+      - name: Deploy tested static output
+        uses: Azure/static-web-apps-deploy@v1
+        with:
+          azure_static_web_apps_api_token: ${{ secrets.AZURE_STATIC_WEB_APPS_API_TOKEN_MANGO_BEACH_088F6CB00 }}
+          action: upload
+          app_location: out
+          output_location: ""
+          api_location: ""
+          skip_app_build: true
+          skip_api_build: true

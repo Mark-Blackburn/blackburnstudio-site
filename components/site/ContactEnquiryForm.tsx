@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
-import { submitContactForm } from "@/lib/actions/submitContactForm";
+import { submitContactForm } from "@contact-transport";
 import { sendPublicAnalyticsEvent } from "@/lib/analytics";
 import {
   getSetupState,

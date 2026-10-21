@@ -18,7 +18,9 @@
     "smoke:pdf-reducer-ui": "node runtime/pdf-reducer/tests/public-app-smoke.mjs",
     "isolation:pdf-reducer": "node runtime/pdf-reducer/tests/route-isolation.mjs",
     "screenshot:site": "node scripts/screenshot-site.mjs",
-    "screenshot:site:local": "node scripts/screenshot-site.mjs --baseUrl=http://localhost:3000"
+    "screenshot:site:local": "node scripts/screenshot-site.mjs --baseUrl=http://localhost:3000",
+    "build:static": "node scripts/build-static-site.mjs",
+    "smoke:static": "node scripts/smoke-static-site.mjs"
   },
   "dependencies": {
     "@next/third-parties": "16.3.3",

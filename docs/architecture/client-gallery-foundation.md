@@ -47,10 +47,11 @@ routes and assets. The shell accepts only one decoded gallery ID segment, so
 deeper paths still fail closed after reaching it.
 
 Next.js rewrites are unsupported by static export and are intentionally
-transitional. During the future static-export cutover, remove the Next rewrite
-and add the equivalent route-specific rule to `staticwebapp.config.json` at the
-root of the deployed static output. No static SWA rewrite is deployed by this
-slice.
+transitional. The opt-in static build disables this Next rewrite and copies the
+equivalent narrow rule from `deploy/staticwebapp.config.json` to the output root.
+The default Hybrid build keeps its existing rewrite. See
+[the coordinated cutover guide](static-site-cutover.md) before enabling the
+static deployment workflow; preparation alone does not change production routing.
 
 Direct navigation and refresh behavior still require validation against the
 current Hybrid Azure Static Web Apps deployment before private client links are

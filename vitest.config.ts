@@ -10,6 +10,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      "@contact-transport": fileURLToPath(new URL("./lib/actions/submitContactForm.ts", import.meta.url)),
       "@": fileURLToPath(new URL("./", import.meta.url)),
     },
   },

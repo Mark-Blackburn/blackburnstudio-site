@@ -19,6 +19,7 @@
       }
     ],
     "paths": {
+      "@contact-transport": ["./lib/contact/submitContactHttp.ts"],
       "@/*": ["./*"]
     }
   },
@@ -30,5 +31,5 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules", "functions"]
+  "exclude": ["node_modules", "functions", "out"]
 }
