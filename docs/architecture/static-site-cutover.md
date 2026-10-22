@@ -70,6 +70,16 @@ This verifies the direct Function endpoint, not linked same-origin SWA routing.
 It does not prove live rolling expiry, denied-storage recovery, retention or
 production ingress controls. Keep those distinctions in the release record.
 
+## Evidence from 22 October 2026
+
+The [retention live validation record](contact-retention-validation-2026-10-22.md)
+records isolated Azure deletion/concurrency and permission failure/recovery,
+production scheduled dry-run and delete-mode completions, and sample alert email
+delivery. Observed production runs returned no old candidates; actual production
+removal and alert firing/recovery remain unverified. Retention-handler recovery
+does not establish contact-handler storage/configuration recovery. The website
+cutover remains gated by the checks below.
+
 ## Gates before enabling the switch
 
 1. Complete the outstanding limiter gates in `contact-rate-limiter.md`: scheduled

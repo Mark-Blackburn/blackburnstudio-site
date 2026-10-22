@@ -107,7 +107,9 @@ deserialization and the outgoing `If-Match` header. Registration tests verify
 that maintenance remains opt-in and never runs on startup. These tests send no
 email and do not delete Azure data.
 
-Live Azure validation is still required:
+Follow this live Azure validation procedure. Results recorded on 22 October 2026
+are in [the live validation record](contact-retention-validation-2026-10-22.md);
+its remaining production and monitoring checks still apply:
 
 1. Use a dedicated temporary validation table and a table-scoped test identity.
    Confirm query and delete access without broadening production permissions.
