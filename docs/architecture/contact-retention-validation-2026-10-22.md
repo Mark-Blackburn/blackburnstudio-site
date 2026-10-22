@@ -42,6 +42,36 @@ counts zero, and a separate enumeration confirmed all three fixtures remained.
 Finally, the restored temporary assignment and the entire temporary table were
 deleted successfully.
 
+## Contact-handler validation — 23 October follow-up
+
+A separate temporary table, `ContactHandlerValidation20261023`, was used
+with the same pinned revision and Node version. The compiled contact handler
+used the real Azure Table adapter and CLI credential, with an injected fake
+email sender. No real email was sent and production settings and runtime
+permissions were unchanged.
+
+- Missing or invalid limiter configuration returned generic 503 responses;
+  the fake sender was not called.
+- An admitted baseline request created one pseudonymous row with one attempt.
+  An initial test assertion failed because SDK `getEntity` responses include
+  `odata.metadata`. Excluding that response metadata corrected the temporary
+  test assertion; no application code changed.
+- After the operator's temporary table permission was removed and denial had
+  propagated, the SDK returned 403. The actual contact handler returned its
+  generic 503, did not call the sender, and logged only
+  `[contact-api] Rate limiter failed`, without SDK error details.
+- After restoring access, a freshly built recovery check returned 200 and
+  called the fake sender once. The original row's timestamps and ETag were
+  unchanged, and both enumerated rows contained only the expected pseudonymous
+  identifiers, timestamps and service metadata.
+
+Cloud Shell session replacement lost the original temporary script and test
+HMAC secret. Recovery therefore used a fresh synthetic identity and HMAC key;
+it did not demonstrate same-process cached-credential recovery. These checks
+exercise the compiled handler against live storage, not denied access through
+the deployed HTTP host. The restored temporary role assignment and table were
+subsequently deleted successfully.
+
 ## Production observations
 
 Trigger synchronization registered both `contact` and
@@ -52,8 +82,12 @@ The operator then verified the saved retention mode was `delete`.
 Screenshots confirmed successful delete-mode completions at 2026-10-22
 04:15 and 05:15 UTC (15:15 and 16:15 Melbourne). Both had zero scanned,
 eligible, deleted, conflicts and skipped records; neither reached the cap.
-These runs prove scheduled execution and table query access. They do not yet
-prove production deletion: no old candidates were returned in those observations.
+A later production trace at 2026-10-22 11:15:00.291 UTC (22:15 Melbourne)
+recorded three scanned, three eligible and three deleted, with zero conflicts
+or skips and `limitReached: false`. Subsequent visible hourly runs through
+21:15 UTC returned zero counters without visible failures or review warnings.
+This establishes actual scheduled production deletion. Preservation of active
+attempts was demonstrated in the isolated test, not by those production traces.
 
 An audit of the pinned Functions production dependencies using
 `npm audit --omit=dev` reported zero vulnerabilities. The full install reported
@@ -78,26 +112,31 @@ resolution.
 A manual query returned two completions, zero failures, zero review warnings
 and `NeedsAttention: false`. Azure accepted the alert rule. An action-group
 Log Alert V2 sample email arrived in Outlook at 21:58 Melbourne on 22 October.
-This confirms sample notification delivery; actual scheduled rule evaluation,
-firing and automatic resolution have not yet been verified end to end.
+The operator also verified the saved production rule settings.
+
+A temporary clone, `alert-blackburnstudio-retention-validation`, used severity 3
+and five-minute evaluation. Its query appended a synthetic problem row to the
+production health query; it did not disrupt contact or cleanup. The scheduled
+rule fired at 2026-10-22 20:14:14 UTC (23 October 07:14:14 Melbourne), and its
+email arrived. Restoring the clone's criteria from the production rule removed
+the synthetic condition. The same alert automatically resolved at 20:45:12 UTC
+(07:45:12 Melbourne), with a resolution email. The temporary rule was deleted.
+
+This verifies real scheduled evaluation, notification and automatic resolution
+using the temporary clone. The permanent health rule was unchanged and was not
+deliberately triggered by a production failure.
 The rule detects missing completion telemetry as well as missing cleanup runs;
 a query-service outage is a separate monitoring failure mode.
 
 ## Remaining release evidence
 
-- Observe actual removal of naturally aged production rows, and verify current
-  allowances continue to be enforced.
-- Verify the saved alert settings and its real evaluation, firing and recovery
-  using a controlled monitoring test without disrupting contact or cleanup.
-- Complete contact-handler storage/configuration failure and recovery checks;
-  retention-handler failure/recovery is a separate result.
 - Inspect production stored data for the intended pseudonymous-only schema.
 - Verify contact failure/rate-limit monitoring, ingress/abuse controls and cost
   controls, plus remaining static artifact and rollback gates in
   [the cutover guide](static-site-cutover.md).
 - Investigate the development dependency audit findings.
 
-The website cutover is not authorized by this evidence record: it remains a
+These results do not complete all website cutover gates; cutover remains a
 separate coordinated deployment step. No static runtime switch, SWA backend
 linking, private gallery authentication or private asset delivery was performed
 as part of these tests.
