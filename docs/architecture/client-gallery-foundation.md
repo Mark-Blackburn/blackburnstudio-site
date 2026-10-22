@@ -1,5 +1,10 @@
 # Client gallery foundation
 
+The fixture UI boundary below remains unchanged. The optional backend access
+layer is documented in [private gallery access API](client-gallery-access.md);
+it adds link exchange, expiring sessions and revocation without enabling
+private image delivery or replacing this sample shell yet.
+
 ## Slice 1 boundary
 
 The client gallery is intentionally fixture-only. It has no authentication,
