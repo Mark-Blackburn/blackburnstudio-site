@@ -29,7 +29,7 @@ jobs:
           cache: npm
       - run: npm ci
       - name: Test contact transport and form
-        run: npm run test:run -- lib/contact components/site/ContactEnquiryForm.test.tsx components/site/ContactEnquiryFormFromSearchParams.test.tsx app/clients/client-gallery-route.test.tsx
+        run: npm run test:run -- lib/contact lib/client-galleries components/client-gallery components/site/ContactEnquiryForm.test.tsx components/site/ContactEnquiryFormFromSearchParams.test.tsx app/clients/client-gallery-route.test.tsx
       - name: Build static website
         run: npm run build:static
         env:

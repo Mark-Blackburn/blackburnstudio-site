@@ -1,11 +1,13 @@
 "use client";
 
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ClientGallery } from "@/components/client-gallery/ClientGallery";
 import { ClientGalleryUnavailable } from "@/components/client-gallery/ClientGalleryUnavailable";
 import { getSampleClientGallery } from "@/lib/client-galleries/fixtures/sampleClientGallery";
+import type { ClientGallery as GalleryData } from "@/lib/client-galleries/contracts";
+import { loadClientGallery, logoutClientGallery, takeGalleryFragment } from "@/lib/client-galleries/loadClientGallery";
 
 export function getClientGalleryId(pathname: string): string | null {
   const match = /^\/clients\/([^/]+)\/?$/.exec(pathname);
@@ -40,21 +42,62 @@ export function ClientGalleryShell() {
     return () => cancelAnimationFrame(frame);
   }, []);
 
+  // This also isolates pending state when Next performs client-side navigation.
+  const galleryId = getClientGalleryId(pathname);
+
   if (!mounted) {
     return <ClientGalleryLoading />;
   }
 
-  const galleryId = getClientGalleryId(pathname);
-
-  // Transitional public fixture only. Production gallery data must come from
-  // the authenticated same-origin API and must never be bundled into this shell.
   const gallery = galleryId ? getSampleClientGallery(galleryId) : null;
+  return <GalleryLoader key={galleryId ?? "unavailable"} galleryId={galleryId} sample={gallery} />;
+}
 
-  if (!gallery) {
-    return <ClientGalleryUnavailable />;
-  }
+function GalleryLoader({ galleryId, sample }: { galleryId: string | null; sample: GalleryData | null }) {
+  const [gallery, setGallery] = useState<GalleryData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [signOutError, setSignOutError] = useState(false);
+  const initial = useRef<Promise<GalleryData> | null>(null);
+  const signedOut = useRef(false);
 
-  return <ClientGallery gallery={gallery} />;
+  useEffect(() => {
+    let active = true;
+    const token = takeGalleryFragment();
+    // Keep one in-flight exchange across React Strict Mode's effect replay.
+    // No token is persisted or retained in a ref; only the resulting promise.
+    initial.current ??= sample ? Promise.resolve(sample) : galleryId
+      ? loadClientGallery(galleryId, token) : Promise.reject(new Error("Gallery unavailable"));
+    initial.current.then(data => { if (active) setGallery(data); })
+      .catch(() => { if (active) setGallery(null); })
+      .finally(() => { if (active) setLoading(false); });
+    let refreshing = false;
+    const refresh = async () => {
+      if (sample || !galleryId || signedOut.current || refreshing) return;
+      refreshing = true;
+      try {
+        await initial.current;
+        const data = await loadClientGallery(galleryId);
+        if (active && !signedOut.current) setGallery(data);
+      } catch { if (active) setGallery(null); }
+      finally { refreshing = false; }
+    };
+    const timer = window.setInterval(refresh, 60_000);
+    window.addEventListener("focus", refresh);
+    return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", refresh); };
+  }, [galleryId, sample]);
+
+  const signOut = async () => {
+    signedOut.current = true;
+    setGallery(null);
+    try { await logoutClientGallery(galleryId!); }
+    catch { setSignOutError(true); }
+  };
+  if (loading) return <ClientGalleryLoading />;
+  if (!gallery) return <>
+    <ClientGalleryUnavailable />
+    {signOutError ? <p role="alert" className="fixed bottom-4 left-4 right-4 bg-studio-surface p-4 text-sm text-studio-text">Sign-out could not be confirmed. Close this browser session on a shared device.</p> : null}
+  </>;
+  return <ClientGallery gallery={gallery} onSignOut={sample ? undefined : signOut} />;
 }
 
 function ClientGalleryLoading() {

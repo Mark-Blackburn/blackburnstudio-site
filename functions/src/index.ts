@@ -4,6 +4,8 @@ import { createContactHandler } from "./contact";
 import { createConfiguredContactRateLimiter } from "./azureContactRateLimiter";
 import { createConfiguredGalleryAccess } from "./azureGalleryAccess";
 import { createGalleryHandlers, galleryResponse } from "./galleryHttp";
+import { createConfiguredGalleryDelivery } from "./azureGalleryDelivery";
+import { createGalleryDeliveryHandlers } from "./galleryDelivery";
 import {
   CONTACT_RETENTION_SCHEDULE,
   createContactRateLimitRetentionHandler,
@@ -21,6 +23,9 @@ app.http("contact", {
 // Gallery access is independent of contact and stays disabled until provisioned.
 if (process.env.GALLERY_API_ENABLED === "true") {
   let handlers: ReturnType<typeof createGalleryHandlers> | undefined;
+  let delivery: ReturnType<typeof createGalleryDeliveryHandlers> | undefined;
+  const deliveryEnabled = process.env.GALLERY_DELIVERY_ENABLED === "true";
+  const getDelivery = () => delivery ??= createGalleryDeliveryHandlers(createConfiguredGalleryDelivery());
   const routes = [
     ["galleryExchange", "POST", "galleries/{galleryId}/exchange", "exchange"],
     ["galleryMetadata", "GET", "galleries/{galleryId}", "metadata"],
@@ -32,8 +37,22 @@ if (process.env.GALLERY_API_ENABLED === "true") {
       handler: async (request, context) => {
         try {
           handlers ??= createGalleryHandlers(createConfiguredGalleryAccess());
-          return await handlers[action](request, context);
+          return await (deliveryEnabled && action === "metadata"
+            ? getDelivery().metadata(request, context) : handlers[action](request, context));
         } catch {
+          context.error("[gallery-api] Request failed");
+          return galleryResponse(503, { message: "Gallery temporarily unavailable." });
+        }
+      },
+    });
+  }
+  if (deliveryEnabled) {
+    app.http("galleryImage", {
+      methods: ["GET"], authLevel: "anonymous",
+      route: "galleries/{galleryId}/assets/{assetId}/{variant}",
+      handler: async (request, context) => {
+        try { return await getDelivery().image(request, context); }
+        catch {
           context.error("[gallery-api] Request failed");
           return galleryResponse(503, { message: "Gallery temporarily unavailable." });
         }

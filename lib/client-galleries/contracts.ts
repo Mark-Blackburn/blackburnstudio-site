@@ -47,6 +47,8 @@ export type ClientGalleryAsset = {
   orientation: GalleryOrientation;
   displayOrder: number;
   webImageUrl: string;
+  webDownloadUrl?: string;
+  fullDownloadUrl?: string;
 };
 
 export type ClientGallery = {

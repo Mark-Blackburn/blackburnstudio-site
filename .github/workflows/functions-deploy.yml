@@ -6,6 +6,7 @@ on:
     paths:
       - 'functions/**'
       - 'lib/contact/**'
+      - 'lib/client-galleries/**'
       - '.node-version'
       - '.github/workflows/functions-deploy.yml'
   workflow_dispatch:
