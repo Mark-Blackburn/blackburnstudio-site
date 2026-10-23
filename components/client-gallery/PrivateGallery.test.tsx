@@ -122,7 +122,7 @@ describe("private gallery shell", () => {
     render(<StrictMode><ClientGalleryShell /></StrictMode>);
     await screen.findByRole("heading", { name: dto.title });
     fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
-    await screen.findByRole("heading", { name: "This gallery is unavailable." });
+    expect(screen.getByRole("status")).toHaveTextContent("Signing out…");
     window.location.hash = `access=${"u".repeat(43)}`;
     await waitFor(() => expect(window.location.hash).toBe(""));
     expect(screen.getByRole("status")).toHaveTextContent("Loading private gallery");
@@ -140,6 +140,36 @@ describe("private gallery shell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Open image 1: Synthetic portrait" }));
     expect(screen.getByRole("link", { name: "Download full-resolution image" })).toHaveAttribute("href", `${path}/full`);
     fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+  });
+
+  it.each([200, 503])("shows signing-out until queued logout settles (%s)", async status => {
+    let finishRefresh!: (response: Response) => void;
+    let finishLogout!: (response: Response) => void;
+    const refresh = new Promise<Response>(resolve => { finishRefresh = resolve; });
+    const logout = new Promise<Response>(resolve => { finishLogout = resolve; });
+    fetchMock.mockResolvedValueOnce(json(dto)).mockReturnValueOnce(refresh).mockReturnValueOnce(logout);
+    render(<StrictMode><ClientGalleryShell /></StrictMode>);
+    await screen.findByRole("heading", { name: dto.title });
+    fireEvent(window, new Event("focus"));
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(2));
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    expect(screen.getByRole("status")).toHaveTextContent("Signing out…");
+    expect(screen.getByRole("status")).toHaveTextContent("Please keep this page open");
+    expect(screen.queryByRole("heading", { name: dto.title })).not.toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: "This gallery is unavailable." })).not.toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2); // Logout is still queued behind refresh.
+    await act(async () => { finishRefresh(json(dto)); });
+    await waitFor(() => expect(fetchMock).toHaveBeenCalledTimes(3));
+    expect(fetchMock.mock.calls[2][0]).toBe(`/api/galleries/${id}/logout`);
+    expect(screen.getByRole("status")).toHaveTextContent("Signing out…");
+    expect(screen.queryByRole("heading", { name: dto.title })).not.toBeInTheDocument();
+    await act(async () => { finishLogout(json({ success: status === 200 }, status)); });
+    await screen.findByRole("heading", { name: "This gallery is unavailable." });
+    expect(screen.queryByRole("status")).not.toBeInTheDocument();
+    if (status === 503) expect(screen.getByRole("alert")).toHaveTextContent("clear this website’s cookies or site data");
+    else expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent(window, new Event("focus"));
+    expect(fetchMock).toHaveBeenCalledTimes(3);
   });
 
   it("renders private download actions in the viewer and signs out", async () => {

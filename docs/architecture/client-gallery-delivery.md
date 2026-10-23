@@ -22,7 +22,10 @@ After a transient initial metadata failure, focus/timer refresh waits for that
 attempt to settle and retries only metadata; it never repeats token exchange.
 Gallery changes discard prior displayed state. Focus and a 60-second interval
 recheck the current session; a failed check removes the displayed gallery.
-Sign-out clears the chosen gallery cookie through its same-origin endpoint.
+Sign-out immediately hides photographs and shows “Signing out…” with a request
+to keep the page open while queued or in-flight work finishes. Only after logout
+settles does the final unavailable state appear. Successful sign-out clears the
+chosen gallery cookie through its same-origin endpoint.
 If sign-out cannot be confirmed, shared-device users are told to clear this
 website's cookies/site data. Closing a browser does not reliably remove a
 persistent session cookie.

@@ -179,6 +179,9 @@ try {
   const pendingExchange = new Promise(resolve => { finishExchange = resolve; });
   let finishLogout;
   const pendingLogout = new Promise(resolve => { finishLogout = resolve; });
+  let deferNextMetadata = false;
+  let finishRefresh;
+  const pendingRefresh = new Promise(resolve => { finishRefresh = resolve; });
   const photo = await readFile(join(root, "portraits", "male.jpg"));
   await page.route(`**/api/galleries/${galleryId}/**`, async route => {
     const pathname = new URL(route.request().url()).pathname;
@@ -202,12 +205,15 @@ try {
       headers: { "Cache-Control": "no-store", "Content-Security-Policy": "default-src 'none'; sandbox", "X-Content-Type-Options": "nosniff",
         "Content-Disposition": variant === "view" ? "inline" : `attachment; filename="synthetic-${variant}.jpg"` } });
   });
-  await page.route(`**/api/galleries/${galleryId}`, route => route.fulfill({
+  await page.route(`**/api/galleries/${galleryId}`, async route => {
+    if (deferNextMetadata) { deferNextMetadata = false; await pendingRefresh; }
+    return route.fulfill({
     status: galleryAuthorized ? 200 : 404, contentType: "application/json",
     body: JSON.stringify(galleryAuthorized ? { id: galleryId, title: "Synthetic Private Gallery", clientDisplayName: "Test client",
       expiresAt: "2099-01-01T00:00:00Z", assets: [{ id: assetId, altText: "Synthetic portrait", width: 1498, height: 1873,
         orientation: "portrait", displayOrder: 0, webImageUrl: `${imagePath}/view`, webDownloadUrl: `${imagePath}/web`, fullDownloadUrl: `${imagePath}/full` }] } : {}),
-  }));
+    });
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   const firstExchange = page.waitForRequest(request => request.url().endsWith(`/api/galleries/${galleryId}/exchange`));
   await page.goto(`${origin}/clients/${galleryId}#access=${oldToken}`);
@@ -233,8 +239,16 @@ try {
   }
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "Gallery fits mobile viewport");
   await page.getByRole("button", { name: "Close image viewer" }).click();
+  deferNextMetadata = true;
+  const refreshRequest = page.waitForRequest(request => request.url().endsWith(`/api/galleries/${galleryId}`));
+  await page.evaluate(() => window.dispatchEvent(new Event("focus")));
+  await refreshRequest;
   await page.getByRole("button", { name: "Sign out" }).click();
-  await page.getByRole("heading", { name: "This gallery is unavailable." }).waitFor();
+  await page.getByRole("status").filter({ hasText: "Signing out…" }).waitFor();
+  assert.equal(await page.getByText("Please keep this page open until sign-out is complete.").isVisible(), true);
+  assert.equal(await page.getByRole("heading", { name: "Synthetic Private Gallery" }).count(), 0);
+  assert.equal(await page.getByRole("heading", { name: "This gallery is unavailable." }).count(), 0);
+  finishRefresh();
   await page.evaluate(token => { window.location.hash = `access=${token}`; }, token);
   await page.waitForFunction(() => window.location.hash === "");
   await page.getByRole("status").filter({ hasText: "Loading private gallery" }).waitFor();

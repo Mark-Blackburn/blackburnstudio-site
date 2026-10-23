@@ -77,6 +77,7 @@ function GalleryLoader({ galleryId, sample, session }: {
   const [gallery, setGallery] = useState<GalleryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [signOutError, setSignOutError] = useState(false);
+  const [signingOut, setSigningOut] = useState(false);
   const initial = useRef<Promise<GalleryData> | null>(null);
   const signedOut = useRef(false);
 
@@ -112,10 +113,13 @@ function GalleryLoader({ galleryId, sample, session }: {
 
   const signOut = async () => {
     signedOut.current = true;
+    setSigningOut(true);
     setGallery(null);
     try { await session.logout(galleryId!); }
     catch { setSignOutError(true); }
+    finally { setSigningOut(false); }
   };
+  if (signingOut) return <ClientGalleryLoading signingOut />;
   if (loading) return <ClientGalleryLoading />;
   if (!gallery) return <>
     <ClientGalleryUnavailable />
@@ -124,14 +128,15 @@ function GalleryLoader({ galleryId, sample, session }: {
   return <ClientGallery gallery={gallery} onSignOut={sample ? undefined : signOut} />;
 }
 
-function ClientGalleryLoading() {
+function ClientGalleryLoading({ signingOut = false }: { signingOut?: boolean }) {
   return (
     <main className="flex min-h-screen bg-studio-base px-5 text-studio-muted sm:px-6">
       <div
         className="m-auto w-full max-w-xl border-y border-studio-border py-14 text-center"
         role="status"
       >
-        <p className="text-sm text-studio-dim">Loading private gallery…</p>
+        <p className="text-sm text-studio-dim">{signingOut ? "Signing out…" : "Loading private gallery…"}</p>
+        {signingOut ? <p className="mt-3 text-sm">Please keep this page open until sign-out is complete.</p> : null}
       </div>
     </main>
   );
