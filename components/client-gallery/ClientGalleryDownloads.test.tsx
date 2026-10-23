@@ -21,6 +21,8 @@ vi.mock("@/lib/client-galleries/downloads", () => ({
   prepareGalleryZip: vi.fn(),
   preparePhotoShare: vi.fn(),
 }));
+vi.mock("next/navigation", () => ({ usePathname: () => "/clients/g_testGallery" }));
+
 const sample = getSampleClientGallery(SAMPLE_CLIENT_GALLERY_ID)!;
 const gallery = {
   ...sample,

@@ -76,7 +76,8 @@ Downloads retain the supplied image bytes; this service does not remove EXIF.
 ## Client selection, ZIP downloads and sharing
 
 The client grid uses compact, uniform thumbnails (two columns on phones, up to
-five on desktop). The viewer retains each photograph's full aspect ratio and
+five on desktop), with the shared website navigation above the gallery. Sign out
+remains next to the private-gallery heading. The viewer retains each photograph's full aspect ratio and
 labels the individual actions Download web size and Download full resolution.
 
 Clients can select photographs individually, select all or clear their selection,
