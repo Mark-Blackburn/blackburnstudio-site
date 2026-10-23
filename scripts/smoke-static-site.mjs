@@ -219,6 +219,12 @@ try {
   await page.getByRole("button", { name: "Close image viewer" }).click();
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.getByRole("heading", { name: "This gallery is unavailable." }).waitFor();
+  await page.evaluate(token => { window.location.hash = `access=${token}`; }, token);
+  await page.getByRole("heading", { name: "Synthetic Private Gallery" }).waitFor();
+  assert.equal(exchanges, 2, "Hash-only navigation after logout exchanges once without a reload");
+  assert.equal(new URL(page.url()).hash, "");
+  await page.getByRole("button", { name: "Sign out" }).click();
+  await page.getByRole("heading", { name: "This gallery is unavailable." }).waitFor();
   await page.reload();
   await page.getByRole("heading", { name: "This gallery is unavailable." }).waitFor();
   await page.setViewportSize({ width: 1280, height: 900 });

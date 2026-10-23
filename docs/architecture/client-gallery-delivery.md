@@ -12,6 +12,8 @@ including malformed credentials. A valid token is sent only in one JSON POST
 body. It is not put in browser storage, image/download URLs, analytics or logs.
 React Strict Mode effect replay shares the initial exchange promise rather than
 submitting twice. Refresh without a fragment uses the existing HttpOnly cookie.
+A same-gallery hash navigation starts a fresh loader, including after sign-out;
+it clears the new fragment before exchanging once and resets the signed-out state.
 After a transient initial metadata failure, focus/timer refresh waits for that
 attempt to settle and retries only metadata; it never repeats token exchange.
 Gallery changes discard prior displayed state. Focus and a 60-second interval

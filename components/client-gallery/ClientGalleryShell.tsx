@@ -33,6 +33,7 @@ export function getClientGalleryId(pathname: string): string | null {
 export function ClientGalleryShell() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
+  const [linkGeneration, setLinkGeneration] = useState(0);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -42,6 +43,19 @@ export function ClientGalleryShell() {
     return () => cancelAnimationFrame(frame);
   }, []);
 
+  useEffect(() => {
+    const restartForFragment = () => {
+      // A same-gallery link can change only the hash, leaving usePathname unchanged.
+      // Remount the loader without retaining the bearer in React state. Its initial
+      // effect clears the fragment before making the one-shot exchange.
+      if (window.location.hash && getClientGalleryId(window.location.pathname) === getClientGalleryId(pathname)) {
+        setLinkGeneration(generation => generation + 1);
+      }
+    };
+    window.addEventListener("hashchange", restartForFragment);
+    return () => window.removeEventListener("hashchange", restartForFragment);
+  }, [pathname]);
+
   // This also isolates pending state when Next performs client-side navigation.
   const galleryId = getClientGalleryId(pathname);
 
@@ -50,7 +64,7 @@ export function ClientGalleryShell() {
   }
 
   const gallery = galleryId ? getSampleClientGallery(galleryId) : null;
-  return <GalleryLoader key={galleryId ?? "unavailable"} galleryId={galleryId} sample={gallery} />;
+  return <GalleryLoader key={`${galleryId ?? "unavailable"}:${linkGeneration}`} galleryId={galleryId} sample={gallery} />;
 }
 
 function GalleryLoader({ galleryId, sample }: { galleryId: string | null; sample: GalleryData | null }) {

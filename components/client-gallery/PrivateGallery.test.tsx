@@ -35,6 +35,34 @@ describe("private gallery shell", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("reopens a hash-only link after logout with one new exchange under Strict Mode", async () => {
+    window.history.replaceState({}, "", `${navigation.pathname}#access=${"t".repeat(43)}`);
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.endsWith("/exchange")) {
+        expect(window.location.hash).toBe("");
+        return json({ success: true });
+      }
+      return json(url.endsWith("/logout") ? { success: true } : dto);
+    });
+    render(<StrictMode><ClientGalleryShell /></StrictMode>);
+    await screen.findByRole("heading", { name: dto.title });
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await screen.findByRole("heading", { name: "This gallery is unavailable." });
+
+    // Native fragment navigation: keep the document and mounted shell alive.
+    window.location.hash = `access=${"u".repeat(43)}`;
+    await screen.findByRole("heading", { name: dto.title });
+    expect(window.location.hash).toBe("");
+    const exchanges = fetchMock.mock.calls.filter(call => call[0].endsWith("/exchange"));
+    expect(exchanges).toHaveLength(2);
+    expect(JSON.parse(exchanges[1][1].body)).toEqual({ token: "u".repeat(43) });
+    fireEvent(window, new Event("focus"));
+    await waitFor(() => expect(fetchMock.mock.calls.filter(call => call[0] === `/api/galleries/${id}`)).toHaveLength(3));
+    expect(fetchMock.mock.calls.filter(call => call[0].endsWith("/exchange"))).toHaveLength(2);
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await screen.findByRole("heading", { name: "This gallery is unavailable." });
+  });
+
   it("renders private download actions in the viewer and signs out", async () => {
     fetchMock.mockResolvedValueOnce(json(dto)).mockResolvedValueOnce(json({ success: true }));
     render(<ClientGalleryShell />);
