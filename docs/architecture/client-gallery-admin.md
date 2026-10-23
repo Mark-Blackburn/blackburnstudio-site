@@ -1,5 +1,9 @@
 # Gallery administration
 
+Open `/admin/` (or `/admin`) for the administration landing page, then choose
+Gallery administration. The landing page is noindex and contains only navigation;
+Microsoft sign-in and the `gallery_admin` role still protect gallery operations.
+
 The `/admin/galleries` screen manages the existing private-gallery service. It
 lists galleries with continuation paging, creates published galleries with an
 expiry, generates a replacement link, revokes access, and uploads JPEG pairs.
@@ -12,12 +16,16 @@ retains it with the displayed link and clears that link when refresh observes a
 different version, including replacement by another operator. An unchanged
 version preserves a still-active link.
 
+The admin API uses `/api/gallery-management/galleries`. Azure Functions reserves
+custom route prefixes beginning with `admin` or `runtime`, even when the host
+uses its default `/api` prefix. Keep new Function routes outside those prefixes.
+
 ## Authentication and release
 
 No new password system or public upload capability. The screen uses SWA's
 Microsoft (`aad`) sign-in. Every admin API request requires a platform principal
 with `authenticated` and `gallery_admin` roles, as well as the `aad` provider and
-nonempty user ID. SWA `/api/admin/*` route authorization independently requires
+nonempty user ID. SWA `/api/gallery-management/*` route authorization independently requires
 `gallery_admin`. POSTs require the exact configured public Origin, including
 multipart uploads. A client gallery link/cookie never grants admin privileges.
 

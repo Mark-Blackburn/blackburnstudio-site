@@ -34,7 +34,7 @@ function issuedLinkFor(
   };
 }
 type Page = { galleries: Gallery[]; cursor?: string };
-const base = "/api/admin/galleries";
+const base = "/api/gallery-management/galleries";
 const field =
   "w-full rounded border border-studio-border bg-studio-surface px-3 py-2 text-studio-text";
 const button =

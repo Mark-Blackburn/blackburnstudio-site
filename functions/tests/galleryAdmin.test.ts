@@ -45,7 +45,7 @@ function req(
 ) {
   return new HttpRequest({
     method,
-    url: origin + "/api/admin/galleries",
+    url: origin + "/api/gallery-management/galleries",
     params,
     headers: {
       "x-ms-client-principal": admin,

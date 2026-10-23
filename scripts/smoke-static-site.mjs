@@ -22,6 +22,7 @@ for (const name of [
   "index.html",
   "contact.html",
   "clients.html",
+  "admin.html",
   "404.html",
   "robots.txt",
   "sitemap.xml",
@@ -80,6 +81,7 @@ const server = createServer(async (req, res) => {
       return;
     }
     if (pathname.startsWith("/clients/")) pathname = "/clients.html";
+    if (pathname === "/admin/") pathname = "/admin.html";
     const target = resolve(root, `.${pathname}`);
     if (target !== resolve(root) && !target.startsWith(resolve(root) + sep)) {
       res.writeHead(404).end();
@@ -341,7 +343,7 @@ try {
   assert.deepEqual(requests[0].services, ["photography"]);
   // Administration exercises the exported UI with synthetic platform identity.
   // Live role assignment and linked Function ingress are a release check.
-  assert.ok(config.routes.some(rule => rule.route === "/api/admin/*" && rule.allowedRoles.includes("gallery_admin")));
+  assert.ok(config.routes.some(rule => rule.route === "/api/gallery-management/*" && rule.allowedRoles.includes("gallery_admin")));
   let adminSignedIn = false;
   let adminGallery;
   let uploadedPair = false;
@@ -351,7 +353,7 @@ try {
   await page.route("**/.auth/me", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
     clientPrincipal: adminSignedIn ? { identityProvider: "aad", userId: "synthetic-operator", userRoles: ["authenticated", "gallery_admin"] } : null,
   }) }));
-  await page.route("**/api/admin/galleries**", async route => {
+  await page.route("**/api/gallery-management/galleries**", async route => {
     const request = route.request();
     if (request.method() === "GET" && new URL(request.url()).pathname.endsWith("/details")) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ gallery: adminGallery }) });
     if (request.method() === "GET") return route.fulfill({ contentType: "application/json", body: JSON.stringify({ galleries: adminGallery ? [adminGallery, otherAdminGallery] : [] }) });
@@ -372,7 +374,13 @@ try {
     adminGallery = { id: galleryId, accessTokenVersion: 1, title: input.title, clientDisplayName: input.clientDisplayName, message: input.message, status: "published", expiresAt: Date.parse(input.expiresAt) };
     return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ gallery: adminGallery, link: adminLink, accessTokenVersion: 1 }) });
   });
-  await page.goto(origin + "/admin/galleries");
+  for (const path of ["/admin", "/admin/"]) {
+    assert.ok(config.routes.some(rule => rule.route === path && rule.rewrite === "/admin.html"));
+    await page.goto(origin + path);
+    await page.getByRole("heading", { name: "Administration", exact: true }).waitFor();
+    assert.match(await page.locator('meta[name="robots"]').getAttribute("content"), /noindex/);
+  }
+  await page.getByRole("link", { name: /Gallery administration/ }).click();
   await page.getByRole("link", { name: "Sign in with Microsoft" }).waitFor().catch(async error => { console.error(await page.locator("body").innerText(), pageErrors); throw error; });
   adminSignedIn = true;
   await page.reload();

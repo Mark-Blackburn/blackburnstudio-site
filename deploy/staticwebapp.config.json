@@ -1,7 +1,7 @@
 {
   "routes": [
     {
-      "route": "/api/admin/*",
+      "route": "/api/gallery-management/*",
       "allowedRoles": [
         "gallery_admin"
       ],
@@ -13,6 +13,22 @@
     {
       "route": "/clients/*",
       "rewrite": "/clients.html",
+      "headers": {
+        "Cache-Control": "no-store",
+        "X-Robots-Tag": "noindex, nofollow"
+      }
+    },
+    {
+      "route": "/admin",
+      "rewrite": "/admin.html",
+      "headers": {
+        "Cache-Control": "no-store",
+        "X-Robots-Tag": "noindex, nofollow"
+      }
+    },
+    {
+      "route": "/admin/",
+      "rewrite": "/admin.html",
       "headers": {
         "Cache-Control": "no-store",
         "X-Robots-Tag": "noindex, nofollow"
