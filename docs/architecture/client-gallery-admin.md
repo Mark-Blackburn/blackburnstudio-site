@@ -117,8 +117,14 @@ HTTP 400 shows public validation guidance; POST transport/response failures
 explicitly warn that a photo or other change may have committed, and ask the
 operator to inspect before retrying. No mutation is retried automatically.
 
-First-version boundaries: no photo deletion, gallery editing, ZIP downloads or
-background conversion. Revoked/expired galleries cannot be uploaded to or
+Copy client link uses its own clipboard state, so uploads and list refreshes do
+not disable copying. If clipboard access is unavailable, denied or waits more
+than eight seconds, the UI selects the visible link for manual copying. It does
+not block other admin actions while waiting for browser clipboard permission.
+
+First-version boundaries: no photo deletion, gallery editing or background
+conversion. Client-side selected ZIP downloads and JPEG file sharing are
+described in client-gallery-delivery.md. Revoked/expired galleries cannot be uploaded to or
 reactivated by link replacement. Admin list JSON exposes only display metadata,
 not credentials. Admin pages are noindex and excluded from existing analytics
 and sitemap generation. All admin API responses are no-store; API errors never

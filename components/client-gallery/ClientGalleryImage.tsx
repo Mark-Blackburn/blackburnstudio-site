@@ -19,7 +19,7 @@ export function ClientGalleryImage({
       onClick={(event) => onOpen(event.currentTarget)}
       aria-label={`Open image ${position}: ${asset.altText}`}
       className="group relative block w-full overflow-hidden rounded-md bg-studio-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b9955a] focus-visible:ring-offset-4 focus-visible:ring-offset-studio-base"
-      style={{ aspectRatio: `${asset.width} / ${asset.height}` }}
+      style={{ aspectRatio: "4 / 3" }}
     >
       {/* eslint-disable-next-line @next/next/no-img-element -- future secure image URLs are request-time Function endpoints */}
       <img

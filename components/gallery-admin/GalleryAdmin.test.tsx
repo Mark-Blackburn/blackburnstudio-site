@@ -1,4 +1,10 @@
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
+import {
+  act,
+  render,
+  screen,
+  fireEvent,
+  waitFor,
+} from "@testing-library/react";
 import { beforeEach, afterEach, it, expect, vi } from "vitest";
 import { GalleryAdmin, makeWebJpeg } from "./GalleryAdmin";
 const mockFetch = vi.fn();
@@ -21,6 +27,8 @@ beforeEach(() => {
   mockFetch.mockReset();
 });
 afterEach(() => {
+  vi.useRealTimers();
+  Reflect.deleteProperty(navigator, "clipboard");
   vi.unstubAllGlobals();
   vi.restoreAllMocks();
 });
@@ -175,6 +183,55 @@ async function createGalleryWithLink() {
     ).toBeEnabled(),
   );
 }
+
+it("copies independently of an API request and restores manual copying when clipboard permission stalls", async () => {
+  await createGalleryWithLink();
+  const writeText = vi.fn().mockReturnValue(new Promise(() => undefined));
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText },
+  });
+  let finish!: (value: Response) => void;
+  mockFetch.mockReturnValueOnce(
+    new Promise((resolve) => {
+      finish = resolve;
+    }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Refresh list" }));
+  expect(screen.getByRole("button", { name: "Refresh list" })).toBeDisabled();
+  const copy = screen.getByRole("button", { name: "Copy client link" });
+  expect(copy).toBeEnabled();
+  vi.useFakeTimers();
+  fireEvent.click(copy);
+  expect(writeText).toHaveBeenCalledWith(privateLink);
+  await act(async () => {
+    await vi.advanceTimersByTimeAsync(8000);
+  });
+  expect(
+    screen.getByRole("button", { name: "Copy client link" }),
+  ).toBeEnabled();
+  const input = screen.getByLabelText(
+    "Private client link",
+  ) as HTMLInputElement;
+  expect(input).toHaveFocus();
+  expect(input.selectionEnd! - input.selectionStart!).toBe(privateLink.length);
+  expect(screen.getByText(/Link selected. Press Ctrl/)).toBeInTheDocument();
+  await act(async () => {
+    finish(response({ galleries: [gallery] }));
+  });
+});
+
+it("offers manual copying when browser clipboard access is denied", async () => {
+  await createGalleryWithLink();
+  Object.defineProperty(navigator, "clipboard", {
+    configurable: true,
+    value: { writeText: vi.fn().mockRejectedValue(new Error("Denied")) },
+  });
+  fireEvent.click(screen.getByRole("button", { name: "Copy client link" }));
+  await screen.findByText(/Link selected. Press Ctrl/);
+  expect(screen.getByLabelText("Private client link")).toHaveFocus();
+  expect(screen.getByRole("button", { name: "Refresh list" })).toBeEnabled();
+});
 
 it.each(["select", "create"])(
   "discards pending client files when switching galleries via %s",

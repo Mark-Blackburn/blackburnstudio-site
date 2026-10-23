@@ -4,6 +4,8 @@ import { useCallback, useRef, useState } from "react";
 
 import { ClientGalleryGrid } from "@/components/client-gallery/ClientGalleryGrid";
 import { ClientGalleryViewer } from "@/components/client-gallery/ClientGalleryViewer";
+import { ClientGalleryActions } from "@/components/client-gallery/ClientGalleryActions";
+import { ClientGalleryDownloads } from "@/components/client-gallery/ClientGalleryDownloads";
 import type { ClientGallery as ClientGalleryData } from "@/lib/client-galleries/contracts";
 import { SITE_EMAIL, SITE_NAME } from "@/lib/siteConfig";
 
@@ -14,8 +16,15 @@ function formatExpiry(expiresAt: string) {
   }).format(new Date(expiresAt));
 }
 
-export function ClientGallery({ gallery, onSignOut }: { gallery: ClientGalleryData; onSignOut?: () => void }) {
+export function ClientGallery({
+  gallery,
+  onSignOut,
+}: {
+  gallery: ClientGalleryData;
+  onSignOut?: () => void;
+}) {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [selected, setSelected] = useState<Set<string>>(() => new Set());
   const openerRef = useRef<HTMLButtonElement | null>(null);
   const clientDisplayName = gallery.clientDisplayName?.trim();
 
@@ -35,7 +44,15 @@ export function ClientGallery({ gallery, onSignOut }: { gallery: ClientGalleryDa
           <span className="text-[0.7rem] font-medium uppercase tracking-[0.28em] text-studio-text">
             {SITE_NAME}
           </span>
-          {onSignOut ? <button type="button" onClick={onSignOut} className="min-h-11 px-3 text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-[#b9955a]">Sign out</button> : null}
+          {onSignOut ? (
+            <button
+              type="button"
+              onClick={onSignOut}
+              className="min-h-11 px-3 text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-[#b9955a]"
+            >
+              Sign out
+            </button>
+          ) : null}
         </div>
       </header>
 
@@ -63,9 +80,32 @@ export function ClientGallery({ gallery, onSignOut }: { gallery: ClientGalleryDa
             </p>
           ) : null}
 
-          <div className="mt-12 md:mt-16">
-            {gallery.assets.length === 0 ? <p className="text-sm text-studio-dim">Your photographs are being prepared. Please check back shortly.</p> : null}
-            <ClientGalleryGrid assets={gallery.assets} onOpen={open} />
+          <div className="mt-8 md:mt-10">
+            {gallery.assets.length === 0 ? (
+              <p className="text-sm text-studio-dim">
+                Your photographs are being prepared. Please check back shortly.
+              </p>
+            ) : null}
+            <ClientGalleryDownloads
+              galleryId={gallery.id}
+              title={gallery.title}
+              assets={gallery.assets}
+              selected={selected}
+              onSelectionChange={setSelected}
+            />
+            <ClientGalleryGrid
+              assets={gallery.assets}
+              onOpen={open}
+              selected={selected}
+              onToggleSelection={(id) =>
+                setSelected((previous) => {
+                  const next = new Set(previous);
+                  if (next.has(id)) next.delete(id);
+                  else next.add(id);
+                  return next;
+                })
+              }
+            />
           </div>
         </section>
       </main>
@@ -89,10 +129,13 @@ export function ClientGallery({ gallery, onSignOut }: { gallery: ClientGalleryDa
           onIndexChange={setOpenIndex}
           onClose={close}
           returnFocusRef={openerRef}
-          renderActions={(asset) => <>
-            {asset.webDownloadUrl ? <a href={asset.webDownloadUrl} download aria-label="Download web-size image" referrerPolicy="no-referrer" className="inline-flex min-h-11 items-center px-2 text-xs underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-[#d2b47b] sm:text-sm">Web size</a> : null}
-            {asset.fullDownloadUrl ? <a href={asset.fullDownloadUrl} download aria-label="Download full-resolution image" referrerPolicy="no-referrer" className="inline-flex min-h-11 items-center px-2 text-xs underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-[#d2b47b] sm:text-sm">Full resolution</a> : null}
-          </>}
+          renderActions={(asset) => (
+            <ClientGalleryActions
+              key={asset.id}
+              galleryId={gallery.id}
+              asset={asset}
+            />
+          )}
         />
       ) : null}
     </div>

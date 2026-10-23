@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   type KeyboardEvent,
   type ReactNode,
@@ -38,8 +39,8 @@ export function ClientGalleryViewer({
   const total = assets.length;
   const gestureTotal = Math.max(total, 1);
   const normalizedIndex = Number.isFinite(index) ? index : 0;
-  const safeIndex =
-    total > 0 ? ((normalizedIndex % total) + total) % total : 0;
+  const safeIndex = total > 0 ? ((normalizedIndex % total) + total) % total : 0;
+  const currentAsset = assets[safeIndex];
 
   useScrollLock(total > 0);
 
@@ -80,11 +81,21 @@ export function ClientGalleryViewer({
     };
   }, [returnFocusRef, total]);
 
+  useLayoutEffect(() => {
+    // Per-photo actions remount on navigation to discard prepared share files.
+    // Removing a focused action does not emit focusin; recover before the next
+    // key event, while leaving focus on stable viewer controls untouched.
+    if (
+      dialogRef.current &&
+      !dialogRef.current.contains(document.activeElement)
+    ) {
+      closeButtonRef.current?.focus();
+    }
+  }, [currentAsset?.id, safeIndex]);
+
   if (total === 0) {
     return null;
   }
-
-  const currentAsset = assets[safeIndex];
 
   if (!currentAsset) {
     return null;
@@ -116,7 +127,8 @@ export function ClientGalleryViewer({
     if (event.key !== "Tab") return;
 
     const focusable = Array.from(
-      dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ?? [],
+      dialogRef.current?.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR) ??
+        [],
     );
     if (focusable.length === 0) {
       event.preventDefault();
@@ -164,13 +176,13 @@ export function ClientGalleryViewer({
       </h2>
 
       <div
-        className="relative z-20 flex min-h-16 items-center justify-between gap-4 border-b border-white/10 px-4 md:px-6"
+        className="relative z-20 flex shrink-0 flex-wrap items-center justify-between gap-2 border-b border-white/10 px-3 py-2 md:px-6"
         onClick={(event) => event.stopPropagation()}
       >
         <p aria-live="polite" className="text-xs text-white/60">
           {safeIndex + 1} of {total}
         </p>
-        <div className="flex items-center gap-2">
+        <div className="flex min-w-0 flex-1 items-start justify-end gap-2">
           {renderActions ? renderActions(currentAsset) : null}
           <button
             ref={closeButtonRef}
