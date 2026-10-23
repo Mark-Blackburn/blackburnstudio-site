@@ -220,8 +220,8 @@ try {
     body: JSON.stringify(galleryAuthorized ? { id: galleryId, title: "Synthetic Private Gallery", clientDisplayName: "Test client",
       expiresAt: "2099-01-01T00:00:00Z", assets: [assetId, "a_otherAsset123456789"].map((id, index) => {
         const path = `/api/galleries/${galleryId}/assets/${id}`;
-        return { id, altText: index === 0 ? "Synthetic portrait" : "Another synthetic portrait", width: 1498, height: 1873,
-          orientation: "portrait", displayOrder: index, webImageUrl: `${path}/view`, webDownloadUrl: `${path}/web`, fullDownloadUrl: `${path}/full` };
+        return { id, altText: index === 0 ? "Synthetic portrait" : "Another synthetic portrait", width: index === 0 ? 1498 : 1873, height: index === 0 ? 1873 : 1498,
+          orientation: index === 0 ? "portrait" : "landscape", displayOrder: index, webImageUrl: `${path}/view`, webDownloadUrl: `${path}/web`, fullDownloadUrl: `${path}/full` };
       }) } : {}),
     });
   });
@@ -240,11 +240,25 @@ try {
   await page.reload();
   await page.getByRole("heading", { name: "Synthetic Private Gallery" }).waitFor();
   assert.equal(exchanges, 2, "Refresh uses the existing session");
+  const menu = page.getByRole("button", { name: "Toggle navigation" });
+  await menu.click();
+  const mobileNavigation = page.getByRole("navigation", { name: "Primary mobile", exact: true });
+  for (const [label, href] of [["Work", "/work"], ["Digital", "/digital"], ["Tools", "/tools"], ["About", "/about"], ["Contact", "/contact"]]) {
+    assert.equal(await mobileNavigation.getByRole("link", { name: label, exact: true }).getAttribute("href"), href);
+  }
+  await menu.click();
   const grid = page.getByRole("group", { name: "Gallery photographs" });
   assert.equal(await grid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(" ").length), 2, "Mobile gallery has two compact columns");
   await page.setViewportSize({ width: 1280, height: 900 });
+  assert.equal(await page.getByRole("navigation", { name: "Primary", exact: true }).isVisible(), true, "Main site navigation is available on desktop");
   assert.equal(await grid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(" ").length), 5, "Desktop gallery has five compact columns");
   await page.waitForFunction(() => Array.from(document.querySelectorAll('[aria-label="Gallery photographs"] img')).every(image => image.complete && image.naturalWidth > 0));
+  const thumbnailSizes = await grid.locator('button[aria-label^="Open image"]').evaluateAll(elements => elements.map(element => {
+    const { width, height } = element.getBoundingClientRect();
+    return { width, height };
+  }));
+  assert.ok(Math.abs(thumbnailSizes[0].width - thumbnailSizes[1].width) < 1, "Landscape and portrait thumbnails have the same width");
+  assert.ok(Math.abs(thumbnailSizes[0].height - thumbnailSizes[1].height) < 1, "Mixed orientations fill uniform thumbnail frames");
   if (process.env.BLACKBURN_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.BLACKBURN_SMOKE_SCREENSHOT + "-grid.png" });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.getByRole("button", { name: "Select all", exact: true }).click();

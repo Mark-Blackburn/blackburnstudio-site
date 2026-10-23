@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 
+import SiteHeader from "@/components/site/SiteHeader";
 import { ClientGalleryGrid } from "@/components/client-gallery/ClientGalleryGrid";
 import { ClientGalleryViewer } from "@/components/client-gallery/ClientGalleryViewer";
 import { ClientGalleryActions } from "@/components/client-gallery/ClientGalleryActions";
@@ -39,30 +40,26 @@ export function ClientGallery({
 
   return (
     <div className="min-h-screen bg-studio-base text-studio-muted">
-      <header className="border-b border-studio-border">
-        <div className="mx-auto flex min-h-20 w-full max-w-7xl items-center justify-between gap-4 px-5 sm:px-6 md:px-8">
-          <span className="text-[0.7rem] font-medium uppercase tracking-[0.28em] text-studio-text">
-            {SITE_NAME}
-          </span>
-          {onSignOut ? (
-            <button
-              type="button"
-              onClick={onSignOut}
-              className="min-h-11 px-3 text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-[#b9955a]"
-            >
-              Sign out
-            </button>
-          ) : null}
-        </div>
-      </header>
+      <SiteHeader />
 
       <main className="mx-auto w-full max-w-7xl px-5 pb-24 pt-12 sm:px-6 md:px-8 md:pb-32 md:pt-20">
         <section aria-labelledby="client-gallery-heading">
-          <p className="text-[0.7rem] font-medium uppercase tracking-[0.22em] text-[#b9955a]">
-            {clientDisplayName
-              ? `Private gallery for ${clientDisplayName}`
-              : "Private client gallery"}
-          </p>
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+            <p className="text-[0.7rem] font-medium uppercase tracking-[0.22em] text-[#b9955a]">
+              {clientDisplayName
+                ? `Private gallery for ${clientDisplayName}`
+                : "Private client gallery"}
+            </p>
+            {onSignOut ? (
+              <button
+                type="button"
+                onClick={onSignOut}
+                className="min-h-11 px-3 text-sm underline underline-offset-4 focus-visible:ring-2 focus-visible:ring-[#b9955a]"
+              >
+                Sign out
+              </button>
+            ) : null}
+          </div>
           <h1
             id="client-gallery-heading"
             className="mt-4 max-w-4xl text-4xl font-medium leading-[1.08] text-studio-text sm:text-5xl md:text-6xl"

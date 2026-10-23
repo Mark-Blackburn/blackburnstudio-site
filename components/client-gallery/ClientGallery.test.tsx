@@ -15,6 +15,8 @@ import {
   SAMPLE_CLIENT_GALLERY_ID,
 } from "@/lib/client-galleries/fixtures/sampleClientGallery";
 
+vi.mock("next/navigation", () => ({ usePathname: () => "/clients/g_testGallery" }));
+
 const gallery = getSampleClientGallery(SAMPLE_CLIENT_GALLERY_ID)!;
 
 function installMatchMedia(reducedMotion = true) {
