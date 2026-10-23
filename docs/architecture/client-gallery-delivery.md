@@ -12,9 +12,14 @@ including malformed credentials. A valid token is sent only in one JSON POST
 body. It is not put in browser storage, image/download URLs, analytics or logs.
 React Strict Mode effect replay shares the initial exchange promise rather than
 submitting twice. Refresh without a fragment uses the existing HttpOnly cookie.
+After a transient initial metadata failure, focus/timer refresh waits for that
+attempt to settle and retries only metadata; it never repeats token exchange.
 Gallery changes discard prior displayed state. Focus and a 60-second interval
 recheck the current session; a failed check removes the displayed gallery.
 Sign-out clears the chosen gallery cookie through its same-origin endpoint.
+If sign-out cannot be confirmed, shared-device users are told to clear this
+website's cookies/site data. Closing a browser does not reliably remove a
+persistent session cookie.
 
 The browser validates the response DTO and accepts only exact same-origin image
 and download paths for the requested gallery and asset. Arbitrary external URLs,
@@ -30,6 +35,9 @@ cookie and current gallery publication, expiry, versions and link binding.
 An additional check after storage IO prevents starting a successful response
 when access was revoked or expired during that IO. Previously received bytes
 cannot be recalled; already displayed photos may remain until the next UI check.
+Each authorization lookup reads the clock again after the Table request and
+checks both session and gallery expiry against that fresh time. Link exchange
+also rechecks gallery expiry after storage IO before issuing a cookie.
 
 The Table asset is looked up under that gallery's partition. Blob names are
 derived from validated opaque IDs, never from caller paths or stored URLs:

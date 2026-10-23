@@ -75,7 +75,10 @@ function GalleryLoader({ galleryId, sample }: { galleryId: string | null; sample
       if (sample || !galleryId || signedOut.current || refreshing) return;
       refreshing = true;
       try {
-        await initial.current;
+        // Wait for the one-shot exchange/load to settle, including failure.
+        // Recovery retries metadata only; it never resends a link credential.
+        await initial.current?.catch(() => undefined);
+        if (!active || signedOut.current) return;
         const data = await loadClientGallery(galleryId);
         if (active && !signedOut.current) setGallery(data);
       } catch { if (active) setGallery(null); }
@@ -95,7 +98,7 @@ function GalleryLoader({ galleryId, sample }: { galleryId: string | null; sample
   if (loading) return <ClientGalleryLoading />;
   if (!gallery) return <>
     <ClientGalleryUnavailable />
-    {signOutError ? <p role="alert" className="fixed bottom-4 left-4 right-4 bg-studio-surface p-4 text-sm text-studio-text">Sign-out could not be confirmed. Close this browser session on a shared device.</p> : null}
+    {signOutError ? <p role="alert" className="fixed bottom-4 left-4 right-4 bg-studio-surface p-4 text-sm text-studio-text">Sign-out could not be confirmed. On a shared device, clear this website’s cookies or site data in your browser settings before leaving it. Closing the browser may keep you signed in.</p> : null}
   </>;
   return <ClientGallery gallery={gallery} onSignOut={sample ? undefined : signOut} />;
 }

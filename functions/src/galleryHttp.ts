@@ -45,7 +45,8 @@ export async function authorizeGalleryRequest(request: HttpRequest, dependencies
   const session = readGallerySession(readCookie(request, galleryCookieName(id)), id, dependencies.secret, time);
   if (!session) return null;
   const record = await dependencies.store.readGallery(id);
-  return record && sessionMatches(record, session, time, dependencies.secret) ? record : null;
+  const checkedAt = (dependencies.now ?? Date.now)();
+  return record && sessionMatches(record, session, checkedAt, dependencies.secret) ? record : null;
 }
 
 async function boundedJson(request: HttpRequest): Promise<unknown> {
@@ -87,10 +88,11 @@ export function createGalleryHandlers(dependencies: Dependencies) {
     if (!await store.consumeExchange(time))
       return { ...galleryResponse(429, { message: "Please try again later." }), headers: { ...GALLERY_HEADERS, "Retry-After": "300" } };
     const record = await store.readGallery(id);
-    if (!record || !galleryIsAvailable(record, time) || !tokenMatches(record, token, secret)) return unavailable();
-    const session = createGallerySession(record, secret, time);
+    const checkedAt = now();
+    if (!record || !galleryIsAvailable(record, checkedAt) || !tokenMatches(record, token, secret)) return unavailable();
+    const session = createGallerySession(record, secret, checkedAt);
     return { ...galleryResponse(200, { success: true }),
-      cookies: [cookie(id, session.value, Math.floor((session.expiresAt - time) / 1000))] };
+      cookies: [cookie(id, session.value, Math.floor((session.expiresAt - checkedAt) / 1000))] };
   }
 
   async function metadata(request: HttpRequest): Promise<HttpResponseInit> {

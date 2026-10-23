@@ -15,6 +15,7 @@ const time = Date.UTC(2026, 9, 23);
 const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xd9]);
 
 function harness() {
+  let clock = time;
   const record: GalleryAccessRecord = { id, title: "Private test", clientDisplayName: "Synthetic client", message: "Welcome",
     expiresAt: time + 86400_000, status: "published", accessTokenHash: "cd".repeat(32), accessTokenVersion: 1, sessionVersion: 1 };
   const asset: PrivateGalleryAsset = { galleryId: id, id: assetId, altText: "Synthetic photograph", width: 100, height: 150,
@@ -24,14 +25,15 @@ function harness() {
   const blobs = { read: vi.fn(async () => jpeg) };
   const logs: unknown[] = [];
   const context = new InvocationContext({ functionName: "gallery", logHandler: (...args) => { logs.push(args); } });
-  const handlers = createGalleryDeliveryHandlers({ store, assets, blobs, secret, now: () => time });
+  const handlers = createGalleryDeliveryHandlers({ store, assets, blobs, secret, now: () => clock });
   const session = createGallerySession(record, secret, time).value;
   function request(variant = "view", authorized = true, galleryId = id, key = assetId) {
     return new HttpRequest({ method: "GET", url: `https://www.theblackburn.studio/api/galleries/${galleryId}/assets/${key}/${variant}`,
       params: { galleryId, assetId: key, variant },
       headers: authorized ? { cookie: `${galleryCookieName(galleryId)}=${session}` } : {} });
   }
-  return { record, asset, assets, blobs, store, handlers, request, context, logs };
+  return { record, asset, assets, blobs, store, handlers, request, context, logs,
+    setTime: (value: number) => { clock = value; } };
 }
 
 describe("private image and download authorization", () => {
@@ -84,6 +86,44 @@ describe("private image and download authorization", () => {
     expect(response.status).toBe(503); expect(response.body).toBeUndefined();
     expect(JSON.stringify(h.logs)).toContain("[gallery-api] Request failed");
     expect(JSON.stringify([response, h.logs])).not.toMatch(/sig=|private Blob/);
+  });
+
+  it.each(["metadata", "view", "web", "full"])("denies %s when session expiry occurs inside the final Table lookup", async route => {
+    const h = harness();
+    let reads = 0;
+    h.store.readGallery.mockImplementation(async () => {
+      if (++reads === 2) h.setTime(time + 12 * 3600_000);
+      return h.record;
+    });
+    const response = route === "metadata" ? await h.handlers.metadata(h.request(), h.context)
+      : await h.handlers.image(h.request(route), h.context);
+    expect(response.status).toBe(404);
+    expect(response.body).toBeUndefined();
+    expect(response.headers).toMatchObject({ "Cache-Control": "no-store" });
+    expect(response.jsonBody).toEqual({ message: "Gallery unavailable." });
+    expect(reads).toBe(2);
+  });
+
+  it.each(["metadata", "view", "web", "full"])("denies %s when gallery expiry occurs inside the final Table lookup", async route => {
+    const h = harness(); h.record.expiresAt = time + 1000;
+    let reads = 0;
+    h.store.readGallery.mockImplementation(async () => {
+      if (++reads === 2) h.setTime(time + 1000);
+      return h.record;
+    });
+    const response = route === "metadata" ? await h.handlers.metadata(h.request(), h.context)
+      : await h.handlers.image(h.request(route), h.context);
+    expect(response.status).toBe(404);
+    expect(response.body).toBeUndefined();
+    expect(response.jsonBody).toEqual({ message: "Gallery unavailable." });
+  });
+
+  it("rejects expiry inside the first Table lookup before asset or Blob access", async () => {
+    const h = harness();
+    h.store.readGallery.mockImplementation(async () => { h.setTime(time + 12 * 3600_000); return h.record; });
+    expect((await h.handlers.image(h.request(), h.context)).status).toBe(404);
+    expect(h.assets.readAsset).not.toHaveBeenCalled();
+    expect(h.blobs.read).not.toHaveBeenCalled();
   });
 });
 

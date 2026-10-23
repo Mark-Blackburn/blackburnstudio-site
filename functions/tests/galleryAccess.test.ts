@@ -103,6 +103,16 @@ describe("private gallery access", () => {
     expect((await h.metadata(`${cookie.name}=${cookie.value}`)).status).toBe(404);
   });
 
+  it("does not issue a session if the gallery expires during exchange storage IO", async () => {
+    const h = harness(); h.record.expiresAt = time + 1000;
+    vi.mocked(h.store.readGallery).mockImplementation(async () => {
+      h.setTime(time + 1000); return h.record;
+    });
+    const response = await h.exchange();
+    expect(response.status).toBe(404);
+    expect(response.cookies).toBeUndefined();
+  });
+
   it("does not revive old sessions if a gallery ID is reused with a new link", async () => {
     const h = harness(); const cookie = (await h.exchange()).cookies![0];
     h.record.accessTokenHash = hashGalleryToken(secret, id, randomBytes(32).toString("base64url"));

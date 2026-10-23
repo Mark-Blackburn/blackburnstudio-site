@@ -1,5 +1,5 @@
 import { StrictMode } from "react";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { act, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const navigation = vi.hoisted(() => ({ pathname: "/clients/g_privateGallery123456" }));
@@ -22,7 +22,7 @@ beforeEach(() => {
   vi.spyOn(window, "scrollTo").mockImplementation(() => undefined);
   Object.defineProperty(window, "matchMedia", { configurable: true, value: vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })) });
 });
-afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); });
+afterEach(() => { vi.unstubAllGlobals(); vi.restoreAllMocks(); vi.useRealTimers(); });
 
 describe("private gallery shell", () => {
   it("exchanges once under Strict Mode and removes the access fragment", async () => {
@@ -45,6 +45,44 @@ describe("private gallery shell", () => {
     fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
     expect(await screen.findByRole("heading", { name: "This gallery is unavailable." })).toBeInTheDocument();
     expect(fetchMock.mock.calls.at(-1)?.[0]).toBe(`/api/galleries/${id}/logout`);
+  });
+
+  it.each([false, true])("recovers metadata on focus after initial GET failure (exchange=%s)", async exchange => {
+    if (exchange) {
+      window.history.replaceState({}, "", `${navigation.pathname}#access=${"t".repeat(43)}`);
+      fetchMock.mockResolvedValueOnce(json({ success: true }));
+    }
+    fetchMock.mockResolvedValueOnce(json({}, 503)).mockResolvedValueOnce(json(dto));
+    render(<StrictMode><ClientGalleryShell /></StrictMode>);
+    await screen.findByRole("heading", { name: "This gallery is unavailable." });
+    fireEvent(window, new Event("focus"));
+    expect(await screen.findByRole("heading", { name: dto.title })).toBeInTheDocument();
+    expect(fetchMock.mock.calls.filter(call => call[0].endsWith("/exchange"))).toHaveLength(exchange ? 1 : 0);
+    expect(fetchMock.mock.calls.filter(call => call[0] === `/api/galleries/${id}`)).toHaveLength(2);
+    expect(window.location.hash).toBe("");
+  });
+
+  it("recovers on the timer after initial metadata failure", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockResolvedValueOnce(json({}, 503)).mockResolvedValueOnce(json(dto));
+    render(<ClientGalleryShell />);
+    await act(async () => { await vi.advanceTimersByTimeAsync(100); });
+    expect(screen.getByRole("heading", { name: "This gallery is unavailable." })).toBeInTheDocument();
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    expect(screen.getByRole("heading", { name: dto.title })).toBeInTheDocument();
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("requires site-data removal after failed logout and does not restore the gallery on focus", async () => {
+    fetchMock.mockResolvedValueOnce(json(dto)).mockResolvedValueOnce(json({}, 503));
+    render(<ClientGalleryShell />);
+    fireEvent.click(await screen.findByRole("button", { name: "Sign out" }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent("clear this website’s cookies or site data");
+    expect(alert).toHaveTextContent("Closing the browser may keep you signed in");
+    fireEvent(window, new Event("focus"));
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole("heading", { name: dto.title })).not.toBeInTheDocument();
   });
 
   it("removes displayed metadata when the session is revoked on refresh", async () => {
