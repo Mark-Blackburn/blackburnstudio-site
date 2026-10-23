@@ -9,6 +9,10 @@ const root = fileURLToPath(new URL("../out/", import.meta.url));
 const config = JSON.parse(
   await readFile(join(root, "staticwebapp.config.json"), "utf8"),
 );
+// Azure treats trailing-slash variants as the same route during deployment.
+const normalizedRoutes = config.routes.map(rule => rule.route.replace(/\/+$/, "") || "/");
+assert.equal(new Set(normalizedRoutes).size, normalizedRoutes.length,
+  "SWA route rules must not duplicate trailing-slash variants");
 assert.deepEqual(
   config.routes.filter(rule => rule.route.startsWith("/clients")).map((rule) => [rule.route, rule.rewrite]),
   [["/clients/*", "/clients.html"]],
@@ -375,7 +379,7 @@ try {
     return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ gallery: adminGallery, link: adminLink, accessTokenVersion: 1 }) });
   });
   for (const path of ["/admin", "/admin/"]) {
-    assert.ok(config.routes.some(rule => rule.route === path && rule.rewrite === "/admin.html"));
+    assert.ok(config.routes.some(rule => rule.route === path.replace(/\/$/, "") && rule.rewrite === "/admin.html"));
     await page.goto(origin + path);
     await page.getByRole("heading", { name: "Administration", exact: true }).waitFor();
     assert.match(await page.locator('meta[name="robots"]').getAttribute("content"), /noindex/);
