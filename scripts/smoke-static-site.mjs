@@ -265,8 +265,45 @@ try {
     Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
     Object.defineProperty(navigator, "share", { configurable: true, value: async data => {
       window.__sharedPhoto = { keys: Object.keys(data), type: data.files[0].type, size: data.files[0].size };
+      window.__shareCalls = (window.__shareCalls ?? 0) + 1;
+      if (window.__holdSharing) await new Promise(resolve => { window.__finishSharing = resolve; });
     } });
   });
+  await page.evaluate(() => {
+    const fetchPhoto = window.fetch.bind(window);
+    window.fetch = async (...args) => {
+      const response = await fetchPhoto(...args);
+      if (window.__holdPreparation && String(args[0]).endsWith("/web"))
+        await new Promise(resolve => { window.__finishPreparation = resolve; });
+      return response;
+    };
+  });
+  for (const phase of ["preparing", "sharing"]) {
+    await page.evaluate(phase => {
+      window.__holdPreparation = phase === "preparing";
+      window.__holdSharing = phase === "sharing";
+    }, phase);
+    await page.getByRole("button", { name: "Open image 1: Synthetic portrait" }).click();
+    const prepare = page.getByRole("button", { name: "Prepare to share" });
+    await prepare.click();
+    if (phase === "sharing") await page.getByRole("button", { name: "Share photo", exact: true }).click();
+    else await page.waitForFunction(() => typeof window.__finishPreparation === "function");
+    const busyShare = page.getByRole("dialog").locator('button[aria-disabled="true"]');
+    assert.equal(await busyShare.evaluate(element => element === document.activeElement && !element.disabled), true, `Keep focus while ${phase}`);
+    // Dispatch a second activation without Playwright waiting for aria-disabled to clear.
+    await busyShare.evaluate(element => element.click());
+    assert.equal(await page.evaluate(() => window.__shareCalls ?? 0), phase === "sharing" ? 1 : 0);
+    await page.keyboard.press("ArrowRight");
+    await page.getByText("2 of 2", { exact: true }).waitFor();
+    await page.keyboard.press("Escape");
+    assert.equal(await page.getByRole("dialog").count(), 0, `Escape remains available while ${phase}`);
+    await page.evaluate(phase => {
+      if (phase === "preparing") window.__finishPreparation();
+      else window.__finishSharing();
+      window.__holdPreparation = false;
+      window.__holdSharing = false;
+    }, phase);
+  }
   await page.getByRole("button", { name: "Open image 1: Synthetic portrait" }).click();
   await page.getByRole("button", { name: "Prepare to share" }).click();
   await page.getByRole("button", { name: "Share photo", exact: true }).click();
