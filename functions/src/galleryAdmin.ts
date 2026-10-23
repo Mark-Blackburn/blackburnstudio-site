@@ -55,7 +55,7 @@ export function isGalleryAdmin(request: HttpRequest): boolean {
       p.userId.length > 0 &&
       Array.isArray(p.userRoles) &&
       p.userRoles.includes("authenticated") &&
-      p.userRoles.includes("gallery-admin")
+      p.userRoles.includes("gallery_admin")
     );
   } catch {
     return false;

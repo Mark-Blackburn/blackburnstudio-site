@@ -341,7 +341,7 @@ try {
   assert.deepEqual(requests[0].services, ["photography"]);
   // Administration exercises the exported UI with synthetic platform identity.
   // Live role assignment and linked Function ingress are a release check.
-  assert.ok(config.routes.some(rule => rule.route === "/api/admin/*" && rule.allowedRoles.includes("gallery-admin")));
+  assert.ok(config.routes.some(rule => rule.route === "/api/admin/*" && rule.allowedRoles.includes("gallery_admin")));
   let adminSignedIn = false;
   let adminGallery;
   let uploadedPair = false;
@@ -349,7 +349,7 @@ try {
   let rejectAccessChange = false;
   const adminLink = `${origin}/clients/${galleryId}#access=${token}`;
   await page.route("**/.auth/me", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
-    clientPrincipal: adminSignedIn ? { identityProvider: "aad", userId: "synthetic-operator", userRoles: ["authenticated", "gallery-admin"] } : null,
+    clientPrincipal: adminSignedIn ? { identityProvider: "aad", userId: "synthetic-operator", userRoles: ["authenticated", "gallery_admin"] } : null,
   }) }));
   await page.route("**/api/admin/galleries**", async route => {
     const request = route.request();

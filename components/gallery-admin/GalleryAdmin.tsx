@@ -78,7 +78,7 @@ async function api<T>(path: string, body?: object | FormData): Promise<T> {
     }
     if (response.status === 401 || response.status === 403)
       throw new Error(
-        "Your admin session needs sign-in or the gallery-admin role. Sign in again before continuing.",
+        "Your admin session needs sign-in or the gallery_admin role. Sign in again before continuing.",
       );
     if (response.status === 404 || (!body && response.status === 503))
       throw new Error(
@@ -213,7 +213,7 @@ export function GalleryAdmin() {
         const principal = data.clientPrincipal;
         if (
           principal?.identityProvider !== "aad" ||
-          !principal?.userRoles?.includes("gallery-admin")
+          !principal?.userRoles?.includes("gallery_admin")
         ) {
           setAuth("denied");
           return;
@@ -383,7 +383,7 @@ export function GalleryAdmin() {
           <section className="max-w-lg space-y-5">
             <h2 className="text-xl">Sign in to manage galleries</h2>
             <p className="text-studio-muted">
-              Use the Microsoft account assigned the gallery-admin role for
+              Use the Microsoft account assigned the gallery_admin role for
               Blackburn Studio.
             </p>
             <a

@@ -16,9 +16,9 @@ version preserves a still-active link.
 
 No new password system or public upload capability. The screen uses SWA's
 Microsoft (`aad`) sign-in. Every admin API request requires a platform principal
-with `authenticated` and `gallery-admin` roles, as well as the `aad` provider and
+with `authenticated` and `gallery_admin` roles, as well as the `aad` provider and
 nonempty user ID. SWA `/api/admin/*` route authorization independently requires
-`gallery-admin`. POSTs require the exact configured public Origin, including
+`gallery_admin`. POSTs require the exact configured public Origin, including
 multipart uploads. A client gallery link/cookie never grants admin privileges.
 
 This boundary relies on the linked Function's App Service Authentication v2
@@ -26,7 +26,7 @@ accepting only the SWA integration. Do not enable administration on a directly
 anonymous Function or one with additional identity providers. The application
 must not trust an externally supplied principal on such an endpoint. Confirm
 this in **Function App → Authentication**, and check the direct Function URL
-rejects a request carrying a forged gallery-admin principal. Local mock tests
+rejects a request carrying a forged gallery_admin principal. Local mock tests
 cannot establish live ingress/header protection.
 
 Sources:
@@ -39,7 +39,7 @@ Release order:
 1. Merge and allow the static website deployment to finish. Manually run the
    Function deployment from main, as with the gallery delivery slice.
 2. In **swa-blackburnstudio-v2 → Role management**, invite the operator's Microsoft
-   account with provider Microsoft Entra ID and role `gallery-admin`. Accept the
+   account with provider Microsoft Entra ID and role `gallery_admin`. Accept the
    invitation using that account, then sign in at `/admin/galleries`.
 3. Verify the Function ingress authentication described above. Give its existing
    managed identity **Storage Blob Data Contributor**, scoped only to the

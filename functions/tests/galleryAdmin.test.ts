@@ -14,7 +14,7 @@ const admin = Buffer.from(
   JSON.stringify({
     identityProvider: "aad",
     userId: "operator",
-    userRoles: ["authenticated", "gallery-admin"],
+    userRoles: ["authenticated", "gallery_admin"],
   }),
 ).toString("base64");
 const context = new InvocationContext({
@@ -63,6 +63,13 @@ describe("gallery administration boundary", () => {
     Buffer.from(
       JSON.stringify({
         identityProvider: "aad",
+        userId: "operator",
+        userRoles: ["authenticated", "gallery-admin"],
+      }),
+    ).toString("base64"),
+    Buffer.from(
+      JSON.stringify({
+        identityProvider: "aad",
         userId: "client",
         userRoles: ["authenticated"],
       }),
@@ -71,7 +78,7 @@ describe("gallery administration boundary", () => {
       JSON.stringify({
         identityProvider: "github",
         userId: "operator",
-        userRoles: ["authenticated", "gallery-admin"],
+        userRoles: ["authenticated", "gallery_admin"],
       }),
     ).toString("base64"),
   ])("denies missing/malformed/non-admin principal %s", async (header) => {
