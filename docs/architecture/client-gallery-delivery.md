@@ -81,7 +81,12 @@ remains next to the private-gallery heading. The viewer retains each photograph'
 labels the individual actions Download web size and Download full resolution.
 
 Clients can select photographs individually, select all or clear their selection,
-then prepare either size as one ZIP. The browser fetches only that selection,
+then prepare either size as one ZIP. Filenames keep the number shown beside each
+photo: selecting photos 3, 13 and 18 produces `photo-003-web.jpg`,
+`photo-013-web.jpg` and `photo-018-web.jpg` (or the corresponding `-full.jpg`
+files). Numbers come from the displayed gallery before filtering the selection,
+so legacy display-order duplicates and gaps do not rename selected photos. The
+browser fetches only that selection,
 sequentially, through the existing authenticated image endpoints. It creates an
 uncompressed ZIP with the supplied JPEG bytes; no server endpoint or public Blob
 URL is added. Streamed per-file limits and a 100 MB cumulative image-byte limit
