@@ -4,6 +4,7 @@ import { DefaultAzureCredential } from "@azure/identity";
 import { hasStatus } from "./contactRateLimiter";
 import { storageErrorCode } from "./azureContactRateLimiter";
 import { createConfiguredGalleryAccess } from "./azureGalleryAccess";
+import { ALLOCATION_ROW, validAllocation } from "./galleryAssetPublication";
 import { GALLERY_ID } from "./galleryAccess";
 import { ASSET_ID, MAX_FULL_BYTES, MAX_GALLERY_ASSETS, validAsset, type PrivateGalleryAsset } from "./galleryAssets";
 
@@ -23,6 +24,10 @@ export function createGalleryAssetStore(client: TableClient): GalleryAssetStore 
       if (!GALLERY_ID.test(galleryId)) throw new Error("Invalid gallery ID");
       const assets: PrivateGalleryAsset[] = [];
       for await (const row of client.listEntities({ queryOptions: { filter: `PartitionKey eq 'gallery-assets-${galleryId}'` } })) {
+        if (row.rowKey === ALLOCATION_ROW) {
+          if (!validAllocation(row, galleryId)) throw new Error("Invalid allocation");
+          continue;
+        }
         if (!validAsset(row, galleryId) || row.rowKey !== row.id || assets.length >= MAX_GALLERY_ASSETS)
           throw new Error("Invalid gallery asset collection");
         assets.push(row);

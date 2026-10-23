@@ -1,3 +1,5 @@
+import { createGalleryAdminHandler } from "./galleryAdmin";
+import { createConfiguredGalleryAdmin } from "./azureGalleryAdmin";
 import { app } from "@azure/functions";
 
 import { createContactHandler } from "./contact";
@@ -72,4 +74,18 @@ if (
     useMonitor: true,
     handler: createContactRateLimitRetentionHandler(),
   });
+}
+
+// Explicit opt-in, separate from client-link access. SWA role plus server checks.
+if (process.env.GALLERY_ADMIN_ENABLED === "true") {
+  let admin: ReturnType<typeof createGalleryAdminHandler> | undefined;
+  for (const route of ["admin/galleries", "admin/galleries/{galleryId}/{action}"]) {
+    app.http(route.includes("{galleryId}") ? "galleryAdminAction" : "galleryAdminList", {
+      methods: ["GET", "POST"], authLevel: "anonymous", route,
+      handler: async (request, context) => {
+        try { admin ??= createGalleryAdminHandler(createConfiguredGalleryAdmin()); return await admin(request, context); }
+        catch { context.error("[gallery-admin] Configuration unavailable"); return galleryResponse(503, { message: "Gallery administration temporarily unavailable." }); }
+      },
+    });
+  }
 }
