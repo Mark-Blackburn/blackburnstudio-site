@@ -26,7 +26,7 @@ function setup() {
     get: vi.fn(),
     list: vi.fn().mockResolvedValue({ galleries: [] }),
     create: vi.fn(),
-    change: vi.fn(),
+    change: vi.fn().mockResolvedValue(2),
     upload: vi.fn(),
   };
   const handler = createGalleryAdminHandler({
@@ -250,6 +250,7 @@ it("refreshes an authorized selected gallery independently of listing pages", as
     message: "",
     status: "revoked",
     expiresAt: 1,
+    accessTokenVersion: 3,
   });
   const result = await handler(
     req("GET", undefined, {}, { galleryId: id, action: "details" }),
@@ -302,3 +303,24 @@ it.each([true, false])(
     }
   },
 );
+
+it("issues links with a non-secret version for creation and replacement", async () => {
+  const { handler } = setup();
+  const created = await handler(
+    req("POST", JSON.stringify({ title: "Test", expiresAt: "2026-11-01" })),
+    context,
+  );
+  expect(created.jsonBody).toMatchObject({
+    accessTokenVersion: 1,
+    gallery: { accessTokenVersion: 1 },
+  });
+  const replaced = await handler(
+    req("POST", "{}", {}, { galleryId: id, action: "replace" }),
+    context,
+  );
+  expect(replaced.jsonBody).toMatchObject({
+    accessTokenVersion: 2,
+    link: expect.stringContaining("#access="),
+  });
+  expect(JSON.stringify(replaced.jsonBody)).not.toContain("accessTokenHash");
+});

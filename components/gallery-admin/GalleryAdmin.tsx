@@ -9,7 +9,30 @@ type Gallery = {
   message: string;
   status: string;
   expiresAt: number;
+  accessTokenVersion: number;
 };
+type IssuedLink = {
+  url: string;
+  galleryId: string;
+  accessTokenVersion: number;
+};
+function issuedLinkFor(
+  galleryId: string,
+  result: { link: string; accessTokenVersion: number },
+): IssuedLink {
+  if (
+    !Number.isSafeInteger(result.accessTokenVersion) ||
+    result.accessTokenVersion < 1
+  )
+    throw new Error(
+      "The link version could not be confirmed. Refresh the gallery before issuing another link.",
+    );
+  return {
+    url: result.link,
+    galleryId,
+    accessTokenVersion: result.accessTokenVersion,
+  };
+}
 type Page = { galleries: Gallery[]; cursor?: string };
 const base = "/api/admin/galleries";
 const field =
@@ -119,7 +142,8 @@ export function GalleryAdmin() {
   const [galleries, setGalleries] = useState<Gallery[]>([]);
   const [cursor, setCursor] = useState<string>();
   const [selected, setSelected] = useState<Gallery | null>(null);
-  const [link, setLink] = useState("");
+  const [issuedLink, setIssuedLink] = useState<IssuedLink | null>(null);
+  const link = issuedLink?.url ?? "";
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
@@ -142,7 +166,7 @@ export function GalleryAdmin() {
         } catch (error) {
           if (active.current) {
             setSelected(null);
-            setLink("");
+            setIssuedLink(null);
           }
           throw error;
         }
@@ -154,18 +178,19 @@ export function GalleryAdmin() {
         more ? [...previous, ...page.galleries] : page.galleries,
       );
       if (fresh) setSelected(fresh);
-      setLink((current) => {
+      setIssuedLink((current) => {
         if (!current) return current;
-        const path = new URL(current).pathname;
         const record =
-          fresh && path === `/clients/${fresh.id}`
+          fresh && current.galleryId === fresh.id
             ? fresh
             : page.galleries.find(
-                (gallery) => path === `/clients/${gallery.id}`,
+                (gallery) => gallery.id === current.galleryId,
               );
         return record &&
-          (record.status !== "published" || record.expiresAt <= refreshedAt)
-          ? ""
+          (record.status !== "published" ||
+            record.expiresAt <= refreshedAt ||
+            record.accessTokenVersion !== current.accessTokenVersion)
+          ? null
           : current;
       });
       setCursor(page.cursor);
@@ -231,14 +256,18 @@ export function GalleryAdmin() {
   const create = (form: HTMLFormElement) =>
     run(async () => {
       const values = new FormData(form);
-      const result = await api<{ gallery: Gallery; link: string }>(base, {
+      const result = await api<{
+        gallery: Gallery;
+        link: string;
+        accessTokenVersion: number;
+      }>(base, {
         title: values.get("title"),
         clientDisplayName: values.get("client"),
         message: values.get("message"),
         expiresAt: new Date(`${values.get("expiry")}T23:59:59`).toISOString(),
       });
       setSelected(result.gallery);
-      setLink(result.link);
+      setIssuedLink(issuedLinkFor(result.gallery.id, result));
       form.reset();
       setNotice(
         "Gallery created. Save its private link before leaving this page.",
@@ -257,12 +286,19 @@ export function GalleryAdmin() {
       )
         return;
       // A lost response may still have invalidated the old bearer link.
-      setLink("");
-      const result = await api<{ link?: string }>(
+      setIssuedLink(null);
+      const result = await api<{ link?: string; accessTokenVersion: number }>(
         `${base}/${selected.id}/${action}`,
         {},
       );
-      setLink(result.link ?? "");
+      setIssuedLink(
+        result.link
+          ? issuedLinkFor(selected.id, {
+              link: result.link,
+              accessTokenVersion: result.accessTokenVersion,
+            })
+          : null,
+      );
       if (action === "revoke") setSelected({ ...selected, status: "revoked" });
       setNotice(
         action === "revoke"
@@ -381,7 +417,7 @@ export function GalleryAdmin() {
                         disabled={busy}
                         onClick={() => {
                           setSelected(g);
-                          setLink("");
+                          setIssuedLink(null);
                           setNotice("");
                           setError("");
                         }}

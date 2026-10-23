@@ -136,6 +136,9 @@ export function createConfiguredGalleryAdmin(
         "Merge",
         { etag: row.etag },
       );
+      // Return the exact version committed by this ETag-guarded operation.
+      // A subsequent read might already observe another operator's replacement.
+      return row.accessTokenVersion + 1;
     },
     async upload(id, web, full, altText) {
       const dimensions = jpegDimensions(web, MAX_WEB_BYTES);

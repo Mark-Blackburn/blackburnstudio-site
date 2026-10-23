@@ -235,3 +235,13 @@ it.each([
     expect(fake.transaction).not.toHaveBeenCalled();
   },
 );
+
+it("returns the exact link version committed rather than a later reader's version", async () => {
+  const { store } = createConfiguredGalleryAdmin(env);
+  fake.update.mockImplementation(async () => {
+    fake.get.mockResolvedValue({ ...row, accessTokenVersion: 3 });
+  });
+  expect(await store.change(id, "replace", "b".repeat(64))).toBe(2);
+  expect(fake.get).toHaveBeenCalledTimes(1);
+  expect(await store.get(id)).toMatchObject({ accessTokenVersion: 3 });
+});

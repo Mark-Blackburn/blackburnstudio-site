@@ -6,6 +6,11 @@ expiry, generates a replacement link, revokes access, and uploads JPEG pairs.
 A new/replacement bearer link is shown only in the current view, with Copy and
 Open controls. Save it before changing gallery or leaving. Stored hashes cannot
 recover old links; replacement invalidates the previous link and all sessions.
+Admin metadata and issuing responses include a non-secret access-token version.
+The issuing response uses the exact committed version, not a later read. The UI
+retains it with the displayed link and clears that link when refresh observes a
+different version, including replacement by another operator. An unchanged
+version preserves a still-active link.
 
 ## Authentication and release
 

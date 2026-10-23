@@ -345,7 +345,7 @@ try {
   let adminSignedIn = false;
   let adminGallery;
   let uploadedPair = false;
-  const otherAdminGallery = { id: "g_otherGallery12345678", title: "Other client", clientDisplayName: "Client B", message: "", status: "published", expiresAt: Date.parse("2099-01-01") };
+  const otherAdminGallery = { id: "g_otherGallery12345678", title: "Other client", accessTokenVersion: 1, clientDisplayName: "Client B", message: "", status: "published", expiresAt: Date.parse("2099-01-01") };
   let rejectAccessChange = false;
   const adminLink = `${origin}/clients/${galleryId}#access=${token}`;
   await page.route("**/.auth/me", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
@@ -365,11 +365,12 @@ try {
     }
     if (new URL(request.url()).pathname.endsWith("/replace")) {
       if (rejectAccessChange) return route.abort("failed");
-      return route.fulfill({ contentType: "application/json", body: JSON.stringify({ link: adminLink }) });
+      adminGallery = { ...adminGallery, accessTokenVersion: adminGallery.accessTokenVersion + 1 };
+      return route.fulfill({ contentType: "application/json", body: JSON.stringify({ link: adminLink, accessTokenVersion: adminGallery.accessTokenVersion }) });
     }
     const input = request.postDataJSON();
-    adminGallery = { id: galleryId, title: input.title, clientDisplayName: input.clientDisplayName, message: input.message, status: "published", expiresAt: Date.parse(input.expiresAt) };
-    return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ gallery: adminGallery, link: adminLink }) });
+    adminGallery = { id: galleryId, accessTokenVersion: 1, title: input.title, clientDisplayName: input.clientDisplayName, message: input.message, status: "published", expiresAt: Date.parse(input.expiresAt) };
+    return route.fulfill({ status: 201, contentType: "application/json", body: JSON.stringify({ gallery: adminGallery, link: adminLink, accessTokenVersion: 1 }) });
   });
   await page.goto(origin + "/admin/galleries");
   await page.getByRole("link", { name: "Sign in with Microsoft" }).waitFor().catch(async error => { console.error(await page.locator("body").innerText(), pageErrors); throw error; });
@@ -402,6 +403,15 @@ try {
   if (process.env.BLACKBURN_ADMIN_SCREENSHOT) await page.screenshot({ path: process.env.BLACKBURN_ADMIN_SCREENSHOT, fullPage: true });
   // Restore a link, then model a request whose completion cannot be confirmed.
   page.on("dialog", dialog => dialog.accept());
+  await page.getByRole("button", { name: "Replace client link" }).click();
+  await page.getByLabel("Private client link").waitFor();
+  await page.getByRole("button", { name: "Refresh list" }).click();
+  await page.waitForFunction(() => Array.from(document.querySelectorAll("button")).some(button => button.textContent.trim() === "Refresh list" && !button.disabled));
+  assert.equal(await page.getByLabel("Private client link").inputValue(), adminLink, "Unchanged link version survives refresh");
+  adminGallery = { ...adminGallery, accessTokenVersion: adminGallery.accessTokenVersion + 1 };
+  await page.getByRole("button", { name: "Refresh list" }).click();
+  await page.waitForFunction(() => !document.querySelector('input[readonly]'));
+  assert.equal(await page.getByRole("link", { name: "Open gallery" }).count(), 0, "External link replacement hides the stale bearer");
   await page.getByRole("button", { name: "Replace client link" }).click();
   await page.getByLabel("Private client link").waitFor();
   rejectAccessChange = true;

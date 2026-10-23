@@ -11,7 +11,13 @@ import { galleryResponse } from "./galleryHttp";
 
 export type AdminGallery = Pick<
   GalleryAccessRecord,
-  "id" | "title" | "clientDisplayName" | "message" | "status" | "expiresAt"
+  | "id"
+  | "title"
+  | "clientDisplayName"
+  | "message"
+  | "status"
+  | "expiresAt"
+  | "accessTokenVersion"
 >;
 export const adminGallery = (r: GalleryAccessRecord): AdminGallery => ({
   id: r.id,
@@ -20,6 +26,7 @@ export const adminGallery = (r: GalleryAccessRecord): AdminGallery => ({
   message: r.message,
   status: r.status,
   expiresAt: r.expiresAt,
+  accessTokenVersion: r.accessTokenVersion,
 });
 export interface GalleryAdminStore {
   get(id: string): Promise<AdminGallery>;
@@ -31,7 +38,7 @@ export interface GalleryAdminStore {
     id: string,
     action: "revoke" | "replace",
     tokenHash?: string,
-  ): Promise<void>;
+  ): Promise<number>;
   upload(id: string, web: Buffer, full: Buffer, altText: string): Promise<void>;
 }
 
@@ -182,6 +189,7 @@ export function createGalleryAdminHandler(deps: {
         await deps.store.create(record);
         return galleryResponse(201, {
           gallery: adminGallery(record),
+          accessTokenVersion: record.accessTokenVersion,
           link: `${deps.origin}/clients/${galleryId}#access=${token}`,
         });
       }
@@ -191,12 +199,13 @@ export function createGalleryAdminHandler(deps: {
       }
       if (request.params.action === "replace") {
         const token = randomBytes(32).toString("base64url");
-        await deps.store.change(
+        const accessTokenVersion = await deps.store.change(
           id,
           "replace",
           hashGalleryToken(deps.secret, id, token),
         );
         return galleryResponse(200, {
+          accessTokenVersion,
           link: `${deps.origin}/clients/${id}#access=${token}`,
         });
       }

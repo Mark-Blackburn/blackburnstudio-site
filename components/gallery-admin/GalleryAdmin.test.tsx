@@ -14,6 +14,7 @@ const gallery = {
   message: "",
   status: "published",
   expiresAt: Date.parse("2099-01-01"),
+  accessTokenVersion: 1,
 };
 beforeEach(() => {
   vi.stubGlobal("fetch", mockFetch);
@@ -43,7 +44,9 @@ it("creates a gallery and shows its copyable private link without storage persis
       }),
     )
     .mockResolvedValueOnce(response({ galleries: [] }))
-    .mockResolvedValueOnce(response({ gallery, link }, 201))
+    .mockResolvedValueOnce(
+      response({ gallery, link, accessTokenVersion: 1 }, 201),
+    )
     .mockResolvedValue(response({ galleries: [gallery] }));
   render(<GalleryAdmin />);
   await screen.findByRole("heading", { name: "Create a gallery" });
@@ -119,7 +122,9 @@ async function createGalleryWithLink() {
   mockFetch
     .mockResolvedValueOnce(response(principal))
     .mockResolvedValueOnce(response({ galleries: [] }))
-    .mockResolvedValueOnce(response({ gallery, link: privateLink }, 201))
+    .mockResolvedValueOnce(
+      response({ gallery, link: privateLink, accessTokenVersion: 1 }, 201),
+    )
     .mockResolvedValueOnce(response({ galleries: [gallery] }));
   render(<GalleryAdmin />);
   await screen.findByRole("heading", { name: "Create a gallery" });
@@ -160,7 +165,11 @@ it.each(["select", "create"])(
       mockFetch
         .mockResolvedValueOnce(
           response(
-            { gallery: otherGallery, link: "https://example.test/new-link" },
+            {
+              gallery: otherGallery,
+              link: "https://example.test/new-link",
+              accessTokenVersion: 1,
+            },
             201,
           ),
         )
@@ -292,8 +301,10 @@ it("shows only the new bearer after a successful replacement", async () => {
   vi.spyOn(window, "confirm").mockReturnValue(true);
   const newLink = privateLink.replace("t".repeat(43), "u".repeat(43));
   mockFetch
-    .mockResolvedValueOnce(response({ link: newLink }))
-    .mockResolvedValueOnce(response({ galleries: [gallery] }));
+    .mockResolvedValueOnce(response({ link: newLink, accessTokenVersion: 2 }))
+    .mockResolvedValueOnce(
+      response({ galleries: [{ ...gallery, accessTokenVersion: 2 }] }),
+    );
   fireEvent.click(screen.getByRole("button", { name: "Replace client link" }));
   await waitFor(() =>
     expect(screen.getByLabelText("Private client link")).toHaveValue(newLink),
@@ -323,7 +334,13 @@ it("refreshes a selected gallery from a later page and discards a revoked link",
   const laterLink = privateLink.replace(gallery.id, later.id);
   mockFetch.mockImplementation(async (path: string) => {
     if (path === "/.auth/me") return response(principal);
-    if (path.endsWith("/replace")) return response({ link: laterLink });
+    if (path.endsWith("/replace")) {
+      later.accessTokenVersion++;
+      return response({
+        link: laterLink,
+        accessTokenVersion: later.accessTokenVersion,
+      });
+    }
     if (path.endsWith("/details")) return response({ gallery: { ...later } });
     if (path.includes("cursor="))
       return response({ galleries: [{ ...later }] });
@@ -362,7 +379,10 @@ it("preserves a newly issued link when the created gallery is beyond the first p
     .mockResolvedValueOnce(response(principal))
     .mockResolvedValueOnce(response({ galleries: [gallery] }))
     .mockResolvedValueOnce(
-      response({ gallery: otherGallery, link: newLink }, 201),
+      response(
+        { gallery: otherGallery, link: newLink, accessTokenVersion: 1 },
+        201,
+      ),
     )
     .mockResolvedValueOnce(response({ galleries: [gallery], cursor: "later" }))
     .mockResolvedValueOnce(response({ gallery: otherGallery }));
@@ -433,3 +453,40 @@ it("warns that an upload may have committed after a transport failure without re
   );
   expect(mockFetch).toHaveBeenCalledTimes(5);
 });
+
+it.each([1, 2])(
+  "keeps only links matching the refreshed access version %s",
+  async (accessTokenVersion) => {
+    await createGalleryWithLink();
+    mockFetch.mockResolvedValueOnce(
+      response({ galleries: [{ ...gallery, accessTokenVersion }] }),
+    );
+    fireEvent.click(screen.getByRole("button", { name: "Refresh list" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Refresh list" }),
+      ).toBeEnabled(),
+    );
+    if (accessTokenVersion === 1) {
+      expect(screen.getByLabelText("Private client link")).toHaveValue(
+        privateLink,
+      );
+      expect(
+        screen.getByRole("link", { name: "Open gallery" }),
+      ).toHaveAttribute("href", privateLink);
+    } else {
+      expect(
+        screen.queryByLabelText("Private client link"),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("button", { name: "Copy client link" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.queryByRole("link", { name: "Open gallery" }),
+      ).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Upload selected photos" }),
+      ).toBeInTheDocument();
+    }
+  },
+);
