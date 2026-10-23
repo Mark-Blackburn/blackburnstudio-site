@@ -101,10 +101,28 @@ export function GalleryAdmin() {
       base + (more ? `?cursor=${encodeURIComponent(more)}` : ""),
     );
     if (!active.current) return;
-    setCheckedAt(Date.now());
+    const refreshedAt = Date.now();
+    setCheckedAt(refreshedAt);
     setGalleries((previous) =>
       more ? [...previous, ...page.galleries] : page.galleries,
     );
+    setSelected((current) =>
+      current
+        ? (page.galleries.find((gallery) => gallery.id === current.id) ??
+          current)
+        : null,
+    );
+    setLink((current) => {
+      if (!current) return current;
+      const path = new URL(current).pathname;
+      const record = page.galleries.find(
+        (gallery) => path === `/clients/${gallery.id}`,
+      );
+      return record &&
+        (record.status !== "published" || record.expiresAt <= refreshedAt)
+        ? ""
+        : current;
+    });
     setCursor(page.cursor);
   };
   useEffect(() => {
@@ -191,6 +209,8 @@ export function GalleryAdmin() {
         )
       )
         return;
+      // A lost response may still have invalidated the old bearer link.
+      setLink("");
       const result = await api<{ link?: string }>(
         `${base}/${selected.id}/${action}`,
         {},
@@ -460,6 +480,7 @@ export function GalleryAdmin() {
                           <label className="block">
                             JPEG photographs
                             <input
+                              key={selected.id}
                               className={field + " mt-2"}
                               type="file"
                               accept="image/jpeg,.jpg,.jpeg"

@@ -344,13 +344,15 @@ try {
   let adminSignedIn = false;
   let adminGallery;
   let uploadedPair = false;
+  const otherAdminGallery = { id: "g_otherGallery12345678", title: "Other client", clientDisplayName: "Client B", message: "", status: "published", expiresAt: Date.parse("2099-01-01") };
+  let rejectAccessChange = false;
   const adminLink = `${origin}/clients/${galleryId}#access=${token}`;
   await page.route("**/.auth/me", route => route.fulfill({ contentType: "application/json", body: JSON.stringify({
     clientPrincipal: adminSignedIn ? { identityProvider: "aad", userId: "synthetic-operator", userRoles: ["authenticated", "gallery-admin"] } : null,
   }) }));
   await page.route("**/api/admin/galleries**", async route => {
     const request = route.request();
-    if (request.method() === "GET") return route.fulfill({ contentType: "application/json", body: JSON.stringify({ galleries: adminGallery ? [adminGallery] : [] }) });
+    if (request.method() === "GET") return route.fulfill({ contentType: "application/json", body: JSON.stringify({ galleries: adminGallery ? [adminGallery, otherAdminGallery] : [] }) });
     if (new URL(request.url()).pathname.endsWith("/assets")) {
       const form = await new Response(request.postDataBuffer(), { headers: { "Content-Type": request.headers()["content-type"] } }).formData();
       const web = form.get("web"), full = form.get("full");
@@ -358,6 +360,10 @@ try {
       assert.ok(web.size < full.size, "Web conversion makes a smaller download");
       uploadedPair = true;
       return route.fulfill({ status: 201, contentType: "application/json", body: '{"success":true}' });
+    }
+    if (new URL(request.url()).pathname.endsWith("/replace")) {
+      if (rejectAccessChange) return route.abort("failed");
+      return route.fulfill({ contentType: "application/json", body: JSON.stringify({ link: adminLink }) });
     }
     const input = request.postDataJSON();
     adminGallery = { id: galleryId, title: input.title, clientDisplayName: input.clientDisplayName, message: input.message, status: "published", expiresAt: Date.parse(input.expiresAt) };
@@ -381,12 +387,30 @@ try {
     return canvas.toDataURL("image/jpeg", .95).split(",")[1];
   });
   await page.getByLabel("JPEG photographs").setInputFiles({ name: "synthetic.jpg", mimeType: "image/jpeg", buffer: Buffer.from(syntheticPhoto, "base64") });
+  await page.getByRole("button", { name: /Other client/ }).click();
+  assert.equal(await page.getByLabel("JPEG photographs").evaluate(input => input.files.length), 0, "Switching galleries discards the previous client's pending files");
+  await page.getByRole("button", { name: /Synthetic portraits/ }).click();
+  assert.equal(await page.getByLabel("JPEG photographs").evaluate(input => input.files.length), 0);
+  await page.getByLabel("JPEG photographs").setInputFiles({ name: "synthetic.jpg", mimeType: "image/jpeg", buffer: Buffer.from(syntheticPhoto, "base64") });
   await page.getByRole("button", { name: "Upload selected photos" }).click();
   await page.getByRole("status").filter({ hasText: "1 photo uploaded" }).waitFor();
   assert.equal(uploadedPair, true);
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "Admin fits mobile viewport");
   if (process.env.BLACKBURN_ADMIN_SCREENSHOT) await page.screenshot({ path: process.env.BLACKBURN_ADMIN_SCREENSHOT, fullPage: true });
+  // Restore a link, then model a request whose completion cannot be confirmed.
+  page.on("dialog", dialog => dialog.accept());
+  await page.getByRole("button", { name: "Replace client link" }).click();
+  await page.getByLabel("Private client link").waitFor();
+  rejectAccessChange = true;
+  await page.getByRole("button", { name: "Replace client link" }).click();
+  await page.getByRole("alert").waitFor();
+  assert.equal(await page.getByLabel("Private client link").count(), 0, "Lost replacement response hides the old bearer");
+  adminGallery = { ...adminGallery, status: "revoked" };
+  await page.getByRole("button", { name: "Refresh list" }).click();
+  await page.getByText("Test client · revoked", { exact: true }).waitFor();
+  assert.equal(await page.getByRole("button", { name: "Upload selected photos" }).count(), 0);
+  assert.equal(await page.getByRole("button", { name: "Replace client link" }).count(), 0);
   assert.deepEqual(pageErrors, [], "No browser runtime errors");
   console.log(
     "Static export smoke passed: public routes, 404 isolation, sample/private galleries, fragment exchange, refresh, downloads, sign-out, admin create/upload and contact 400/429/503/200. Synthetic API only; no email sent.",

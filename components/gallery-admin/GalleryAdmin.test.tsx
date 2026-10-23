@@ -95,3 +95,223 @@ it("resizes to 2048 pixels and re-encodes web bytes while preserving the source 
   expect(original.size).toBe(8);
   expect(close).toHaveBeenCalledOnce();
 });
+
+const otherGallery = {
+  ...gallery,
+  id: "g_otherGallery12345678",
+  title: "Other client",
+};
+const principal = {
+  clientPrincipal: { identityProvider: "aad", userRoles: ["gallery-admin"] },
+};
+const privateLink = `https://www.theblackburn.studio/clients/${gallery.id}#access=${"t".repeat(43)}`;
+
+function fillCreateForm(title = "Portraits") {
+  fireEvent.change(screen.getByLabelText("Gallery title"), {
+    target: { value: title },
+  });
+  fireEvent.change(screen.getByLabelText("Available until"), {
+    target: { value: "2026-11-01" },
+  });
+}
+
+async function createGalleryWithLink() {
+  mockFetch
+    .mockResolvedValueOnce(response(principal))
+    .mockResolvedValueOnce(response({ galleries: [] }))
+    .mockResolvedValueOnce(response({ gallery, link: privateLink }, 201))
+    .mockResolvedValueOnce(response({ galleries: [gallery] }));
+  render(<GalleryAdmin />);
+  await screen.findByRole("heading", { name: "Create a gallery" });
+  fillCreateForm();
+  fireEvent.click(screen.getByRole("button", { name: "Create gallery" }));
+  await screen.findByLabelText("Private client link");
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Replace client link" }),
+    ).toBeEnabled(),
+  );
+}
+
+it.each(["select", "create"])(
+  "discards pending client files when switching galleries via %s",
+  async (method) => {
+    mockFetch
+      .mockResolvedValueOnce(response(principal))
+      .mockResolvedValueOnce(response({ galleries: [gallery, otherGallery] }));
+    render(<GalleryAdmin />);
+    fireEvent.click(await screen.findByRole("button", { name: /Portraits/ }));
+    const originalInput = screen.getByLabelText(
+      "JPEG photographs",
+    ) as HTMLInputElement;
+    fireEvent.change(originalInput, {
+      target: {
+        files: [
+          new File(["private-client-A"], "client-A.jpg", {
+            type: "image/jpeg",
+          }),
+        ],
+      },
+    });
+    expect(originalInput.files).toHaveLength(1);
+    if (method === "select") {
+      fireEvent.click(screen.getByRole("button", { name: /Other client/ }));
+    } else {
+      mockFetch
+        .mockResolvedValueOnce(
+          response(
+            { gallery: otherGallery, link: "https://example.test/new-link" },
+            201,
+          ),
+        )
+        .mockResolvedValueOnce(
+          response({ galleries: [gallery, otherGallery] }),
+        );
+      fillCreateForm("Other client");
+      fireEvent.click(screen.getByRole("button", { name: "Create gallery" }));
+      await screen.findByLabelText("Private client link");
+      await waitFor(() =>
+        expect(
+          screen.getByRole("button", { name: "Upload selected photos" }),
+        ).toBeEnabled(),
+      );
+    }
+    const newInput = screen.getByLabelText(
+      "JPEG photographs",
+    ) as HTMLInputElement;
+    expect(newInput).not.toBe(originalInput);
+    expect(newInput.files).toHaveLength(0);
+    fireEvent.click(
+      screen.getByRole("button", { name: "Upload selected photos" }),
+    );
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Upload selected photos" }),
+      ).toBeEnabled(),
+    );
+    expect(
+      mockFetch.mock.calls.some(([path]) => String(path).endsWith("/assets")),
+    ).toBe(false);
+  },
+);
+
+it.each(["revoked", "expired"])(
+  "refreshes the selected panel when a sidebar record becomes %s",
+  async (status) => {
+    mockFetch
+      .mockResolvedValueOnce(response(principal))
+      .mockResolvedValueOnce(response({ galleries: [gallery] }))
+      .mockResolvedValueOnce(
+        response({
+          galleries: [
+            {
+              ...gallery,
+              status: status === "revoked" ? "revoked" : "published",
+              expiresAt: status === "expired" ? 1 : gallery.expiresAt,
+            },
+          ],
+        }),
+      );
+    render(<GalleryAdmin />);
+    fireEvent.click(await screen.findByRole("button", { name: /Portraits/ }));
+    expect(
+      screen.getByRole("button", { name: "Upload selected photos" }),
+    ).toBeInTheDocument();
+    fireEvent.click(screen.getByRole("button", { name: "Refresh list" }));
+    await waitFor(() =>
+      expect(
+        screen.queryByRole("button", { name: "Upload selected photos" }),
+      ).not.toBeInTheDocument(),
+    );
+    expect(
+      screen.queryByRole("button", { name: "Replace client link" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.getByRole("button", {
+        name: new RegExp(`Portraits.*Test client.*${status}`),
+      }),
+    ).toBeInTheDocument();
+    if (status === "revoked")
+      expect(screen.getByText("Test client · revoked")).toBeInTheDocument();
+  },
+);
+
+it.each(["Replace client link", "Revoke access"])(
+  "hides the old link before %s and keeps it hidden after an uncertain failure",
+  async (name) => {
+    await createGalleryWithLink();
+    vi.spyOn(window, "confirm").mockReturnValue(true);
+    let fail!: (error: Error) => void;
+    mockFetch.mockReturnValueOnce(
+      new Promise((_resolve, reject) => {
+        fail = reject;
+      }),
+    );
+    fireEvent.click(screen.getByRole("button", { name }));
+    expect(
+      screen.queryByLabelText("Private client link"),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("link", { name: "Open gallery" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("button", { name: "Copy client link" }),
+    ).not.toBeInTheDocument();
+    fail(new Error("Connection lost after request"));
+    await screen.findByRole("alert");
+    mockFetch.mockResolvedValueOnce(response({ galleries: [gallery] }));
+    fireEvent.click(screen.getByRole("button", { name: "Refresh list" }));
+    await waitFor(() =>
+      expect(
+        screen.getByRole("button", { name: "Refresh list" }),
+      ).toBeEnabled(),
+    );
+    expect(
+      screen.queryByLabelText("Private client link"),
+    ).not.toBeInTheDocument();
+  },
+);
+
+it("keeps the current link if an access change is cancelled", async () => {
+  await createGalleryWithLink();
+  vi.spyOn(window, "confirm").mockReturnValue(false);
+  fireEvent.click(screen.getByRole("button", { name: "Replace client link" }));
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Replace client link" }),
+    ).toBeEnabled(),
+  );
+  expect(screen.getByLabelText("Private client link")).toHaveValue(privateLink);
+  expect(mockFetch).toHaveBeenCalledTimes(4);
+});
+
+it("shows only the new bearer after a successful replacement", async () => {
+  await createGalleryWithLink();
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  const newLink = privateLink.replace("t".repeat(43), "u".repeat(43));
+  mockFetch
+    .mockResolvedValueOnce(response({ link: newLink }))
+    .mockResolvedValueOnce(response({ galleries: [gallery] }));
+  fireEvent.click(screen.getByRole("button", { name: "Replace client link" }));
+  await waitFor(() =>
+    expect(screen.getByLabelText("Private client link")).toHaveValue(newLink),
+  );
+  expect(screen.getByRole("link", { name: "Open gallery" })).toHaveAttribute(
+    "href",
+    newLink,
+  );
+});
+
+it("clears a displayed link when refresh confirms external revocation", async () => {
+  await createGalleryWithLink();
+  mockFetch.mockResolvedValueOnce(
+    response({ galleries: [{ ...gallery, status: "revoked" }] }),
+  );
+  fireEvent.click(screen.getByRole("button", { name: "Refresh list" }));
+  await waitFor(() =>
+    expect(
+      screen.queryByLabelText("Private client link"),
+    ).not.toBeInTheDocument(),
+  );
+  expect(screen.getByText("Test client · revoked")).toBeInTheDocument();
+});
