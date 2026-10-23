@@ -12,12 +12,16 @@ retains it with the displayed link and clears that link when refresh observes a
 different version, including replacement by another operator. An unchanged
 version preserves a still-active link.
 
+The admin API uses `/api/gallery-management/galleries`. Azure Functions reserves
+custom route prefixes beginning with `admin` or `runtime`, even when the host
+uses its default `/api` prefix. Keep new Function routes outside those prefixes.
+
 ## Authentication and release
 
 No new password system or public upload capability. The screen uses SWA's
 Microsoft (`aad`) sign-in. Every admin API request requires a platform principal
 with `authenticated` and `gallery_admin` roles, as well as the `aad` provider and
-nonempty user ID. SWA `/api/admin/*` route authorization independently requires
+nonempty user ID. SWA `/api/gallery-management/*` route authorization independently requires
 `gallery_admin`. POSTs require the exact configured public Origin, including
 multipart uploads. A client gallery link/cookie never grants admin privileges.
 

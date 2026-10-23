@@ -406,7 +406,7 @@ it("refreshes a selected gallery from a later page and discards a revoked link",
     screen.queryByLabelText("Private client link"),
   ).not.toBeInTheDocument();
   expect(mockFetch).toHaveBeenCalledWith(
-    `/api/admin/galleries/${later.id}/details`,
+    `/api/gallery-management/galleries/${later.id}/details`,
     expect.anything(),
   );
 });

@@ -79,7 +79,7 @@ if (
 // Explicit opt-in, separate from client-link access. SWA role plus server checks.
 if (process.env.GALLERY_ADMIN_ENABLED === "true") {
   let admin: ReturnType<typeof createGalleryAdminHandler> | undefined;
-  for (const route of ["admin/galleries", "admin/galleries/{galleryId}/{action}"]) {
+  for (const route of ["gallery-management/galleries", "gallery-management/galleries/{galleryId}/{action}"]) {
     app.http(route.includes("{galleryId}") ? "galleryAdminAction" : "galleryAdminList", {
       methods: ["GET", "POST"], authLevel: "anonymous", route,
       handler: async (request, context) => {

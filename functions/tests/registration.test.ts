@@ -37,6 +37,20 @@ describe("retention timer registration", () => {
 });
 
 describe("gallery route registration", () => {
+  it.each([undefined, "true"])("protects platform-compatible admin routes when enabled=%s", async (enabled) => {
+    vi.stubEnv("GALLERY_ADMIN_ENABLED", enabled);
+    await import("../src/index");
+    const routes = registration.http.mock.calls.map(call => call[1].route);
+    // Azure's host validates the custom route before adding its /api prefix.
+    for (const route of routes) {
+      expect(route.replace(/^\/+/, "")).not.toMatch(/^(admin|runtime)/i);
+    }
+    const adminRoutes = registration.http.mock.calls.filter(call => call[0].startsWith("galleryAdmin"));
+    expect(adminRoutes.map(call => call[1].route)).toEqual(enabled ? [
+      "gallery-management/galleries", "gallery-management/galleries/{galleryId}/{action}",
+    ] : []);
+  });
+
   it("registers gallery access only when explicitly enabled", async () => {
     vi.stubEnv("GALLERY_API_ENABLED", "true");
     vi.stubEnv("CONTACT_RATE_LIMIT_RETENTION_MODE", "disabled");
