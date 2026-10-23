@@ -2,6 +2,10 @@
 
 ## Delivered boundary
 
+The subsequent [private delivery slice](client-gallery-delivery.md) connects
+the browser and JPEG/download routes to this access boundary. The empty-assets
+and fixture-only descriptions below describe this access slice in isolation.
+
 The website static deployment [39868501802](https://github.com/Mark-Blackburn/blackburnstudio-site/actions/runs/39868501802)
 succeeded on 23 October 2026. The operator linked `func-blackburnstudio-api`
 to SWA Production and confirmed a browser migration-test enquiry showed success

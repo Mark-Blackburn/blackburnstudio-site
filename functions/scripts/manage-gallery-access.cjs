@@ -27,6 +27,7 @@ async function main() {
     new AzureCliCredential(), { retryOptions: { maxRetries: 2 } });
   const id = input.id ?? `g_${randomBytes(16).toString("base64url")}`;
   if (typeof id !== "string" || !GALLERY_ID.test(id)) throw new Error("Invalid ID");
+  if (id === "g_7Rk3mN9xQ2vL8pT4") throw new Error("Reserved sample ID");
 
   if (action === "create") {
     const token = randomBytes(32).toString("base64url");

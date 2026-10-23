@@ -98,7 +98,7 @@ export function readGallerySession(value: string, id: string, secret: string, no
 }
 
 export function sessionMatches(record: GalleryAccessRecord, session: Session, now: number, secret: string): boolean {
-  return galleryIsAvailable(record, now) && record.id === session.id &&
+  return session.expiresAt > now && galleryIsAvailable(record, now) && record.id === session.id &&
     record.accessTokenVersion === session.tokenVersion &&
     record.sessionVersion === session.sessionVersion &&
     equalHash(session.binding, mac(secret, "gallery-session-binding-v1", record.accessTokenHash));

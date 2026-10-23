@@ -5,6 +5,10 @@ layer is documented in [private gallery access API](client-gallery-access.md);
 it adds link exchange, expiring sessions and revocation without enabling
 private image delivery or replacing this sample shell yet.
 
+The next [private delivery slice](client-gallery-delivery.md) adds authenticated
+runtime loading, JPEG images and per-image downloads. Sample fixture behavior
+remains unchanged; real gallery metadata stays out of the static export.
+
 ## Slice 1 boundary
 
 The client gallery is intentionally fixture-only. It has no authentication,
