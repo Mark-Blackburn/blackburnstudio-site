@@ -9,6 +9,11 @@
     "CONTACT_RATE_LIMIT_TABLE_ENDPOINT": "",
     "CONTACT_RATE_LIMIT_TABLE_NAME": "",
     "CONTACT_RATE_LIMIT_HMAC_KEY": "",
+    "GALLERY_API_ENABLED": "false",
+    "GALLERY_TABLE_ENDPOINT": "",
+    "GALLERY_TABLE_NAME": "",
+    "GALLERY_PUBLIC_ORIGIN": "https://www.theblackburn.studio",
+    "GALLERY_ACCESS_HMAC_KEY": "",
     "RESEND_API_KEY": "",
     "CONTACT_FROM_EMAIL": "",
     "CONTACT_TO_EMAIL": ""

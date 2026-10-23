@@ -35,3 +35,28 @@ describe("retention timer registration", () => {
     },
   );
 });
+
+describe("gallery route registration", () => {
+  it("registers gallery access only when explicitly enabled", async () => {
+    vi.stubEnv("GALLERY_API_ENABLED", "true");
+    vi.stubEnv("CONTACT_RATE_LIMIT_RETENTION_MODE", "disabled");
+    await import("../src/index");
+    expect(registration.http.mock.calls.map(call => call[0])).toEqual([
+      "contact", "galleryExchange", "galleryMetadata", "galleryLogout",
+    ]);
+    expect(registration.http.mock.calls.slice(1).map(call => call[1].route)).toEqual([
+      "galleries/{galleryId}/exchange", "galleries/{galleryId}", "galleries/{galleryId}/logout",
+    ]);
+  });
+
+  it("returns a generic gallery 503 for missing configuration without breaking contact registration", async () => {
+    vi.stubEnv("GALLERY_API_ENABLED", "true");
+    vi.stubEnv("GALLERY_ACCESS_HMAC_KEY", "");
+    await import("../src/index");
+    const handler = registration.http.mock.calls.find(call => call[0] === "galleryExchange")![1].handler;
+    const error = vi.fn();
+    expect(await handler({}, { error })).toMatchObject({ status: 503, headers: { "Cache-Control": "no-store" } });
+    expect(error).toHaveBeenCalledExactlyOnceWith("[gallery-api] Request failed");
+    expect(registration.http.mock.calls[0][0]).toBe("contact");
+  });
+});
