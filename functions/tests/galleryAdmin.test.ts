@@ -21,6 +21,7 @@ const context = new InvocationContext({
   functionName: "test",
   logHandler: () => undefined,
 });
+const assetId = "a_privateAsset12345678";
 function setup() {
   const store: GalleryAdminStore = {
     get: vi.fn(),
@@ -28,6 +29,9 @@ function setup() {
     create: vi.fn(),
     change: vi.fn().mockResolvedValue(2),
     upload: vi.fn(),
+    photos: vi.fn().mockResolvedValue([]),
+    preview: vi.fn().mockResolvedValue(null),
+    remove: vi.fn().mockResolvedValue({ cleanupComplete: true }),
   };
   const handler = createGalleryAdminHandler({
     store,
@@ -57,6 +61,126 @@ function req(
   });
 }
 describe("gallery administration boundary", () => {
+  it.each(["assets", "preview", "remove"])(
+    "denies client-only access to photo %s operations",
+    async (action) => {
+      const { handler, store } = setup();
+      const result = await handler(
+        req(
+          action === "remove" ? "POST" : "GET",
+          action === "remove" ? "{}" : undefined,
+          { "x-ms-client-principal": "" },
+          { galleryId: id, action },
+        ),
+        context,
+      );
+      expect(result.status).toBe(403);
+      expect(store.photos).not.toHaveBeenCalled();
+      expect(store.preview).not.toHaveBeenCalled();
+      expect(store.remove).not.toHaveBeenCalled();
+    },
+  );
+
+  it("lists admin photographs without granting a client session", async () => {
+    const { handler, store } = setup();
+    const result = await handler(
+      req("GET", undefined, {}, { galleryId: id, action: "assets" }),
+      context,
+    );
+    expect(result.status).toBe(200);
+    expect(store.photos).toHaveBeenCalledWith(id);
+    expect(result.headers).toMatchObject({ "Cache-Control": "no-store" });
+  });
+
+  it("returns only role-protected JPEG preview bytes with private response headers", async () => {
+    const { handler, store } = setup();
+    const bytes = Buffer.from([255, 216, 255, 217]);
+    vi.mocked(store.preview).mockResolvedValue(bytes);
+    const request = req(
+      "GET",
+      undefined,
+      {},
+      { galleryId: id, action: "preview" },
+    );
+    request.query.set("assetId", assetId);
+    const result = await handler(request, context);
+    expect(result.status).toBe(200);
+    expect(result.body).toBe(bytes);
+    expect(result.headers).toMatchObject({
+      "Content-Type": "image/jpeg",
+      "Cache-Control": "no-store",
+      "X-Content-Type-Options": "nosniff",
+    });
+    expect(store.preview).toHaveBeenCalledWith(id, assetId);
+  });
+
+  it("rejects cross-origin removal and malformed asset IDs before calling storage", async () => {
+    const { handler, store } = setup();
+    const params = { galleryId: id, action: "remove" };
+    expect(
+      (
+        await handler(
+          req(
+            "POST",
+            JSON.stringify({ assetId }),
+            { origin: "https://example.com" },
+            params,
+          ),
+          context,
+        )
+      ).status,
+    ).toBe(403);
+    expect(
+      (
+        await handler(
+          req(
+            "POST",
+            JSON.stringify({ assetId: "../another-gallery/web.jpg" }),
+            {},
+            params,
+          ),
+          context,
+        )
+      ).status,
+    ).toBe(400);
+    expect(store.remove).not.toHaveBeenCalled();
+  });
+
+  it.each([true, false])(
+    "reports acknowledged removal with cleanupComplete=%s",
+    async (cleanupComplete) => {
+      const { handler, store } = setup();
+      vi.mocked(store.remove).mockResolvedValue({ cleanupComplete });
+      const result = await handler(
+        req(
+          "POST",
+          JSON.stringify({ assetId }),
+          {},
+          { galleryId: id, action: "remove" },
+        ),
+        context,
+      );
+      expect(result.status).toBe(200);
+      expect(result.jsonBody).toMatchObject({ success: true, cleanupComplete });
+      expect(store.remove).toHaveBeenCalledWith(id, assetId);
+    },
+  );
+
+  it("returns a generic uncertain response when removal storage completion is unknown", async () => {
+    const { handler, store } = setup();
+    vi.mocked(store.remove).mockRejectedValue(new Error("secret SDK detail"));
+    const result = await handler(
+      req(
+        "POST",
+        JSON.stringify({ assetId }),
+        {},
+        { galleryId: id, action: "remove" },
+      ),
+      context,
+    );
+    expect(result.status).toBe(409);
+    expect(JSON.stringify(result)).not.toContain("secret SDK detail");
+  });
   it.each([
     "",
     "not-json",

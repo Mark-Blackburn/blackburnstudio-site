@@ -1,4 +1,5 @@
 import { GalleryUploadValidationError } from "../src/galleryUploadValidation";
+import { Readable } from "node:stream";
 import { beforeEach, it, expect, vi } from "vitest";
 const fake = vi.hoisted(() => ({
   get: vi.fn(),
@@ -12,6 +13,8 @@ const fake = vi.hoisted(() => ({
   acquire: vi.fn(),
   renew: vi.fn(),
   release: vi.fn(),
+  blob: vi.fn(),
+  download: vi.fn(),
 }));
 vi.mock("@azure/data-tables", () => ({
   TableClient: class {
@@ -29,14 +32,18 @@ vi.mock("@azure/storage-blob", () => ({
       return {
         getProperties: fake.props,
         getBlockBlobClient: () => ({ uploadData: fake.upload }),
-        getBlobClient: () => ({
-          deleteIfExists: fake.remove,
-          getBlobLeaseClient: () => ({
-            acquireLease: fake.acquire,
-            renewLease: fake.renew,
-            releaseLease: fake.release,
-          }),
-        }),
+        getBlobClient: (name: string) => {
+          fake.blob(name);
+          return {
+            deleteIfExists: fake.remove,
+            download: fake.download,
+            getBlobLeaseClient: () => ({
+              acquireLease: fake.acquire,
+              renewLease: fake.renew,
+              releaseLease: fake.release,
+            }),
+          };
+        },
       };
     }
   },
@@ -76,6 +83,18 @@ const env = {
 };
 // Minimal SOF header accepted by the existing dimension boundary. No decoding.
 const jpeg = Buffer.from([255, 216, 255, 192, 0, 8, 8, 0, 100, 0, 150, 1]);
+const photo = {
+  galleryId: id,
+  id: "a_privateAsset12345678",
+  rowKey: "a_privateAsset12345678",
+  partitionKey: `gallery-assets-${id}`,
+  altText: "Mistaken upload",
+  width: 150,
+  height: 100,
+  displayOrder: 2,
+  webByteSize: jpeg.length,
+  fullByteSize: jpeg.length,
+};
 beforeEach(() => {
   vi.resetAllMocks();
   fake.get.mockImplementation(async (_partition, key) =>
@@ -97,6 +116,144 @@ beforeEach(() => {
       };
     },
   });
+});
+it("removes metadata and decrements allocation before deleting only this photo's canonical JPEGs", async () => {
+  fake.get.mockImplementation(async (_partition, key) =>
+    key === ALLOCATION_ROW
+      ? { ...allocation, assetCount: 1, nextDisplayOrder: 3 }
+      : key === photo.id
+        ? photo
+        : row,
+  );
+  fake.transaction.mockImplementation(async () => {
+    expect(fake.remove).not.toHaveBeenCalled();
+  });
+  const { store } = createConfiguredGalleryAdmin(env);
+  expect(await store.remove(id, photo.id)).toEqual({ cleanupComplete: true });
+  expect(fake.transaction).toHaveBeenCalledWith([
+    [
+      "update",
+      expect.objectContaining({ assetCount: 0, nextDisplayOrder: 3 }),
+      "Replace",
+      { etag: allocation.etag },
+    ],
+    ["delete", { partitionKey: `gallery-assets-${id}`, rowKey: photo.id }],
+  ]);
+  expect(fake.blob.mock.calls.map((call) => call[0])).toEqual([
+    `${id}/${photo.id}/web.jpg`,
+    `${id}/${photo.id}/full.jpg`,
+  ]);
+  expect(fake.remove).toHaveBeenCalledTimes(2);
+});
+
+it("does not delete any JPEGs after a stale or ambiguous Table transaction failure", async () => {
+  fake.get.mockImplementation(async (_partition, key) =>
+    key === ALLOCATION_ROW
+      ? { ...allocation, assetCount: 1, nextDisplayOrder: 3 }
+      : key === photo.id
+        ? photo
+        : row,
+  );
+  fake.transaction.mockRejectedValue(new Error("Unknown completion"));
+  await expect(
+    createConfiguredGalleryAdmin(env).store.remove(id, photo.id),
+  ).rejects.toThrow("Unknown completion");
+  expect(fake.remove).not.toHaveBeenCalled();
+});
+
+it("reports incomplete cleanup and safely retries an already removed photograph without decrementing twice", async () => {
+  let removed = false;
+  fake.get.mockImplementation(async (_partition, key) => {
+    if (key === ALLOCATION_ROW)
+      return {
+        ...allocation,
+        assetCount: removed ? 0 : 1,
+        nextDisplayOrder: 3,
+        etag: removed ? '"allocation2"' : allocation.etag,
+      };
+    if (key === photo.id) {
+      if (removed) throw { statusCode: 404, code: "ResourceNotFound" };
+      return photo;
+    }
+    return row;
+  });
+  fake.transaction.mockImplementation(async () => {
+    removed = true;
+  });
+  fake.remove.mockRejectedValueOnce(new Error("Temporary Blob failure"));
+  const { store } = createConfiguredGalleryAdmin(env);
+  expect(await store.remove(id, photo.id)).toEqual({ cleanupComplete: false });
+  expect(await store.remove(id, photo.id)).toEqual({ cleanupComplete: true });
+  expect(fake.transaction.mock.calls[1][0]).toEqual([
+    [
+      "update",
+      expect.objectContaining({ assetCount: 0, nextDisplayOrder: 3 }),
+      "Replace",
+      { etag: '"allocation2"' },
+    ],
+  ]);
+});
+
+it("rejects invalid namespaces and public containers before removal", async () => {
+  const { store } = createConfiguredGalleryAdmin(env);
+  await expect(store.remove(id, "../another/web.jpg")).rejects.toThrow();
+  expect(fake.get).not.toHaveBeenCalled();
+  fake.props.mockResolvedValue({ blobPublicAccess: "blob" });
+  await expect(store.remove(id, photo.id)).rejects.toThrow("Private container");
+  expect(fake.transaction).not.toHaveBeenCalled();
+  expect(fake.remove).not.toHaveBeenCalled();
+});
+
+it("lists whitelisted admin photo metadata including all 250 assets and no storage fields", async () => {
+  fake.list.mockReturnValue({
+    async *[Symbol.asyncIterator]() {
+      yield { ...allocation, assetCount: 250, nextDisplayOrder: 250 };
+      for (let i = 0; i < 250; i++)
+        yield {
+          ...photo,
+          id: `a_${String(i).padStart(22, "0")}`,
+          rowKey: `a_${String(i).padStart(22, "0")}`,
+          displayOrder: i,
+          secret: "hidden",
+        };
+    },
+  });
+  const result = await createConfiguredGalleryAdmin(env).store.photos(id);
+  expect(result).toHaveLength(250);
+  expect(Object.keys(result[0]).sort()).toEqual([
+    "altText",
+    "displayOrder",
+    "height",
+    "id",
+    "width",
+  ]);
+});
+
+it("previews only the existing photo's web copy and refuses absent or cross-gallery assets", async () => {
+  fake.get.mockImplementation(async (_partition, key) =>
+    key === photo.id ? photo : row,
+  );
+  fake.download.mockResolvedValue({
+    contentLength: jpeg.length,
+    readableStreamBody: Readable.from([jpeg]),
+  });
+  const { store } = createConfiguredGalleryAdmin(env);
+  expect(await store.preview(id, photo.id)).toEqual(jpeg);
+  expect(fake.blob).toHaveBeenCalledWith(`${id}/${photo.id}/web.jpg`);
+  fake.download.mockClear();
+  fake.get.mockImplementation(async (_partition, key) => {
+    if (key === photo.id) throw { statusCode: 404, code: "ResourceNotFound" };
+    return row;
+  });
+  expect(await store.preview(id, photo.id)).toBeNull();
+  expect(fake.download).not.toHaveBeenCalled();
+  fake.get.mockImplementation(async (_partition, key) =>
+    key === photo.id ? { ...photo, galleryId: "g_otherGallery12345678" } : row,
+  );
+  await expect(store.preview(id, photo.id)).rejects.toThrow(
+    "Invalid gallery asset",
+  );
+  expect(fake.download).not.toHaveBeenCalled();
 });
 it("uses exact ETags and invalidates both versions when replacing or revoking", async () => {
   const { store } = createConfiguredGalleryAdmin(env);

@@ -2,6 +2,7 @@ import type { TableClient } from "@azure/data-tables";
 import { GALLERY_ID } from "./galleryAccess";
 import {
   MAX_GALLERY_ASSETS,
+  ASSET_ID,
   validAsset,
   type PrivateGalleryAsset,
 } from "./galleryAssets";
@@ -129,4 +130,45 @@ export async function publishGalleryAsset(
       { partitionKey: allocation.partitionKey, rowKey: asset.id, ...asset },
     ],
   ]);
+}
+
+// All asset writers advance this row. Deletion therefore conflicts atomically
+// with concurrent publication/deletion, and does not reuse display orders.
+export async function removeGalleryAsset(
+  client: TableClient,
+  allocation: GalleryAllocation,
+  assetId: string,
+  exists: boolean,
+) {
+  if (
+    !validAllocation(allocation, allocation.galleryId) ||
+    !ASSET_ID.test(assetId) ||
+    !allocation.etag ||
+    allocation.etag === "*" ||
+    (exists && allocation.assetCount < 1)
+  )
+    throw new Error("Invalid asset allocation");
+  const actions: Parameters<TableClient["submitTransaction"]>[0] = [
+    [
+      "update",
+      {
+        partitionKey: allocation.partitionKey,
+        rowKey: ALLOCATION_ROW,
+        galleryId: allocation.galleryId,
+        schemaVersion: 1,
+        assetCount: allocation.assetCount - (exists ? 1 : 0),
+        nextDisplayOrder: allocation.nextDisplayOrder,
+      },
+      "Replace",
+      { etag: allocation.etag },
+    ],
+  ];
+  if (exists)
+    actions.push([
+      "delete",
+      { partitionKey: allocation.partitionKey, rowKey: assetId },
+    ]);
+  // Even an already absent asset advances the ETag before Blob cleanup. This
+  // fences a delayed publisher carrying the previous allocation snapshot.
+  await client.submitTransaction(actions);
 }

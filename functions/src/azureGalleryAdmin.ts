@@ -10,15 +10,25 @@ import {
 import {
   readGalleryAllocation,
   publishGalleryAsset,
+  removeGalleryAsset,
 } from "./galleryAssetPublication";
-import { adminGallery, type GalleryAdminStore } from "./galleryAdmin";
-import { galleryIsAvailable, validRecord } from "./galleryAccess";
+import {
+  adminGallery,
+  adminPhoto,
+  type GalleryAdminStore,
+} from "./galleryAdmin";
+import { GALLERY_ID, galleryIsAvailable, validRecord } from "./galleryAccess";
+import {
+  createGalleryAssetStore,
+  createGalleryBlobStore,
+} from "./azureGalleryDelivery";
 import {
   MAX_FULL_BYTES,
   MAX_WEB_BYTES,
   MAX_GALLERY_ASSETS,
   assetBlobName,
   validAsset,
+  ASSET_ID,
 } from "./galleryAssets";
 
 export function jpegDimensions(bytes: Buffer, max: number) {
@@ -83,6 +93,8 @@ export function createConfiguredGalleryAdmin(
     endpoint.origin,
     credential,
   ).getContainerClient(name);
+  const assets = createGalleryAssetStore(table);
+  const blobs = createGalleryBlobStore(container);
 
   const read = async (id: string) => {
     const row = await table.getEntity(GALLERY_PARTITION, id);
@@ -91,6 +103,43 @@ export function createConfiguredGalleryAdmin(
     return row;
   };
   const store: GalleryAdminStore = {
+    async photos(id) {
+      await read(id);
+      return (await assets.listAssets(id)).map(adminPhoto);
+    },
+    async preview(id, assetId) {
+      await read(id);
+      const asset = await assets.readAsset(id, assetId);
+      return asset
+        ? blobs.read(assetBlobName(asset, false), asset.webByteSize)
+        : null;
+    },
+    async remove(id, assetId) {
+      if (!GALLERY_ID.test(id) || !ASSET_ID.test(assetId))
+        throw new Error("Invalid photograph");
+      await read(id);
+      if ((await container.getProperties()).blobPublicAccess)
+        throw new Error("Private container required");
+      // Read allocation before the asset so late publication either appears in
+      // this read or conflicts with the conditional transaction below.
+      const allocation = await readGalleryAllocation(table, id);
+      const asset = await assets.readAsset(id, assetId);
+      await removeGalleryAsset(table, allocation, assetId, !!asset);
+      // Only delete JPEGs after an acknowledged metadata transaction. Names are
+      // derived from validated IDs; neither caller nor Table fields supply paths.
+      const results = await Promise.allSettled(
+        [false, true].map((full) =>
+          container
+            .getBlobClient(`${id}/${assetId}/${full ? "full" : "web"}.jpg`)
+            .deleteIfExists(),
+        ),
+      );
+      return {
+        cleanupComplete: results.every(
+          (result) => result.status === "fulfilled",
+        ),
+      };
+    },
     async list(cursor) {
       const iterator = table
         .listEntities({
