@@ -3,7 +3,7 @@
     {
       "route": "/api/admin/*",
       "allowedRoles": [
-        "gallery-admin"
+        "gallery_admin"
       ],
       "headers": {
         "Cache-Control": "no-store",

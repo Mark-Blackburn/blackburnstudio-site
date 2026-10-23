@@ -39,7 +39,7 @@ it("creates a gallery and shows its copyable private link without storage persis
       response({
         clientPrincipal: {
           identityProvider: "aad",
-          userRoles: ["gallery-admin"],
+          userRoles: ["gallery_admin"],
         },
       }),
     )
@@ -105,7 +105,7 @@ const otherGallery = {
   title: "Other client",
 };
 const principal = {
-  clientPrincipal: { identityProvider: "aad", userRoles: ["gallery-admin"] },
+  clientPrincipal: { identityProvider: "aad", userRoles: ["gallery_admin"] },
 };
 const privateLink = `https://www.theblackburn.studio/clients/${gallery.id}#access=${"t".repeat(43)}`;
 
