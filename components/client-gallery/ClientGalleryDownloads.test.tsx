@@ -199,3 +199,40 @@ it("shares only a prepared JPEG on a second user action, never the private URL",
     screen.getByRole("link", { name: "Download web-size image" }),
   ).toHaveTextContent("Download web size");
 });
+
+
+it.each(["preparing", "sharing"])("keeps viewer keyboard controls and blocks repeated activation while %s", async (phase) => {
+  Object.defineProperty(window, "matchMedia", {
+    configurable: true,
+    value: vi.fn(() => ({ matches: true, addEventListener: vi.fn(), removeEventListener: vi.fn() })),
+  });
+  vi.spyOn(window, "scrollTo").mockImplementation(() => undefined);
+  const file = new File(["jpeg"], "photo.jpg", { type: "image/jpeg" });
+  let finishPrepare!: (file: File) => void;
+  let finishShare!: () => void;
+  vi.mocked(preparePhotoShare).mockReturnValue(new Promise(resolve => { finishPrepare = resolve; }));
+  const share = vi.fn(() => new Promise<void>(resolve => { finishShare = resolve; }));
+  Object.defineProperty(navigator, "share", { configurable: true, value: share });
+  Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
+  render(<ClientGallery gallery={gallery} />);
+  const opener = screen.getAllByRole("button", { name: /^Open image/ })[0];
+  fireEvent.click(opener);
+  const button = screen.getByRole("button", { name: "Prepare to share" });
+  button.focus();
+  fireEvent.click(button);
+  if (phase === "sharing") {
+    await act(async () => { finishPrepare(file); });
+    fireEvent.click(button);
+  }
+  expect(button).toHaveAttribute("aria-disabled", "true");
+  expect(button).not.toBeDisabled();
+  expect(button).toHaveFocus();
+  fireEvent.click(button);
+  expect(preparePhotoShare).toHaveBeenCalledTimes(1);
+  expect(share).toHaveBeenCalledTimes(phase === "sharing" ? 1 : 0);
+  fireEvent.keyDown(document.activeElement!, { key: "ArrowRight" });
+  expect(screen.getByText("2 of 3")).toBeInTheDocument();
+  fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+  expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  await act(async () => { if (phase === "sharing") finishShare(); else finishPrepare(file); });
+});
