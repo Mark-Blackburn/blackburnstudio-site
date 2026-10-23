@@ -4,6 +4,7 @@ import { readFile, readdir, stat } from "node:fs/promises";
 import { extname, join, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { chromium } from "playwright";
+import { unzipSync } from "fflate";
 
 const root = fileURLToPath(new URL("../out/", import.meta.url));
 const config = JSON.parse(
@@ -217,8 +218,11 @@ try {
     return route.fulfill({
     status: galleryAuthorized ? 200 : 404, contentType: "application/json",
     body: JSON.stringify(galleryAuthorized ? { id: galleryId, title: "Synthetic Private Gallery", clientDisplayName: "Test client",
-      expiresAt: "2099-01-01T00:00:00Z", assets: [{ id: assetId, altText: "Synthetic portrait", width: 1498, height: 1873,
-        orientation: "portrait", displayOrder: 0, webImageUrl: `${imagePath}/view`, webDownloadUrl: `${imagePath}/web`, fullDownloadUrl: `${imagePath}/full` }] } : {}),
+      expiresAt: "2099-01-01T00:00:00Z", assets: [assetId, "a_otherAsset123456789"].map((id, index) => {
+        const path = `/api/galleries/${galleryId}/assets/${id}`;
+        return { id, altText: index === 0 ? "Synthetic portrait" : "Another synthetic portrait", width: 1498, height: 1873,
+          orientation: "portrait", displayOrder: index, webImageUrl: `${path}/view`, webDownloadUrl: `${path}/web`, fullDownloadUrl: `${path}/full` };
+      }) } : {}),
     });
   });
   await page.setViewportSize({ width: 390, height: 844 });
@@ -236,7 +240,37 @@ try {
   await page.reload();
   await page.getByRole("heading", { name: "Synthetic Private Gallery" }).waitFor();
   assert.equal(exchanges, 2, "Refresh uses the existing session");
+  const grid = page.getByRole("group", { name: "Gallery photographs" });
+  assert.equal(await grid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(" ").length), 2, "Mobile gallery has two compact columns");
+  await page.setViewportSize({ width: 1280, height: 900 });
+  assert.equal(await grid.evaluate(element => getComputedStyle(element).gridTemplateColumns.split(" ").length), 5, "Desktop gallery has five compact columns");
+  await page.waitForFunction(() => Array.from(document.querySelectorAll('[aria-label="Gallery photographs"] img')).every(image => image.complete && image.naturalWidth > 0));
+  if (process.env.BLACKBURN_SMOKE_SCREENSHOT) await page.screenshot({ path: process.env.BLACKBURN_SMOKE_SCREENSHOT + "-grid.png" });
+  await page.setViewportSize({ width: 390, height: 844 });
+  await page.getByRole("button", { name: "Select all", exact: true }).click();
+  assert.equal(await page.getByRole("checkbox", { checked: true }).count(), 2);
+  await page.getByRole("button", { name: "Download selected · web", exact: true }).click();
+  const saveZip = page.getByRole("link", { name: "Save ZIP · 2 photos" });
+  await saveZip.waitFor();
+  const zipDownload = page.waitForEvent("download");
+  await saveZip.click();
+  const zipFile = await zipDownload;
+  assert.ok(zipFile.suggestedFilename().endsWith("-web.zip"));
+  const archive = unzipSync(new Uint8Array(await readFile(await zipFile.path())));
+  assert.deepEqual(Object.keys(archive), ["photo-001-web.jpg", "photo-002-web.jpg"]);
+  assert.deepEqual(Buffer.from(archive["photo-001-web.jpg"]), photo);
+  await page.getByRole("button", { name: "Clear selection" }).click();
+  assert.equal(await page.getByRole("checkbox", { checked: true }).count(), 0);
+  await page.evaluate(() => {
+    Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });
+    Object.defineProperty(navigator, "share", { configurable: true, value: async data => {
+      window.__sharedPhoto = { keys: Object.keys(data), type: data.files[0].type, size: data.files[0].size };
+    } });
+  });
   await page.getByRole("button", { name: "Open image 1: Synthetic portrait" }).click();
+  await page.getByRole("button", { name: "Prepare to share" }).click();
+  await page.getByRole("button", { name: "Share photo", exact: true }).click();
+  assert.deepEqual(await page.evaluate(() => window.__sharedPhoto), { keys: ["files"], type: "image/jpeg", size: photo.length });
   if (process.env.BLACKBURN_SMOKE_SCREENSHOT)
     await page.screenshot({ path: process.env.BLACKBURN_SMOKE_SCREENSHOT });
   for (const [label, variant] of [["Download web-size image", "web"], ["Download full-resolution image", "full"]]) {

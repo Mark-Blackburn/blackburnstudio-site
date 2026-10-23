@@ -68,10 +68,38 @@ The first version supports JPEG only, at most 250 photographs per gallery,
 4 MiB per web export and 20 MiB per full-resolution file. These are application
 limits, not a claim about Azure's maximum response size. Reads have a 20-second
 deadline and validate declared/actual length and JPEG signature. Responses are
-buffered within these limits; there is no archive download, byte-range resume,
+buffered within these limits; there is no server archive endpoint, byte-range resume,
 image conversion or support for video/RAW/PNG/WebP yet. Prepare full-resolution
 JPEGs within the limit, and web exports with EXIF/location metadata removed.
 Downloads retain the supplied image bytes; this service does not remove EXIF.
+
+## Client selection, ZIP downloads and sharing
+
+The client grid uses compact, uniform thumbnails (two columns on phones, up to
+five on desktop). The viewer retains each photograph's full aspect ratio and
+labels the individual actions Download web size and Download full resolution.
+
+Clients can select photographs individually, select all or clear their selection,
+then prepare either size as one ZIP. The browser fetches only that selection,
+sequentially, through the existing authenticated image endpoints. It creates an
+uncompressed ZIP with the supplied JPEG bytes; no server endpoint or public Blob
+URL is added. Streamed per-file limits and a 100 MB cumulative image-byte limit
+bound preparation, including responses without Content-Length. Larger sets must
+be split into smaller selections. A failed photo rejects the whole archive,
+without offering a partial ZIP or retrying automatically. Progress and Cancel
+are available. A separate Save ZIP action starts one browser download. A changed
+selection hides the previously prepared ZIP. Object URLs are revoked when
+replaced or when the gallery closes, and in-flight preparation is aborted on
+unmount, including sign-out or a failed authorization refresh.
+
+On browsers supporting native JPEG file sharing, Prepare to share fetches the
+web copy; a second Share photo click opens the device's share menu with user
+activation. Only the JPEG File is passed, never a gallery link, bearer, cookie,
+or storage URL. Targets depend on installed apps and browser support; the page
+does not publish directly to a social account. Unsupported browsers offer
+guidance to download web size and attach it in the desired app. Browser smoke
+stubs the native share sheet and verifies the file-only payload; installed-app
+handoff still needs a manual device check.
 
 ## Azure setup and release
 

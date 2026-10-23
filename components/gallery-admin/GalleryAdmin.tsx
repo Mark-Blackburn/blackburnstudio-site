@@ -518,42 +518,7 @@ export function GalleryAdmin() {
                       {selected.clientDisplayName} · {selected.status}
                     </p>
                     {link ? (
-                      <div className="mb-8 space-y-3">
-                        <label className="block">
-                          Private client link
-                          <input
-                            className={field}
-                            readOnly
-                            value={link}
-                            onFocus={(e) => e.currentTarget.select()}
-                          />
-                        </label>
-                        <p className="text-sm text-studio-muted">
-                          Save this link now. It cannot be recovered after
-                          leaving this view. Anyone with it can access the
-                          gallery until expiry or revocation.
-                        </p>
-                        <button
-                          className={button}
-                          disabled={busy}
-                          onClick={() =>
-                            run(async () => {
-                              await navigator.clipboard.writeText(link);
-                              setNotice("Private link copied.");
-                            })
-                          }
-                        >
-                          Copy client link
-                        </button>
-                        <a
-                          className={button + " ml-3 inline-block"}
-                          href={link}
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          Open gallery
-                        </a>
-                      </div>
+                      <ClientLink key={link} link={link} />
                     ) : (
                       <p className="mb-6 text-sm text-studio-muted">
                         Previously created links cannot be retrieved. If you
@@ -619,5 +584,95 @@ export function GalleryAdmin() {
         )}
       </div>
     </main>
+  );
+}
+
+function ClientLink({ link }: { link: string }) {
+  const input = useRef<HTMLInputElement>(null);
+  const generation = useRef(0);
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [copying, setCopying] = useState(false);
+  const [message, setMessage] = useState("");
+  useEffect(
+    () => () => {
+      generation.current++;
+      if (timer.current) clearTimeout(timer.current);
+    },
+    [],
+  );
+  const manualCopy = () => {
+    input.current?.focus();
+    input.current?.select();
+    setMessage(
+      "Link selected. Press Ctrl+C (or Command+C), or use your device’s Copy command.",
+    );
+  };
+  const copy = async () => {
+    if (copying) return;
+    const attempt = ++generation.current;
+    if (!navigator.clipboard?.writeText) {
+      manualCopy();
+      return;
+    }
+    setCopying(true);
+    setMessage("Allow clipboard access if your browser asks.");
+    timer.current = setTimeout(() => {
+      if (generation.current !== attempt) return;
+      generation.current++;
+      setCopying(false);
+      manualCopy();
+    }, 8000);
+    try {
+      await navigator.clipboard.writeText(link);
+      if (generation.current === attempt) setMessage("Private link copied.");
+    } catch {
+      if (generation.current === attempt) manualCopy();
+    } finally {
+      if (generation.current === attempt) {
+        if (timer.current) clearTimeout(timer.current);
+        setCopying(false);
+      }
+    }
+  };
+  return (
+    <div className="mb-8 space-y-3">
+      <label className="block">
+        Private client link
+        <input
+          ref={input}
+          className={field}
+          readOnly
+          value={link}
+          onFocus={(event) => event.currentTarget.select()}
+        />
+      </label>
+      <p className="text-sm text-studio-muted">
+        Save this link now. It cannot be recovered after leaving this view.
+        Anyone with it can access the gallery until expiry or revocation.
+      </p>
+      <div className="flex flex-wrap gap-3">
+        <button
+          type="button"
+          className={button}
+          disabled={copying}
+          onClick={() => void copy()}
+        >
+          {copying ? "Copying…" : "Copy client link"}
+        </button>
+        <a
+          className={button + " inline-block"}
+          href={link}
+          target="_blank"
+          rel="noreferrer"
+        >
+          Open gallery
+        </a>
+      </div>
+      {message && (
+        <p role="status" className="text-sm text-studio-muted">
+          {message}
+        </p>
+      )}
+    </div>
   );
 }
