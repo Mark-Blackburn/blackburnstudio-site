@@ -109,6 +109,44 @@ const principal = {
 };
 const privateLink = `https://www.theblackburn.studio/clients/${gallery.id}#access=${"t".repeat(43)}`;
 
+it.each(["success", "failure"])(
+  "blocks actions until the initial gallery list settles with %s",
+  async (outcome) => {
+    let settle!: (value: Response) => void;
+    const pending = new Promise<Response>((resolve) => {
+      settle = resolve;
+    });
+    mockFetch
+      .mockResolvedValueOnce(response(principal))
+      .mockReturnValueOnce(pending);
+    render(<GalleryAdmin />);
+    const refresh = await screen.findByRole("button", { name: "Refresh list" });
+    const create = screen.getByRole("button", { name: "Create gallery" });
+    expect(refresh).toBeDisabled();
+    expect(create).toBeDisabled();
+    expect(screen.getByLabelText("Gallery title")).toBeDisabled();
+    fireEvent.click(refresh);
+    fireEvent.click(create);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+
+    settle(
+      outcome === "success"
+        ? response({ galleries: [gallery] })
+        : response({}, 500),
+    );
+    await waitFor(() => expect(refresh).toBeEnabled());
+    expect(create).toBeEnabled();
+    if (outcome === "success") {
+      expect(screen.getByRole("button", { name: /Portraits/ })).toBeEnabled();
+    } else {
+      expect(screen.getByRole("alert")).toHaveTextContent(
+        "Unable to refresh galleries",
+      );
+    }
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  },
+);
+
 function fillCreateForm(title = "Portraits") {
   fireEvent.change(screen.getByLabelText("Gallery title"), {
     target: { value: title },

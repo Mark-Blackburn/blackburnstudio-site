@@ -211,6 +211,7 @@ export function GalleryAdmin() {
           setAuth("denied");
           return;
         }
+        setBusy(true);
         setAuth("admin");
         try {
           await load();
@@ -219,6 +220,8 @@ export function GalleryAdmin() {
             setError(
               e instanceof Error ? e.message : "Unable to load galleries.",
             );
+        } finally {
+          if (active.current) setBusy(false);
         }
       })
       .catch(() => {
