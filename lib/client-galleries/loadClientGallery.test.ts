@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { loadClientGallery, logoutClientGallery, takeGalleryFragment } from "./loadClientGallery";
+import { createGallerySessionCoordinator, loadClientGallery, logoutClientGallery, takeGalleryFragment } from "./loadClientGallery";
 
 const id = "g_privateGallery123456";
 const assetId = "a_privateAsset12345678";
@@ -62,5 +62,54 @@ describe("private gallery browser transport", () => {
     fetchMock.mockImplementation((_url, init) => new Promise((_resolve, reject) => init.signal.addEventListener("abort", () => reject(new Error("aborted")))));
     const pending = loadClientGallery(id); const assertion = expect(pending).rejects.toThrow();
     await vi.advanceTimersByTimeAsync(15000); await assertion; expect(fetchMock).toHaveBeenCalledOnce();
+  });
+});
+
+
+describe("gallery cookie operation ordering", () => {
+  it("orders overlapping exchanges, logout and a later reopen across callers", async () => {
+    let releaseFirst!: (value: Response) => void;
+    const first = new Promise<Response>(resolve => { releaseFirst = resolve; });
+    const operations: string[] = [];
+    let authorized = false;
+    fetchMock.mockImplementation(async (url: string, init: RequestInit) => {
+      if (url.endsWith("/exchange")) {
+        const value = JSON.parse(init.body as string).token;
+        operations.push(value);
+        if (value === token) await first;
+        authorized = true;
+        return json({ success: true });
+      }
+      if (url.endsWith("/logout")) {
+        operations.push("logout"); authorized = false;
+        return json({ success: true });
+      }
+      return json(authorized ? gallery : {}, authorized ? 200 : 404);
+    });
+    const session = createGallerySessionCoordinator();
+    const oldLoad = session.load(id, token);
+    const newLoad = session.load(id, "u".repeat(43));
+    const logout = session.logout(id);
+    const reopened = session.load(id, "v".repeat(43));
+    await vi.waitFor(() => expect(operations).toEqual([token]));
+    releaseFirst(json({ success: true }));
+    await Promise.all([oldLoad, newLoad, logout, reopened]);
+    expect(operations).toEqual([token, "u".repeat(43), "logout", "v".repeat(43)]);
+    expect(authorized).toBe(true);
+    await session.logout(id);
+    expect(authorized).toBe(false);
+    await expect(session.load(id)).rejects.toThrow("Gallery unavailable");
+  });
+
+  it("still executes logout after a rejected exchange", async () => {
+    fetchMock.mockResolvedValueOnce(json({}, 503)).mockResolvedValueOnce(json({ success: true }));
+    const session = createGallerySessionCoordinator();
+    const exchange = session.load(id, token);
+    const logout = session.logout(id);
+    await expect(exchange).rejects.toThrow("Gallery unavailable");
+    await expect(logout).resolves.toBeUndefined();
+    expect(fetchMock.mock.calls.map(call => call[0])).toEqual([
+      `/api/galleries/${id}/exchange`, `/api/galleries/${id}/logout`,
+    ]);
   });
 });

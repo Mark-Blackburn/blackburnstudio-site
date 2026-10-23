@@ -7,7 +7,7 @@ import { ClientGallery } from "@/components/client-gallery/ClientGallery";
 import { ClientGalleryUnavailable } from "@/components/client-gallery/ClientGalleryUnavailable";
 import { getSampleClientGallery } from "@/lib/client-galleries/fixtures/sampleClientGallery";
 import type { ClientGallery as GalleryData } from "@/lib/client-galleries/contracts";
-import { loadClientGallery, logoutClientGallery, takeGalleryFragment } from "@/lib/client-galleries/loadClientGallery";
+import { createGallerySessionCoordinator, takeGalleryFragment } from "@/lib/client-galleries/loadClientGallery";
 
 export function getClientGalleryId(pathname: string): string | null {
   const match = /^\/clients\/([^/]+)\/?$/.exec(pathname);
@@ -34,8 +34,8 @@ export function ClientGalleryShell() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [linkGeneration, setLinkGeneration] = useState(0);
-  // Survive keyed loader replacement so a late logout cannot clear a new cookie.
-  const pendingLogoutRef = useRef<Promise<void> | null>(null);
+  // Preserve cookie-operation order across every keyed loader replacement.
+  const [session] = useState(createGallerySessionCoordinator);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -66,13 +66,13 @@ export function ClientGalleryShell() {
   }
 
   const gallery = galleryId ? getSampleClientGallery(galleryId) : null;
-  return <GalleryLoader key={`${galleryId ?? "unavailable"}:${linkGeneration}`} galleryId={galleryId} sample={gallery} pendingLogoutRef={pendingLogoutRef} />;
+  return <GalleryLoader key={`${galleryId ?? "unavailable"}:${linkGeneration}`} galleryId={galleryId} sample={gallery} session={session} />;
 }
 
-function GalleryLoader({ galleryId, sample, pendingLogoutRef }: {
+function GalleryLoader({ galleryId, sample, session }: {
   galleryId: string | null;
   sample: GalleryData | null;
-  pendingLogoutRef: { current: Promise<void> | null };
+  session: ReturnType<typeof createGallerySessionCoordinator>;
 }) {
   const [gallery, setGallery] = useState<GalleryData | null>(null);
   const [loading, setLoading] = useState(true);
@@ -86,8 +86,7 @@ function GalleryLoader({ galleryId, sample, pendingLogoutRef }: {
     // Keep one in-flight exchange across React Strict Mode's effect replay.
     // No token is persisted or retained in a ref; only the resulting promise.
     initial.current ??= sample ? Promise.resolve(sample) : galleryId
-      ? Promise.resolve(pendingLogoutRef.current).catch(() => undefined)
-        .then(() => loadClientGallery(galleryId, token))
+      ? session.load(galleryId, token)
       : Promise.reject(new Error("Gallery unavailable"));
     initial.current.then(data => { if (active) setGallery(data); })
       .catch(() => { if (active) setGallery(null); })
@@ -101,7 +100,7 @@ function GalleryLoader({ galleryId, sample, pendingLogoutRef }: {
         // Recovery retries metadata only; it never resends a link credential.
         await initial.current?.catch(() => undefined);
         if (!active || signedOut.current) return;
-        const data = await loadClientGallery(galleryId);
+        const data = await session.load(galleryId);
         if (active && !signedOut.current) setGallery(data);
       } catch { if (active) setGallery(null); }
       finally { refreshing = false; }
@@ -109,13 +108,12 @@ function GalleryLoader({ galleryId, sample, pendingLogoutRef }: {
     const timer = window.setInterval(refresh, 60_000);
     window.addEventListener("focus", refresh);
     return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", refresh); };
-  }, [galleryId, sample, pendingLogoutRef]);
+  }, [galleryId, sample, session]);
 
   const signOut = async () => {
     signedOut.current = true;
     setGallery(null);
-    pendingLogoutRef.current = logoutClientGallery(galleryId!);
-    try { await pendingLogoutRef.current; }
+    try { await session.logout(galleryId!); }
     catch { setSignOutError(true); }
   };
   if (loading) return <ClientGalleryLoading />;

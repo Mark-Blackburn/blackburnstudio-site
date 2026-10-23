@@ -174,6 +174,9 @@ try {
   const imagePath = `/api/galleries/${galleryId}/assets/${assetId}`;
   const token = "t".repeat(43);
   let exchanges = 0;
+  const oldToken = "s".repeat(43);
+  let finishExchange;
+  const pendingExchange = new Promise(resolve => { finishExchange = resolve; });
   let finishLogout;
   const pendingLogout = new Promise(resolve => { finishLogout = resolve; });
   const photo = await readFile(join(root, "portraits", "male.jpg"));
@@ -181,8 +184,11 @@ try {
     const pathname = new URL(route.request().url()).pathname;
     if (pathname.endsWith("/exchange")) {
       assert.equal(new URL(page.url()).hash, "", "Strip bearer fragment before exchange");
-      assert.deepEqual(route.request().postDataJSON(), { token });
-      exchanges++; galleryAuthorized = true;
+      const submitted = route.request().postDataJSON();
+      assert.deepEqual(submitted, { token: exchanges === 0 ? oldToken : token });
+      exchanges++;
+      if (submitted.token === oldToken) await pendingExchange;
+      galleryAuthorized = true;
       return route.fulfill({ contentType: "application/json", body: '{"success":true}' });
     }
     if (pathname.endsWith("/logout")) {
@@ -203,13 +209,20 @@ try {
         orientation: "portrait", displayOrder: 0, webImageUrl: `${imagePath}/view`, webDownloadUrl: `${imagePath}/web`, fullDownloadUrl: `${imagePath}/full` }] } : {}),
   }));
   await page.setViewportSize({ width: 390, height: 844 });
-  await page.goto(`${origin}/clients/${galleryId}#access=${token}`);
+  const firstExchange = page.waitForRequest(request => request.url().endsWith(`/api/galleries/${galleryId}/exchange`));
+  await page.goto(`${origin}/clients/${galleryId}#access=${oldToken}`);
+  await firstExchange;
+  await page.evaluate(token => { window.location.hash = `access=${token}`; }, token);
+  await page.waitForFunction(() => window.location.hash === "");
+  await page.getByRole("status").filter({ hasText: "Loading private gallery" }).waitFor();
+  assert.equal(exchanges, 1, "Replacement exchange waits for the obsolete response");
+  finishExchange();
   await page.getByRole("heading", { name: "Synthetic Private Gallery" }).waitFor();
-  assert.equal(exchanges, 1);
+  assert.equal(exchanges, 2);
   assert.equal(new URL(page.url()).hash, "");
   await page.reload();
   await page.getByRole("heading", { name: "Synthetic Private Gallery" }).waitFor();
-  assert.equal(exchanges, 1, "Refresh uses the existing session");
+  assert.equal(exchanges, 2, "Refresh uses the existing session");
   await page.getByRole("button", { name: "Open image 1: Synthetic portrait" }).click();
   if (process.env.BLACKBURN_SMOKE_SCREENSHOT)
     await page.screenshot({ path: process.env.BLACKBURN_SMOKE_SCREENSHOT });
@@ -225,10 +238,10 @@ try {
   await page.evaluate(token => { window.location.hash = `access=${token}`; }, token);
   await page.waitForFunction(() => window.location.hash === "");
   await page.getByRole("status").filter({ hasText: "Loading private gallery" }).waitFor();
-  assert.equal(exchanges, 1, "Reopened link waits for the pending logout response");
+  assert.equal(exchanges, 2, "Reopened link waits for the pending logout response");
   finishLogout();
   await page.getByRole("heading", { name: "Synthetic Private Gallery" }).waitFor();
-  assert.equal(exchanges, 2, "Hash-only navigation after logout exchanges once without a reload");
+  assert.equal(exchanges, 3, "Hash-only navigation after logout exchanges once without a reload");
   assert.equal(new URL(page.url()).hash, "");
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.getByRole("heading", { name: "This gallery is unavailable." }).waitFor();

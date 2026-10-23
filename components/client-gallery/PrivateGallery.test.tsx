@@ -63,6 +63,45 @@ describe("private gallery shell", () => {
     await screen.findByRole("heading", { name: "This gallery is unavailable." });
   });
 
+  it("drains an obsolete exchange before reopening and signing out", async () => {
+    let finishFirst!: (response: Response) => void;
+    const firstExchange = new Promise<Response>(resolve => { finishFirst = resolve; });
+    let authorized = false;
+    const mutations: string[] = [];
+    fetchMock.mockImplementation(async (url: string, init: RequestInit) => {
+      if (url.endsWith("/exchange")) {
+        const token = JSON.parse(init.body as string).token;
+        mutations.push(token);
+        if (token === "t".repeat(43)) await firstExchange;
+        authorized = true;
+        return json({ success: true });
+      }
+      if (url.endsWith("/logout")) {
+        mutations.push("logout"); authorized = false;
+        return json({ success: true });
+      }
+      return json(authorized ? dto : {}, authorized ? 200 : 404);
+    });
+    window.history.replaceState({}, "", `${navigation.pathname}#access=${"t".repeat(43)}`);
+    const view = render(<StrictMode><ClientGalleryShell /></StrictMode>);
+    await waitFor(() => expect(mutations).toEqual(["t".repeat(43)]));
+    window.location.hash = `access=${"u".repeat(43)}`;
+    await waitFor(() => expect(window.location.hash).toBe(""));
+    expect(screen.getByRole("status")).toHaveTextContent("Loading private gallery");
+    expect(mutations).toHaveLength(1);
+    await act(async () => { finishFirst(json({ success: true })); });
+    await screen.findByRole("heading", { name: dto.title });
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await waitFor(() => expect(mutations).toEqual(["t".repeat(43), "u".repeat(43), "logout"]));
+    expect(authorized).toBe(false);
+    // A fresh shell models reload using the browser's resulting cookie state.
+    view.unmount();
+    render(<StrictMode><ClientGalleryShell /></StrictMode>);
+    await screen.findByRole("heading", { name: "This gallery is unavailable." });
+    expect(authorized).toBe(false);
+    expect(mutations).toHaveLength(3);
+  });
+
   it.each([200, 503])("waits for pending logout (%s) before exchanging a reopened link", async status => {
     let finishLogout!: (response: Response) => void;
     const logout = new Promise<Response>(resolve => { finishLogout = resolve; });

@@ -73,3 +73,19 @@ export async function logoutClientGallery(id: string): Promise<void> {
   if (!result || typeof result !== "object" || !("success" in result) || result.success !== true)
     throw new Error("Gallery unavailable");
 }
+
+// One coordinator per shell, shared by every keyed loader. Serialize the whole
+// request lifecycle: even an obsolete response can still change HttpOnly cookies.
+// Rejections reach the caller but do not poison subsequent operations.
+export function createGallerySessionCoordinator() {
+  let pending: Promise<unknown> = Promise.resolve();
+  function enqueue<T>(operation: () => Promise<T>): Promise<T> {
+    const result = pending.then(operation);
+    pending = result.catch(() => undefined);
+    return result;
+  }
+  return {
+    load: (id: string, token: string | null = null) => enqueue(() => loadClientGallery(id, token)),
+    logout: (id: string) => enqueue(() => logoutClientGallery(id)),
+  };
+}
