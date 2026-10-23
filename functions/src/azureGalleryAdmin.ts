@@ -1,6 +1,7 @@
 import { TableClient } from "@azure/data-tables";
 import { BlobServiceClient } from "@azure/storage-blob";
 import { DefaultAzureCredential } from "@azure/identity";
+import { GalleryUploadValidationError } from "./galleryUploadValidation";
 import { randomBytes } from "node:crypto";
 import {
   createConfiguredGalleryAccess,
@@ -21,14 +22,17 @@ import {
 } from "./galleryAssets";
 
 export function jpegDimensions(bytes: Buffer, max: number) {
+  if (bytes.length > max)
+    throw new GalleryUploadValidationError(
+      `JPEG exceeds the ${max / (1024 * 1024)} MiB limit.`,
+    );
   if (
     bytes.length < 4 ||
-    bytes.length > max ||
     bytes[0] !== 255 ||
     bytes[1] !== 216 ||
     bytes[2] !== 255
   )
-    throw new Error("Invalid JPEG");
+    throw new GalleryUploadValidationError("Choose a valid JPEG photograph.");
   let offset = 2;
   while (offset + 4 <= bytes.length) {
     if (bytes[offset++] !== 255) break;
@@ -40,12 +44,17 @@ export function jpegDimensions(bytes: Buffer, max: number) {
     if ([192, 193, 194].includes(marker) && length >= 8) {
       const height = bytes.readUInt16BE(offset + 3),
         width = bytes.readUInt16BE(offset + 5);
-      if (!width || !height || width > 30000 || height > 30000) break;
+      if (!width || !height || width > 30000 || height > 30000)
+        throw new GalleryUploadValidationError(
+          "JPEG dimensions must be between 1 and 30,000 pixels on each edge.",
+        );
       return { width, height };
     }
     offset += length;
   }
-  throw new Error("Unsupported JPEG dimensions");
+  throw new GalleryUploadValidationError(
+    "JPEG dimensions could not be read. Re-export as a baseline or progressive JPEG.",
+  );
 }
 
 export function createConfiguredGalleryAdmin(
@@ -132,7 +141,9 @@ export function createConfiguredGalleryAdmin(
       const dimensions = jpegDimensions(web, MAX_WEB_BYTES);
       jpegDimensions(full, MAX_FULL_BYTES);
       if (dimensions.width > 2048 || dimensions.height > 2048)
-        throw new Error("Web export too large");
+        throw new GalleryUploadValidationError(
+          "Web JPEG must be at most 2,048 pixels on each edge.",
+        );
       const created: { name: string; etag: string }[] = [];
       let registrationAttempted = false;
       try {
@@ -143,7 +154,9 @@ export function createConfiguredGalleryAdmin(
           throw new Error("Gallery unavailable");
         const allocation = await readGalleryAllocation(table, id);
         if (allocation.assetCount >= MAX_GALLERY_ASSETS)
-          throw new Error("Gallery full");
+          throw new GalleryUploadValidationError(
+            "This gallery already contains the 250-photo maximum. Create another gallery for additional photographs.",
+          );
         const asset = {
           galleryId: id,
           id: `a_${randomBytes(16).toString("base64url")}`,

@@ -147,3 +147,43 @@ it("keeps gallery reads working with 250 photos plus the allocation row", async 
   expect(listed).toHaveLength(250);
   expect(listed[249].displayOrder).toBe(249);
 });
+
+it.each([2, 250])(
+  "bootstraps %s legacy photos with duplicate orders without storing an invalid allocation",
+  async (count) => {
+    let stored: unknown;
+    const rows = Array.from({ length: count }, (_, n) => {
+      const item = {
+        ...asset("a"),
+        id: `a_${String(n).padStart(22, "0")}`,
+        displayOrder: 0,
+      };
+      return { ...item, rowKey: item.id, partitionKey };
+    });
+    const client = {
+      getEntity: vi
+        .fn()
+        .mockRejectedValueOnce({ statusCode: 404 })
+        .mockImplementation(async () => ({
+          ...(stored as object),
+          etag: '"v1"',
+        })),
+      createEntity: vi.fn(async (value) => {
+        stored = value;
+      }),
+      listEntities: () => ({
+        async *[Symbol.asyncIterator]() {
+          if (stored) yield stored;
+          yield* rows;
+        },
+      }),
+    } as unknown as TableClient;
+    expect(await readGalleryAllocation(client, id)).toMatchObject({
+      assetCount: count,
+      nextDisplayOrder: count,
+    });
+    const listed = await createGalleryAssetStore(client).listAssets(id);
+    expect(listed).toHaveLength(count);
+    expect(listed.every((row) => row.displayOrder === 0)).toBe(true);
+  },
+);

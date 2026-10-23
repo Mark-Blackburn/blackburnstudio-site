@@ -1,3 +1,4 @@
+import { GalleryUploadValidationError } from "../src/galleryUploadValidation";
 import { describe, it, expect, vi } from "vitest";
 import { HttpRequest, InvocationContext } from "@azure/functions";
 import {
@@ -259,3 +260,45 @@ it("refreshes an authorized selected gallery independently of listing pages", as
   expect(store.get).toHaveBeenCalledWith(id);
   expect(store.list).not.toHaveBeenCalled();
 });
+
+it.each([true, false])(
+  "only exposes explicitly classified upload validation messages (safe=%s)",
+  async (safe) => {
+    const { handler, store } = setup();
+    const message = safe
+      ? "This gallery already contains the 250-photo maximum."
+      : "private SDK endpoint or key";
+    vi.mocked(store.upload).mockRejectedValue(
+      safe ? new GalleryUploadValidationError(message) : new Error(message),
+    );
+    const form = new FormData();
+    form.append("web", new Blob([new Uint8Array([255, 216, 255])]), "web.jpg");
+    form.append(
+      "full",
+      new Blob([new Uint8Array([255, 216, 255])]),
+      "full.jpg",
+    );
+    form.append("altText", "Test");
+    const encoded = new Request(origin, { method: "POST", body: form });
+    const request = new HttpRequest({
+      method: "POST",
+      url: origin,
+      params: { galleryId: id, action: "assets" },
+      headers: {
+        "x-ms-client-principal": admin,
+        origin,
+        "content-type": encoded.headers.get("content-type")!,
+      },
+      body: { bytes: new Uint8Array(await encoded.arrayBuffer()) },
+    });
+    const result = await handler(request, context);
+    expect(result.status).toBe(safe ? 400 : 409);
+    if (safe) expect(result.jsonBody).toEqual({ message });
+    else {
+      expect(JSON.stringify(result)).not.toContain(message);
+      expect(result.jsonBody).toMatchObject({
+        message: expect.stringContaining("could not be confirmed"),
+      });
+    }
+  },
+);

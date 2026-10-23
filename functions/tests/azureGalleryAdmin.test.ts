@@ -1,3 +1,4 @@
+import { GalleryUploadValidationError } from "../src/galleryUploadValidation";
 import { beforeEach, it, expect, vi } from "vitest";
 const fake = vi.hoisted(() => ({
   get: vi.fn(),
@@ -196,3 +197,41 @@ it("rejects a stale allocation at publication without retrying", async () => {
   expect(fake.transaction).toHaveBeenCalledOnce();
   expect(fake.remove).not.toHaveBeenCalled(); // Ambiguous publication preserves supplied bytes.
 });
+
+it("reports the 250-photo limit before writing any blobs", async () => {
+  fake.get.mockImplementation(async (_partition, key) =>
+    key === ALLOCATION_ROW
+      ? { ...allocation, assetCount: 250, nextDisplayOrder: 250 }
+      : row,
+  );
+  await expect(
+    createConfiguredGalleryAdmin(env).store.upload(id, jpeg, jpeg, "Test"),
+  ).rejects.toMatchObject({
+    message: expect.stringContaining("250-photo maximum"),
+  });
+  expect(fake.upload).not.toHaveBeenCalled();
+  expect(fake.transaction).not.toHaveBeenCalled();
+});
+it.each([
+  "full size",
+  "web size",
+  "full dimensions",
+  "web dimensions",
+  "invalid JPEG",
+])(
+  "rejects %s with actionable validation before storage writes",
+  async (kind) => {
+    let web = Buffer.from(jpeg),
+      full = Buffer.from(jpeg);
+    if (kind === "full size") full = Buffer.alloc(20 * 1024 * 1024 + 1);
+    if (kind === "web size") web = Buffer.alloc(4 * 1024 * 1024 + 1);
+    if (kind === "full dimensions") full.writeUInt16BE(30001, 9);
+    if (kind === "web dimensions") web.writeUInt16BE(2049, 9);
+    if (kind === "invalid JPEG") full = Buffer.from("not a JPEG");
+    await expect(
+      createConfiguredGalleryAdmin(env).store.upload(id, web, full, "Test"),
+    ).rejects.toBeInstanceOf(GalleryUploadValidationError);
+    expect(fake.upload).not.toHaveBeenCalled();
+    expect(fake.transaction).not.toHaveBeenCalled();
+  },
+);

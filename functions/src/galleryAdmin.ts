@@ -1,3 +1,4 @@
+import { GalleryUploadValidationError } from "./galleryUploadValidation";
 import { randomBytes } from "node:crypto";
 import type { HttpRequest, InvocationContext } from "@azure/functions";
 import {
@@ -201,6 +202,8 @@ export function createGalleryAdminHandler(deps: {
       }
       return galleryResponse(404, { message: "Unknown operation." });
     } catch (error) {
+      if (error instanceof GalleryUploadValidationError)
+        return galleryResponse(400, { message: error.message });
       if (error instanceof SyntaxError)
         return galleryResponse(400, { message: "Invalid request." });
       context.error("[gallery-admin] Operation failed");

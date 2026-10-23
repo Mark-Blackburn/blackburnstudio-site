@@ -70,7 +70,11 @@ export async function readGalleryAllocation(
       ++assetCount > MAX_GALLERY_ASSETS
     )
       throw new Error("Invalid gallery assets");
-    nextDisplayOrder = Math.max(nextDisplayOrder, row.displayOrder + 1);
+    nextDisplayOrder = Math.max(
+      nextDisplayOrder,
+      row.displayOrder + 1,
+      assetCount,
+    );
   }
   if (!Number.isSafeInteger(nextDisplayOrder))
     throw new Error("Invalid display order");
