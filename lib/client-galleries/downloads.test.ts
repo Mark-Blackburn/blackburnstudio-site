@@ -2,13 +2,14 @@
 import { afterEach, expect, it, vi } from "vitest";
 import { unzipSync } from "fflate";
 import { prepareGalleryZip, preparePhotoShare } from "./downloads";
-import type { ClientGalleryAsset } from "./contracts";
+import type { NumberedGalleryAsset } from "./downloads";
 
 const galleryId = "g_testGallery12345678";
-const assets: ClientGalleryAsset[] = [1, 2, 3, 4, 5, 6].map((number) => {
+const assets: NumberedGalleryAsset[] = [1, 2, 3, 4, 5, 6].map((number) => {
   const id = `a_testAsset1234567${number}`;
   return {
     id,
+    photoNumber: number,
     altText: `Photo ${number}`,
     width: 100,
     height: 100,
@@ -32,27 +33,27 @@ const photoResponse = (body: Uint8Array = jpeg) =>
   );
 afterEach(() => vi.unstubAllGlobals());
 
-it("creates a ZIP containing only the selected originals, preserving their bytes and order", async () => {
+it.each(["web", "full"] as const)("keeps gallery numbers for a sparse %s selection, preserving bytes and order", async (size) => {
   const fetch = vi.fn().mockImplementation(async () => photoResponse());
   vi.stubGlobal("fetch", fetch);
   const progress = vi.fn();
   const blob = await prepareGalleryZip(
     galleryId,
-    [assets[1], assets[3]],
-    "full",
+    [{ ...assets[1], displayOrder: 24 }, { ...assets[3], displayOrder: 24 }],
+    size,
     new AbortController().signal,
     progress,
   );
   const entries = unzipSync(new Uint8Array(await blob.arrayBuffer()));
   expect(Object.keys(entries)).toEqual([
-    "photo-001-full.jpg",
-    "photo-002-full.jpg",
+    `photo-002-${size}.jpg`,
+    `photo-004-${size}.jpg`,
   ]);
-  expect(entries["photo-001-full.jpg"]).toEqual(jpeg);
-  expect(entries["photo-002-full.jpg"]).toEqual(jpeg);
+  expect(entries[`photo-002-${size}.jpg`]).toEqual(jpeg);
+  expect(entries[`photo-004-${size}.jpg`]).toEqual(jpeg);
   expect(fetch.mock.calls.map((call) => call[0])).toEqual([
-    assets[1].fullDownloadUrl,
-    assets[3].fullDownloadUrl,
+    size === "web" ? assets[1].webDownloadUrl : assets[1].fullDownloadUrl,
+    size === "web" ? assets[3].webDownloadUrl : assets[3].fullDownloadUrl,
   ]);
   expect(fetch.mock.calls[0][1]).toMatchObject({
     credentials: "same-origin",
@@ -163,4 +164,14 @@ it("cancels an in-flight stream and never fetches the next photo", async () => {
     prepareGalleryZip(galleryId, assets, "web", controller.signal, vi.fn()),
   ).rejects.toThrow();
   expect(fetch).toHaveBeenCalledTimes(1);
+});
+
+
+it.each([0, 1.5, 251, 2])("rejects invalid or duplicate photo number %s before fetching", async (photoNumber) => {
+  const fetch = vi.fn();
+  vi.stubGlobal("fetch", fetch);
+  await expect(prepareGalleryZip(galleryId,
+    [{ ...assets[0], photoNumber }, assets[1]], "web", new AbortController().signal, vi.fn(),
+  )).rejects.toThrow("numbering changed");
+  expect(fetch).not.toHaveBeenCalled();
 });

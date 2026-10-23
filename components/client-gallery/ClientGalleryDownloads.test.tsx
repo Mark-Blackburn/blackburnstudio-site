@@ -76,7 +76,7 @@ it("selects individual photos or all, clears selection, and packages only the ch
   const save = await screen.findByRole("link", { name: "Save ZIP · 1 photo" });
   expect(prepareGalleryZip).toHaveBeenCalledWith(
     gallery.id,
-    [gallery.assets[1]],
+    [{ ...gallery.assets[1], photoNumber: 2 }],
     "web",
     expect.any(AbortSignal),
     expect.any(Function),

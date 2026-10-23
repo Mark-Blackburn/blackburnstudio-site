@@ -274,6 +274,16 @@ try {
   assert.deepEqual(Object.keys(archive), ["photo-001-web.jpg", "photo-002-web.jpg"]);
   assert.deepEqual(Buffer.from(archive["photo-001-web.jpg"]), photo);
   await page.getByRole("button", { name: "Clear selection" }).click();
+  await page.getByRole("checkbox", { name: /^Select photo 2:/ }).check();
+  await page.getByRole("button", { name: "Download selected · web", exact: true }).click();
+  const saveSingleZip = page.getByRole("link", { name: "Save ZIP · 1 photo" });
+  await saveSingleZip.waitFor();
+  const singleDownload = page.waitForEvent("download");
+  await saveSingleZip.click();
+  const singleArchive = unzipSync(new Uint8Array(await readFile(await (await singleDownload).path())));
+  assert.deepEqual(Object.keys(singleArchive), ["photo-002-web.jpg"], "A partial selection keeps the displayed gallery number");
+  assert.deepEqual(Buffer.from(singleArchive["photo-002-web.jpg"]), photo);
+  await page.getByRole("button", { name: "Clear selection" }).click();
   assert.equal(await page.getByRole("checkbox", { checked: true }).count(), 0);
   await page.evaluate(() => {
     Object.defineProperty(navigator, "canShare", { configurable: true, value: () => true });

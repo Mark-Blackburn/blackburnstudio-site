@@ -1,6 +1,8 @@
 import type { ClientGalleryAsset } from "./contracts";
 
 export type DownloadSize = "web" | "full";
+// The one-based position in the displayed gallery, captured before filtering.
+export type NumberedGalleryAsset = ClientGalleryAsset & { photoNumber: number };
 export const MAX_ZIP_BYTES = 100_000_000;
 
 export function photoDownloadUrl(
@@ -94,13 +96,23 @@ export async function preparePhotoShare(
 
 export async function prepareGalleryZip(
   galleryId: string,
-  assets: ClientGalleryAsset[],
+  assets: NumberedGalleryAsset[],
   size: DownloadSize,
   signal: AbortSignal,
   onProgress: (completed: number) => void,
 ) {
   if (!assets.length || assets.length > 250)
     throw new Error("Select between 1 and 250 photographs.");
+  const numbers = assets.map((asset) => asset.photoNumber);
+  if (
+    numbers.some(
+      (number) => !Number.isInteger(number) || number < 1 || number > 250,
+    ) ||
+    new Set(numbers).size !== numbers.length
+  )
+    throw new Error(
+      "The photo numbering changed. Refresh the gallery and try again.",
+    );
   // Validate the entire selection before making a request.
   const urls = assets.map((asset) => photoDownloadUrl(galleryId, asset, size));
   const { Zip, ZipPassThrough } = await import("fflate");
@@ -118,7 +130,7 @@ export async function prepareGalleryZip(
     for (let index = 0; index < assets.length; index++) {
       signal.throwIfAborted();
       const entry = new ZipPassThrough(
-        `photo-${String(index + 1).padStart(3, "0")}-${size}.jpg`,
+        `photo-${String(assets[index].photoNumber).padStart(3, "0")}-${size}.jpg`,
       );
       zip.add(entry);
       total += await readPhoto(

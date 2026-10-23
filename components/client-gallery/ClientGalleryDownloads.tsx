@@ -47,8 +47,10 @@ export function ClientGalleryDownloads({
     (asset) => asset.webDownloadUrl || asset.fullDownloadUrl,
   );
   if (!eligible.length) return null;
-  const chosen = assets.filter((asset) => selected.has(asset.id));
-  const selection = chosen.map((asset) => asset.id).join(",");
+  const chosen = assets
+    .map((asset, index) => ({ ...asset, photoNumber: index + 1 }))
+    .filter((asset) => selected.has(asset.id));
+  const selection = chosen.map((asset) => `${asset.id}:${asset.photoNumber}`).join(",");
   const prepare = async (size: DownloadSize) => {
     if (controller.current) return;
     const request = new AbortController();
