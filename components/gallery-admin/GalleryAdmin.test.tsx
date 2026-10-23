@@ -411,6 +411,39 @@ it("refreshes a selected gallery from a later page and discards a revoked link",
   );
 });
 
+it("retains refreshed revocation in the sidebar when appending a later page", async () => {
+  mockFetch
+    .mockResolvedValueOnce(response(principal))
+    .mockResolvedValueOnce(response({ galleries: [gallery], cursor: "later" }))
+    .mockResolvedValueOnce(response({ galleries: [otherGallery] }))
+    .mockResolvedValueOnce(
+      response({ gallery: { ...gallery, status: "revoked" } }),
+    );
+  render(<GalleryAdmin />);
+  fireEvent.click(await screen.findByRole("button", { name: /Portraits/ }));
+  expect(
+    screen.getByRole("button", { name: "Replace client link" }),
+  ).toBeEnabled();
+  fireEvent.click(screen.getByRole("button", { name: "Load more galleries" }));
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Refresh list" })).toBeEnabled(),
+  );
+  const retained = screen.getByRole("button", { name: /Portraits/ });
+  expect(retained).toHaveTextContent("revoked");
+  fireEvent.click(screen.getByRole("button", { name: /Other client/ }));
+  expect(
+    screen.getByRole("button", { name: "Replace client link" }),
+  ).toBeEnabled();
+  fireEvent.click(retained);
+  expect(
+    screen.queryByRole("button", { name: "Replace client link" }),
+  ).not.toBeInTheDocument();
+  expect(
+    screen.queryByRole("button", { name: "Upload selected photos" }),
+  ).not.toBeInTheDocument();
+  expect(mockFetch).toHaveBeenCalledTimes(4);
+});
+
 it("preserves a newly issued link when the created gallery is beyond the first page", async () => {
   const newLink = privateLink.replace(gallery.id, otherGallery.id);
   mockFetch

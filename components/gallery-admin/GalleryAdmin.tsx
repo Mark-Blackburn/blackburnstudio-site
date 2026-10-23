@@ -175,7 +175,14 @@ export function GalleryAdmin() {
       const refreshedAt = Date.now();
       setCheckedAt(refreshedAt);
       setGalleries((previous) =>
-        more ? [...previous, ...page.galleries] : page.galleries,
+        more
+          ? [
+              ...previous.map((gallery) =>
+                fresh?.id === gallery.id ? fresh : gallery,
+              ),
+              ...page.galleries,
+            ]
+          : page.galleries,
       );
       if (fresh) setSelected(fresh);
       setIssuedLink((current) => {
