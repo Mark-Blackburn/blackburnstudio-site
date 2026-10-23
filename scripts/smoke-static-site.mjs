@@ -174,6 +174,8 @@ try {
   const imagePath = `/api/galleries/${galleryId}/assets/${assetId}`;
   const token = "t".repeat(43);
   let exchanges = 0;
+  let finishLogout;
+  const pendingLogout = new Promise(resolve => { finishLogout = resolve; });
   const photo = await readFile(join(root, "portraits", "male.jpg"));
   await page.route(`**/api/galleries/${galleryId}/**`, async route => {
     const pathname = new URL(route.request().url()).pathname;
@@ -184,6 +186,7 @@ try {
       return route.fulfill({ contentType: "application/json", body: '{"success":true}' });
     }
     if (pathname.endsWith("/logout")) {
+      await pendingLogout;
       galleryAuthorized = false;
       return route.fulfill({ contentType: "application/json", body: '{"success":true}' });
     }
@@ -220,6 +223,10 @@ try {
   await page.getByRole("button", { name: "Sign out" }).click();
   await page.getByRole("heading", { name: "This gallery is unavailable." }).waitFor();
   await page.evaluate(token => { window.location.hash = `access=${token}`; }, token);
+  await page.waitForFunction(() => window.location.hash === "");
+  await page.getByRole("status").filter({ hasText: "Loading private gallery" }).waitFor();
+  assert.equal(exchanges, 1, "Reopened link waits for the pending logout response");
+  finishLogout();
   await page.getByRole("heading", { name: "Synthetic Private Gallery" }).waitFor();
   assert.equal(exchanges, 2, "Hash-only navigation after logout exchanges once without a reload");
   assert.equal(new URL(page.url()).hash, "");

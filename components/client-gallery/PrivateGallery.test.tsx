@@ -63,6 +63,46 @@ describe("private gallery shell", () => {
     await screen.findByRole("heading", { name: "This gallery is unavailable." });
   });
 
+  it.each([200, 503])("waits for pending logout (%s) before exchanging a reopened link", async status => {
+    let finishLogout!: (response: Response) => void;
+    const logout = new Promise<Response>(resolve => { finishLogout = resolve; });
+    let authorized = true;
+    fetchMock.mockImplementation(async (url: string) => {
+      if (url.endsWith("/logout")) {
+        const response = await logout;
+        authorized = false; // Model the late response clearing the browser cookie.
+        return response;
+      }
+      if (url.endsWith("/exchange")) {
+        expect(window.location.hash).toBe("");
+        authorized = true;
+        return json({ success: true });
+      }
+      return json(authorized ? dto : {}, authorized ? 200 : 404);
+    });
+    render(<StrictMode><ClientGalleryShell /></StrictMode>);
+    await screen.findByRole("heading", { name: dto.title });
+    fireEvent.click(screen.getByRole("button", { name: "Sign out" }));
+    await screen.findByRole("heading", { name: "This gallery is unavailable." });
+    window.location.hash = `access=${"u".repeat(43)}`;
+    await waitFor(() => expect(window.location.hash).toBe(""));
+    expect(screen.getByRole("status")).toHaveTextContent("Loading private gallery");
+    expect(fetchMock.mock.calls.filter(call => call[0].endsWith("/exchange"))).toHaveLength(0);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+
+    await act(async () => { finishLogout(json({ success: status === 200 }, status)); });
+    await screen.findByRole("heading", { name: dto.title });
+    expect(fetchMock.mock.calls.filter(call => call[0].endsWith("/exchange"))).toHaveLength(1);
+    expect(screen.queryByRole("alert")).not.toBeInTheDocument();
+    fireEvent(window, new Event("focus"));
+    await waitFor(() => expect(fetchMock.mock.calls.filter(call => call[0] === `/api/galleries/${id}`)).toHaveLength(3));
+    expect(screen.getByRole("heading", { name: dto.title })).toBeInTheDocument();
+    expect(authorized).toBe(true);
+    fireEvent.click(screen.getByRole("button", { name: "Open image 1: Synthetic portrait" }));
+    expect(screen.getByRole("link", { name: "Download full-resolution image" })).toHaveAttribute("href", `${path}/full`);
+    fireEvent.keyDown(screen.getByRole("dialog"), { key: "Escape" });
+  });
+
   it("renders private download actions in the viewer and signs out", async () => {
     fetchMock.mockResolvedValueOnce(json(dto)).mockResolvedValueOnce(json({ success: true }));
     render(<ClientGalleryShell />);

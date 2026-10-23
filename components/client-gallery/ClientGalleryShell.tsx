@@ -34,6 +34,8 @@ export function ClientGalleryShell() {
   const pathname = usePathname();
   const [mounted, setMounted] = useState(false);
   const [linkGeneration, setLinkGeneration] = useState(0);
+  // Survive keyed loader replacement so a late logout cannot clear a new cookie.
+  const pendingLogoutRef = useRef<Promise<void> | null>(null);
 
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
@@ -64,10 +66,14 @@ export function ClientGalleryShell() {
   }
 
   const gallery = galleryId ? getSampleClientGallery(galleryId) : null;
-  return <GalleryLoader key={`${galleryId ?? "unavailable"}:${linkGeneration}`} galleryId={galleryId} sample={gallery} />;
+  return <GalleryLoader key={`${galleryId ?? "unavailable"}:${linkGeneration}`} galleryId={galleryId} sample={gallery} pendingLogoutRef={pendingLogoutRef} />;
 }
 
-function GalleryLoader({ galleryId, sample }: { galleryId: string | null; sample: GalleryData | null }) {
+function GalleryLoader({ galleryId, sample, pendingLogoutRef }: {
+  galleryId: string | null;
+  sample: GalleryData | null;
+  pendingLogoutRef: { current: Promise<void> | null };
+}) {
   const [gallery, setGallery] = useState<GalleryData | null>(null);
   const [loading, setLoading] = useState(true);
   const [signOutError, setSignOutError] = useState(false);
@@ -80,7 +86,9 @@ function GalleryLoader({ galleryId, sample }: { galleryId: string | null; sample
     // Keep one in-flight exchange across React Strict Mode's effect replay.
     // No token is persisted or retained in a ref; only the resulting promise.
     initial.current ??= sample ? Promise.resolve(sample) : galleryId
-      ? loadClientGallery(galleryId, token) : Promise.reject(new Error("Gallery unavailable"));
+      ? Promise.resolve(pendingLogoutRef.current).catch(() => undefined)
+        .then(() => loadClientGallery(galleryId, token))
+      : Promise.reject(new Error("Gallery unavailable"));
     initial.current.then(data => { if (active) setGallery(data); })
       .catch(() => { if (active) setGallery(null); })
       .finally(() => { if (active) setLoading(false); });
@@ -101,12 +109,13 @@ function GalleryLoader({ galleryId, sample }: { galleryId: string | null; sample
     const timer = window.setInterval(refresh, 60_000);
     window.addEventListener("focus", refresh);
     return () => { active = false; window.clearInterval(timer); window.removeEventListener("focus", refresh); };
-  }, [galleryId, sample]);
+  }, [galleryId, sample, pendingLogoutRef]);
 
   const signOut = async () => {
     signedOut.current = true;
     setGallery(null);
-    try { await logoutClientGallery(galleryId!); }
+    pendingLogoutRef.current = logoutClientGallery(galleryId!);
+    try { await pendingLogoutRef.current; }
     catch { setSignOutError(true); }
   };
   if (loading) return <ClientGalleryLoading />;
