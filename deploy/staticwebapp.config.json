@@ -19,6 +19,22 @@
       }
     },
     {
+      "route": "/admin",
+      "rewrite": "/admin.html",
+      "headers": {
+        "Cache-Control": "no-store",
+        "X-Robots-Tag": "noindex, nofollow"
+      }
+    },
+    {
+      "route": "/admin/",
+      "rewrite": "/admin.html",
+      "headers": {
+        "Cache-Control": "no-store",
+        "X-Robots-Tag": "noindex, nofollow"
+      }
+    },
+    {
       "route": "/admin/galleries",
       "rewrite": "/admin/galleries.html",
       "headers": {

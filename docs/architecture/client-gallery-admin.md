@@ -1,5 +1,9 @@
 # Gallery administration
 
+Open `/admin/` (or `/admin`) for the administration landing page, then choose
+Gallery administration. The landing page is noindex and contains only navigation;
+Microsoft sign-in and the `gallery_admin` role still protect gallery operations.
+
 The `/admin/galleries` screen manages the existing private-gallery service. It
 lists galleries with continuation paging, creates published galleries with an
 expiry, generates a replacement link, revokes access, and uploads JPEG pairs.
