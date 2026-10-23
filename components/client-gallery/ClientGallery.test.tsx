@@ -120,10 +120,10 @@ describe("ClientGallery", () => {
     );
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByText(`8 of ${gallery.assets.length}`)).toBeInTheDocument();
     expect(
-      screen.getByAltText(gallery.assets[7].altText),
+      screen.getByText(`8 of ${gallery.assets.length}`),
     ).toBeInTheDocument();
+    expect(screen.getByAltText(gallery.assets[7].altText)).toBeInTheDocument();
     expect(renderActions).toHaveBeenCalledOnce();
     expect(renderActions).toHaveBeenCalledWith(gallery.assets[7]);
   });
@@ -160,10 +160,10 @@ describe("ClientGallery", () => {
     );
 
     expect(screen.getByRole("dialog")).toBeInTheDocument();
-    expect(screen.getByText(`1 of ${gallery.assets.length}`)).toBeInTheDocument();
     expect(
-      screen.getByAltText(gallery.assets[0].altText),
+      screen.getByText(`1 of ${gallery.assets.length}`),
     ).toBeInTheDocument();
+    expect(screen.getByAltText(gallery.assets[0].altText)).toBeInTheDocument();
   });
 
   it("keeps a single-asset viewer open and stationary for ArrowLeft and ArrowRight", () => {
@@ -227,7 +227,9 @@ describe("ClientGallery", () => {
     });
     expect(dialog).toBeInTheDocument();
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Close image viewer" })).toHaveFocus(),
+      expect(
+        screen.getByRole("button", { name: "Close image viewer" }),
+      ).toHaveFocus(),
     );
   });
 
@@ -254,6 +256,53 @@ describe("ClientGallery", () => {
     expect(within(dialog).getByText("1 of 10")).toBeInTheDocument();
   });
 
+  it.each(["ArrowRight", "ArrowLeft"])(
+    "recovers focus after %s removes a focused download action, retaining navigation and Escape",
+    async (key) => {
+      const downloadable = {
+        ...gallery,
+        assets: gallery.assets
+          .slice(0, 3)
+          .map((asset) => ({
+            ...asset,
+            webDownloadUrl: `/api/galleries/${gallery.id}/assets/${asset.id}/web`,
+          })),
+      };
+      render(<ClientGallery gallery={downloadable} />);
+      const opener = screen.getByRole("button", { name: /^Open image 1:/ });
+      fireEvent.click(opener);
+      const link = screen.getByRole("link", {
+        name: "Download web-size image",
+      });
+      link.focus();
+      fireEvent.keyDown(document.activeElement!, { key });
+      expect(link).not.toBeInTheDocument();
+      expect(
+        screen.getByRole("button", { name: "Close image viewer" }),
+      ).toHaveFocus();
+      expect(
+        screen.getByText(key === "ArrowRight" ? "2 of 3" : "3 of 3"),
+      ).toBeInTheDocument();
+      fireEvent.keyDown(document.activeElement!, { key });
+      expect(
+        screen.getByText(key === "ArrowRight" ? "3 of 3" : "2 of 3"),
+      ).toBeInTheDocument();
+      fireEvent.keyDown(document.activeElement!, { key: "Escape" });
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+      await waitFor(() => expect(opener).toHaveFocus());
+    },
+  );
+
+  it("preserves focus on a stable navigation control when changing photos", () => {
+    render(<ClientGallery gallery={gallery} />);
+    fireEvent.click(screen.getByRole("button", { name: /^Open image 1:/ }));
+    const next = screen.getByRole("button", { name: "Next image" });
+    next.focus();
+    fireEvent.keyDown(next, { key: "ArrowRight" });
+    expect(next).toHaveFocus();
+    expect(screen.getByText("2 of 10")).toBeInTheDocument();
+  });
+
   it("keeps focus inside the active dialog", async () => {
     render(
       <>
@@ -266,7 +315,9 @@ describe("ClientGallery", () => {
     outside.focus();
 
     await waitFor(() =>
-      expect(screen.getByRole("button", { name: "Close image viewer" })).toHaveFocus(),
+      expect(
+        screen.getByRole("button", { name: "Close image viewer" }),
+      ).toHaveFocus(),
     );
   });
 

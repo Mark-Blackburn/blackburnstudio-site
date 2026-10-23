@@ -271,6 +271,20 @@ try {
   await page.getByRole("button", { name: "Prepare to share" }).click();
   await page.getByRole("button", { name: "Share photo", exact: true }).click();
   assert.deepEqual(await page.evaluate(() => window.__sharedPhoto), { keys: ["files"], type: "image/jpeg", size: photo.length });
+  for (const action of ["download", "share"]) {
+    const focusedAction = action === "download"
+      ? page.getByRole("link", { name: "Download web-size image" })
+      : page.getByRole("button", { name: "Prepare to share" });
+    await focusedAction.focus();
+    await page.keyboard.press("ArrowRight");
+    await page.getByText("2 of 2", { exact: true }).waitFor();
+    assert.equal(await page.getByRole("button", { name: "Close image viewer" }).evaluate(element => element === document.activeElement), true, "Restore focus after replacing the focused photo action");
+    await page.keyboard.press("Escape");
+    assert.equal(await page.getByRole("dialog").count(), 0);
+    const opener = page.getByRole("button", { name: "Open image 1: Synthetic portrait" });
+    assert.equal(await opener.evaluate(element => element === document.activeElement), true);
+    await opener.click();
+  }
   if (process.env.BLACKBURN_SMOKE_SCREENSHOT)
     await page.screenshot({ path: process.env.BLACKBURN_SMOKE_SCREENSHOT });
   for (const [label, variant] of [["Download web-size image", "web"], ["Download full-resolution image", "full"]]) {

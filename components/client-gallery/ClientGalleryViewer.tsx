@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useLayoutEffect,
   useRef,
   type KeyboardEvent,
   type ReactNode,
@@ -39,6 +40,7 @@ export function ClientGalleryViewer({
   const gestureTotal = Math.max(total, 1);
   const normalizedIndex = Number.isFinite(index) ? index : 0;
   const safeIndex = total > 0 ? ((normalizedIndex % total) + total) % total : 0;
+  const currentAsset = assets[safeIndex];
 
   useScrollLock(total > 0);
 
@@ -79,11 +81,21 @@ export function ClientGalleryViewer({
     };
   }, [returnFocusRef, total]);
 
+  useLayoutEffect(() => {
+    // Per-photo actions remount on navigation to discard prepared share files.
+    // Removing a focused action does not emit focusin; recover before the next
+    // key event, while leaving focus on stable viewer controls untouched.
+    if (
+      dialogRef.current &&
+      !dialogRef.current.contains(document.activeElement)
+    ) {
+      closeButtonRef.current?.focus();
+    }
+  }, [currentAsset?.id, safeIndex]);
+
   if (total === 0) {
     return null;
   }
-
-  const currentAsset = assets[safeIndex];
 
   if (!currentAsset) {
     return null;
