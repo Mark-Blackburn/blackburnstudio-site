@@ -21,6 +21,7 @@ export const adminGallery = (r: GalleryAccessRecord): AdminGallery => ({
   expiresAt: r.expiresAt,
 });
 export interface GalleryAdminStore {
+  get(id: string): Promise<AdminGallery>;
   list(
     cursor?: string,
   ): Promise<{ galleries: AdminGallery[]; cursor?: string }>;
@@ -97,6 +98,13 @@ export function createGalleryAdminHandler(deps: {
     if (id && (!GALLERY_ID.test(id) || id === "g_7Rk3mN9xQ2vL8pT4"))
       return galleryResponse(400, { message: "Invalid gallery." });
     try {
+      if (
+        request.method === "GET" &&
+        id &&
+        request.params.action === "details"
+      ) {
+        return galleryResponse(200, { gallery: await deps.store.get(id) });
+      }
       if (request.method === "GET" && !id) {
         const cursor = request.query.get("cursor") ?? undefined;
         if (cursor && cursor.length > 8192)

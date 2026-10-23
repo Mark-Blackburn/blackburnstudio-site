@@ -258,7 +258,9 @@ it.each(["Replace client link", "Revoke access"])(
       screen.queryByRole("button", { name: "Copy client link" }),
     ).not.toBeInTheDocument();
     fail(new Error("Connection lost after request"));
-    await screen.findByRole("alert");
+    expect(await screen.findByRole("alert")).toHaveTextContent(
+      "may already have been saved",
+    );
     mockFetch.mockResolvedValueOnce(response({ galleries: [gallery] }));
     fireEvent.click(screen.getByRole("button", { name: "Refresh list" }));
     await waitFor(() =>
@@ -314,4 +316,120 @@ it("clears a displayed link when refresh confirms external revocation", async ()
     ).not.toBeInTheDocument(),
   );
   expect(screen.getByText("Test client · revoked")).toBeInTheDocument();
+});
+
+it("refreshes a selected gallery from a later page and discards a revoked link", async () => {
+  const later = { ...otherGallery };
+  const laterLink = privateLink.replace(gallery.id, later.id);
+  mockFetch.mockImplementation(async (path: string) => {
+    if (path === "/.auth/me") return response(principal);
+    if (path.endsWith("/replace")) return response({ link: laterLink });
+    if (path.endsWith("/details")) return response({ gallery: { ...later } });
+    if (path.includes("cursor="))
+      return response({ galleries: [{ ...later }] });
+    return response({ galleries: [gallery], cursor: "second-page" });
+  });
+  render(<GalleryAdmin />);
+  fireEvent.click(
+    await screen.findByRole("button", { name: "Load more galleries" }),
+  );
+  fireEvent.click(await screen.findByRole("button", { name: /Other client/ }));
+  vi.spyOn(window, "confirm").mockReturnValue(true);
+  fireEvent.click(screen.getByRole("button", { name: "Replace client link" }));
+  await waitFor(() =>
+    expect(screen.getByRole("button", { name: "Refresh list" })).toBeEnabled(),
+  );
+  expect(screen.getByLabelText("Private client link")).toHaveValue(laterLink);
+  later.status = "revoked";
+  fireEvent.click(screen.getByRole("button", { name: "Refresh list" }));
+  await waitFor(() =>
+    expect(
+      screen.queryByRole("button", { name: "Upload selected photos" }),
+    ).not.toBeInTheDocument(),
+  );
+  expect(
+    screen.queryByLabelText("Private client link"),
+  ).not.toBeInTheDocument();
+  expect(mockFetch).toHaveBeenCalledWith(
+    `/api/admin/galleries/${later.id}/details`,
+    expect.anything(),
+  );
+});
+
+it("preserves a newly issued link when the created gallery is beyond the first page", async () => {
+  const newLink = privateLink.replace(gallery.id, otherGallery.id);
+  mockFetch
+    .mockResolvedValueOnce(response(principal))
+    .mockResolvedValueOnce(response({ galleries: [gallery] }))
+    .mockResolvedValueOnce(
+      response({ gallery: otherGallery, link: newLink }, 201),
+    )
+    .mockResolvedValueOnce(response({ galleries: [gallery], cursor: "later" }))
+    .mockResolvedValueOnce(response({ gallery: otherGallery }));
+  render(<GalleryAdmin />);
+  await screen.findByRole("button", { name: /Portraits/ });
+  fillCreateForm("Other client");
+  fireEvent.click(screen.getByRole("button", { name: "Create gallery" }));
+  await waitFor(() => expect(mockFetch).toHaveBeenCalledTimes(5));
+  await waitFor(() =>
+    expect(
+      screen.getByRole("button", { name: "Upload selected photos" }),
+    ).toBeEnabled(),
+  );
+  expect(screen.getByLabelText("Private client link")).toHaveValue(newLink);
+});
+
+it.each([true, false])(
+  "shows validation guidance for HTTP 400 (public message=%s)",
+  async (hasMessage) => {
+    const message = "Enter a title and an expiry within the next year.";
+    mockFetch
+      .mockResolvedValueOnce(response(principal))
+      .mockResolvedValueOnce(response({ galleries: [] }))
+      .mockResolvedValueOnce(
+        hasMessage
+          ? response({ message }, 400)
+          : new Response("Invalid JSON", { status: 400 }),
+      );
+    render(<GalleryAdmin />);
+    await screen.findByRole("heading", { name: "Create a gallery" });
+    fillCreateForm();
+    fireEvent.click(screen.getByRole("button", { name: "Create gallery" }));
+    const alert = await screen.findByRole("alert");
+    expect(alert).toHaveTextContent(
+      hasMessage ? message : "Check the gallery details",
+    );
+    expect(alert).not.toHaveTextContent("could not be confirmed");
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  },
+);
+
+it("warns that an upload may have committed after a transport failure without retrying", async () => {
+  await createGalleryWithLink();
+  vi.stubGlobal(
+    "createImageBitmap",
+    vi.fn().mockResolvedValue({ width: 100, height: 100, close: vi.fn() }),
+  );
+  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({
+    drawImage: vi.fn(),
+  } as unknown as CanvasRenderingContext2D);
+  vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation(
+    (callback) => callback(new Blob(["web"], { type: "image/jpeg" })),
+  );
+  mockFetch.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+  fireEvent.change(screen.getByLabelText("JPEG photographs"), {
+    target: {
+      files: [new File(["original"], "client.jpg", { type: "image/jpeg" })],
+    },
+  });
+  fireEvent.click(
+    screen.getByRole("button", { name: "Upload selected photos" }),
+  );
+  expect(await screen.findByRole("alert")).toHaveTextContent(
+    "current photo or other change may already have been saved",
+  );
+  expect(screen.getByRole("status")).toHaveTextContent(
+    "0 photos confirmed uploaded",
+  );
+  expect(mockFetch).toHaveBeenCalledTimes(5);
 });

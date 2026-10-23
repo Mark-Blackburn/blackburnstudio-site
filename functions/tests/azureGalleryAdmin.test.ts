@@ -4,6 +4,7 @@ const fake = vi.hoisted(() => ({
   update: vi.fn(),
   create: vi.fn(),
   list: vi.fn(),
+  transaction: vi.fn(),
   props: vi.fn(),
   upload: vi.fn(),
   remove: vi.fn(),
@@ -17,6 +18,7 @@ vi.mock("@azure/data-tables", () => ({
     updateEntity = fake.update;
     createEntity = fake.create;
     listEntities = fake.list;
+    submitTransaction = fake.transaction;
   },
 }));
 vi.mock("@azure/identity", () => ({ DefaultAzureCredential: class {} }));
@@ -38,6 +40,7 @@ vi.mock("@azure/storage-blob", () => ({
     }
   },
 }));
+import { ALLOCATION_ROW } from "../src/galleryAssetPublication";
 import { createConfiguredGalleryAdmin } from "../src/azureGalleryAdmin";
 const id = "g_privateGallery123456";
 const row = {
@@ -53,6 +56,15 @@ const row = {
   sessionVersion: 1,
   etag: '"version1"',
 };
+const allocation = {
+  partitionKey: `gallery-assets-${id}`,
+  rowKey: ALLOCATION_ROW,
+  galleryId: id,
+  schemaVersion: 1,
+  assetCount: 0,
+  nextDisplayOrder: 0,
+  etag: '"allocation1"',
+};
 const env = {
   GALLERY_TABLE_ENDPOINT: "https://example.table.core.windows.net",
   GALLERY_TABLE_NAME: "ClientGalleries",
@@ -65,7 +77,9 @@ const env = {
 const jpeg = Buffer.from([255, 216, 255, 192, 0, 8, 8, 0, 100, 0, 150, 1]);
 beforeEach(() => {
   vi.resetAllMocks();
-  fake.get.mockResolvedValue(row);
+  fake.get.mockImplementation(async (_partition, key) =>
+    key === ALLOCATION_ROW ? allocation : row,
+  );
   fake.props.mockResolvedValue({});
   fake.upload.mockResolvedValue({ etag: '"blob"' });
   fake.acquire.mockResolvedValue({ leaseId: "lock" });
@@ -120,20 +134,29 @@ it("lists whitelisted metadata with a continuation token", async () => {
   expect(JSON.stringify(result)).not.toContain("accessTokenHash");
   expect(JSON.stringify(result)).not.toContain("etag");
 });
-it("publishes metadata only after both immutable JPEGs and checks lease ownership", async () => {
+it("publishes both immutable JPEGs before the conditional Table transaction", async () => {
   await createConfiguredGalleryAdmin(env).store.upload(id, jpeg, jpeg, "Test");
-  expect(fake.upload).toHaveBeenCalledTimes(3); // Lock plus web/full.
-  expect(fake.create).toHaveBeenCalledWith(
-    expect.objectContaining({
-      partitionKey: `gallery-assets-${id}`,
-      width: 150,
-      height: 100,
-    }),
+  expect(fake.upload).toHaveBeenCalledTimes(2);
+  expect(fake.transaction).toHaveBeenCalledWith([
+    [
+      "update",
+      expect.objectContaining({ assetCount: 1, nextDisplayOrder: 1 }),
+      "Replace",
+      { etag: allocation.etag },
+    ],
+    [
+      "create",
+      expect.objectContaining({
+        partitionKey: `gallery-assets-${id}`,
+        width: 150,
+        height: 100,
+        displayOrder: 0,
+      }),
+    ],
+  ]);
+  expect(fake.upload.mock.invocationCallOrder[1]).toBeLessThan(
+    fake.transaction.mock.invocationCallOrder[0],
   );
-  expect(fake.renew.mock.invocationCallOrder[0]).toBeLessThan(
-    fake.create.mock.invocationCallOrder[0],
-  );
-  expect(fake.release).toHaveBeenCalledOnce();
 });
 it("refuses public containers and does not publish", async () => {
   fake.props.mockResolvedValue({ blobPublicAccess: "blob" });
@@ -141,19 +164,18 @@ it("refuses public containers and does not publish", async () => {
     createConfiguredGalleryAdmin(env).store.upload(id, jpeg, jpeg, "Test"),
   ).rejects.toThrow("Private container");
   expect(fake.create).not.toHaveBeenCalled();
-  expect(fake.release).toHaveBeenCalledOnce();
 });
 it("keeps blobs after an ambiguous metadata write", async () => {
-  fake.create.mockRejectedValue(new Error("network timeout"));
+  fake.transaction.mockRejectedValue(new Error("network timeout"));
   await expect(
     createConfiguredGalleryAdmin(env).store.upload(id, jpeg, jpeg, "Test"),
   ).rejects.toThrow();
   expect(fake.remove).not.toHaveBeenCalled();
-  expect(fake.release).toHaveBeenCalledOnce();
 });
 it("cleans exact blob versions if gallery is revoked before publication", async () => {
   fake.get
     .mockResolvedValueOnce(row)
+    .mockResolvedValueOnce(allocation)
     .mockResolvedValueOnce({ ...row, status: "revoked", etag: '"version2"' });
   await expect(
     createConfiguredGalleryAdmin(env).store.upload(id, jpeg, jpeg, "Test"),
@@ -164,11 +186,13 @@ it("cleans exact blob versions if gallery is revoked before publication", async 
   });
   expect(fake.create).not.toHaveBeenCalled();
 });
-it("refuses competing writers before loading gallery or assets", async () => {
-  fake.acquire.mockRejectedValue(new Error("Lease already held"));
+it("rejects a stale allocation at publication without retrying", async () => {
+  fake.transaction.mockRejectedValue(
+    Object.assign(new Error("ETag mismatch"), { statusCode: 412 }),
+  );
   await expect(
     createConfiguredGalleryAdmin(env).store.upload(id, jpeg, jpeg, "Test"),
-  ).rejects.toThrow();
-  expect(fake.get).not.toHaveBeenCalled();
-  expect(fake.create).not.toHaveBeenCalled();
+  ).rejects.toThrow("ETag mismatch");
+  expect(fake.transaction).toHaveBeenCalledOnce();
+  expect(fake.remove).not.toHaveBeenCalled(); // Ambiguous publication preserves supplied bytes.
 });

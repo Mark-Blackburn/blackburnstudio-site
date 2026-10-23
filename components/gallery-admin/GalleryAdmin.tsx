@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 type Gallery = {
   id: string;
@@ -17,35 +17,65 @@ const field =
 const button =
   "rounded border border-studio-border px-4 py-2 text-sm hover:border-studio-accent disabled:opacity-40";
 
+const uncertainMutation =
+  "The operation could not be confirmed. Inspect the gallery before retrying: the current photo or other change may already have been saved. No automatic retry was made.";
+
 async function api<T>(path: string, body?: object | FormData): Promise<T> {
-  const response = await fetch(path, {
-    method: body ? "POST" : "GET",
-    credentials: "same-origin",
-    cache: "no-store",
-    headers:
-      body && !(body instanceof FormData)
-        ? { "Content-Type": "application/json" }
+  let response: Response;
+  try {
+    response = await fetch(path, {
+      method: body ? "POST" : "GET",
+      credentials: "same-origin",
+      cache: "no-store",
+      headers:
+        body && !(body instanceof FormData)
+          ? { "Content-Type": "application/json" }
+          : undefined,
+      body: body
+        ? body instanceof FormData
+          ? body
+          : JSON.stringify(body)
         : undefined,
-    body: body
-      ? body instanceof FormData
-        ? body
-        : JSON.stringify(body)
-      : undefined,
-  });
+    });
+  } catch {
+    throw new Error(
+      body
+        ? uncertainMutation
+        : "Unable to refresh galleries. Check your connection and try again.",
+    );
+  }
   if (!response.ok) {
+    if (response.status === 400) {
+      const data = await response.json().catch(() => null);
+      throw new Error(
+        typeof data?.message === "string" && data.message.length <= 500
+          ? data.message
+          : "Check the gallery details and selected photographs, then try again.",
+      );
+    }
     if (response.status === 401 || response.status === 403)
       throw new Error(
         "Your admin session needs sign-in or the gallery-admin role. Sign in again before continuing.",
       );
-    if (response.status === 404 || response.status === 503)
+    if (response.status === 404 || (!body && response.status === 503))
       throw new Error(
         "Gallery administration is not enabled yet. Complete the one-time setup first.",
       );
     throw new Error(
-      "The operation could not be confirmed. Refresh the list before retrying. An upload may have completed.",
+      body
+        ? uncertainMutation
+        : "Unable to refresh galleries. Try again before changing this gallery.",
     );
   }
-  return response.json();
+  try {
+    return await response.json();
+  } catch {
+    throw new Error(
+      body
+        ? uncertainMutation
+        : "Unable to read the gallery response. Refresh and try again.",
+    );
+  }
 }
 
 export async function makeWebJpeg(file: File): Promise<Blob> {
@@ -96,35 +126,52 @@ export function GalleryAdmin() {
   const files = useRef<HTMLInputElement>(null);
   const active = useRef(true);
   // Bearer links stay only in this mounted component. Never browser storage.
-  const load = async (more?: string) => {
-    const page = await api<Page>(
-      base + (more ? `?cursor=${encodeURIComponent(more)}` : ""),
-    );
-    if (!active.current) return;
-    const refreshedAt = Date.now();
-    setCheckedAt(refreshedAt);
-    setGalleries((previous) =>
-      more ? [...previous, ...page.galleries] : page.galleries,
-    );
-    setSelected((current) =>
-      current
-        ? (page.galleries.find((gallery) => gallery.id === current.id) ??
-          current)
-        : null,
-    );
-    setLink((current) => {
-      if (!current) return current;
-      const path = new URL(current).pathname;
-      const record = page.galleries.find(
-        (gallery) => path === `/clients/${gallery.id}`,
+  const load = useCallback(
+    async (more?: string, current: Gallery | null = null) => {
+      const page = await api<Page>(
+        base + (more ? `?cursor=${encodeURIComponent(more)}` : ""),
       );
-      return record &&
-        (record.status !== "published" || record.expiresAt <= refreshedAt)
-        ? ""
-        : current;
-    });
-    setCursor(page.cursor);
-  };
+      let fresh = current
+        ? page.galleries.find((gallery) => gallery.id === current.id)
+        : undefined;
+      if (current && !fresh) {
+        try {
+          fresh = (
+            await api<{ gallery: Gallery }>(`${base}/${current.id}/details`)
+          ).gallery;
+        } catch (error) {
+          if (active.current) {
+            setSelected(null);
+            setLink("");
+          }
+          throw error;
+        }
+      }
+      if (!active.current) return;
+      const refreshedAt = Date.now();
+      setCheckedAt(refreshedAt);
+      setGalleries((previous) =>
+        more ? [...previous, ...page.galleries] : page.galleries,
+      );
+      if (fresh) setSelected(fresh);
+      setLink((current) => {
+        if (!current) return current;
+        const path = new URL(current).pathname;
+        const record =
+          fresh && path === `/clients/${fresh.id}`
+            ? fresh
+            : page.galleries.find(
+                (gallery) => path === `/clients/${gallery.id}`,
+              );
+        return record &&
+          (record.status !== "published" || record.expiresAt <= refreshedAt)
+          ? ""
+          : current;
+      });
+      setCursor(page.cursor);
+    },
+    [],
+  );
   useEffect(() => {
     active.current = true;
     fetch("/.auth/me", { cache: "no-store" })
@@ -158,7 +205,7 @@ export function GalleryAdmin() {
     return () => {
       active.current = false;
     };
-  }, []);
+  }, [load]);
   useEffect(() => {
     if (!busy) return;
     const guard = (event: BeforeUnloadEvent) => {
@@ -196,7 +243,7 @@ export function GalleryAdmin() {
       setNotice(
         "Gallery created. Save its private link before leaving this page.",
       );
-      await load();
+      await load(undefined, result.gallery);
     });
   const change = (action: "replace" | "revoke") =>
     run(async () => {
@@ -222,7 +269,7 @@ export function GalleryAdmin() {
           ? "Gallery access revoked."
           : "New private link created. Save it now; the previous link no longer works.",
       );
-      await load();
+      await load(undefined, selected);
     });
   const upload = () =>
     run(async () => {
@@ -317,7 +364,7 @@ export function GalleryAdmin() {
                   <button
                     className={button}
                     disabled={busy}
-                    onClick={() => run(() => load())}
+                    onClick={() => run(() => load(undefined, selected))}
                   >
                     Refresh list
                   </button>
@@ -358,7 +405,7 @@ export function GalleryAdmin() {
                   <button
                     className={button + " mt-4"}
                     disabled={busy}
-                    onClick={() => run(() => load(cursor))}
+                    onClick={() => run(() => load(cursor, selected))}
                   >
                     Load more galleries
                   </button>

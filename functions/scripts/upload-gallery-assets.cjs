@@ -6,7 +6,7 @@ const { BlobServiceClient } = require("@azure/storage-blob");
 const { AzureCliCredential } = require("@azure/identity");
 const { GALLERY_ID, galleryIsAvailable } = require("../dist/functions/src/galleryAccess.js");
 const { GALLERY_PARTITION } = require("../dist/functions/src/azureGalleryAccess.js");
-const { createGalleryAssetStore } = require("../dist/functions/src/azureGalleryDelivery.js");
+const { readGalleryAllocation, publishGalleryAsset } = require("../dist/functions/src/galleryAssetPublication.js");
 const { MAX_GALLERY_ASSETS, MAX_WEB_BYTES, MAX_FULL_BYTES, validAsset, assetBlobName } = require("../dist/functions/src/galleryAssets.js");
 
 function dimensions(data) {
@@ -55,15 +55,14 @@ async function main() {
   if ((await container.getProperties()).blobPublicAccess) throw new Error("Private container required");
   const gallery = await table.getEntity(GALLERY_PARTITION, input.galleryId);
   if (!galleryIsAvailable(gallery, Date.now())) throw new Error("Gallery unavailable");
-  const existing = await createGalleryAssetStore(table).listAssets(input.galleryId);
-  if (existing.length + input.assets.length > MAX_GALLERY_ASSETS) throw new Error("Too many assets");
-  let order = Math.max(-1, ...existing.map(a => a.displayOrder)) + 1;
   for (const entry of input.assets) {
     // Prepare web exports without EXIF/location data before uploading.
+    const allocation = await readGalleryAllocation(table, input.galleryId);
+    if (allocation.assetCount >= MAX_GALLERY_ASSETS) throw new Error("Too many assets");
     const web = image(entry.webFile, MAX_WEB_BYTES);
     const full = image(entry.fullFile, MAX_FULL_BYTES);
     const asset = { galleryId: input.galleryId, id: `a_${randomBytes(16).toString("base64url")}`,
-      altText: entry.altText ?? "", width: web.width, height: web.height, displayOrder: order++,
+      altText: entry.altText ?? "", width: web.width, height: web.height, displayOrder: allocation.nextDisplayOrder,
       webByteSize: web.bytes.length, fullByteSize: full.bytes.length };
     if (!validAsset(asset, input.galleryId)) throw new Error("Invalid asset metadata");
     const created = [];
@@ -77,7 +76,7 @@ async function main() {
       }
       // Publish the asset only once both immutable variants are available.
       registrationAttempted = true;
-      await table.createEntity({ partitionKey: `gallery-assets-${input.galleryId}`, rowKey: asset.id, ...asset });
+      await publishGalleryAsset(table, allocation, asset);
     } finally {
       // A lost Table response may follow a successful create. Keep both blobs
       // after an ambiguous registration result rather than breaking that row.

@@ -80,14 +80,29 @@ the screen stops, clears the file selection, and warns the operator to inspect
 the gallery before retrying. This is not a resumable/background uploader. Keep
 the page open; navigation while busy triggers the browser's leave-page prompt.
 
-A 60-second renewable lease on the container's `admin-upload-lock` Blob
-serializes all admin uploads across instances and tabs. Metadata is rechecked
-before publication and lease ownership is renewed immediately before the Table
-write. A conflicting writer receives a generic failure; no silent retries.
-Do not run the old CLI uploader concurrently: it predates this lease. Images
-use immutable opaque IDs and create-if-absent conditions. Before metadata is
-attempted, partial uploads are cleaned up with exact ETags. If Table completion
-is ambiguous, keep the Blobs so a possibly committed row is not broken.
+Publication uses a conditional Azure Table transaction in the photo partition.
+A reserved `__allocation_v1` row tracks asset count and next display order. The
+transaction updates that row with its exact ETag and creates the photo record
+atomically. A stale writer cannot publish after another uploader advances the
+allocation, even if its request was delayed for minutes. There is no Blob lease
+or application-level retry of failed publication. Ambiguous completion preserves
+the uploaded bytes, since a metadata row may have committed.
+
+Both the admin API and the updated CLI use this protocol. Existing galleries
+bootstrap the count/order from their current asset rows with create-if-absent;
+concurrent initializers converge on the winning row. Readers validate and skip
+the allocation row, so 250 photographs still list correctly. Stop old CLI
+processes before deploying this version and rebuild the CLI before using it
+again: older binaries do not participate in conditional allocation. After the
+first allocation row exists, keep a compatible Function reader when rolling
+back; the pre-admin reader does not recognize that row.
+
+Sidebar refresh also refreshes the selected gallery independently if its record
+is outside the returned page. A failed selected-record refresh clears its panel
+and link. Newly created links are preserved when their gallery remains active.
+HTTP 400 shows public validation guidance; POST transport/response failures
+explicitly warn that a photo or other change may have committed, and ask the
+operator to inspect before retrying. No mutation is retried automatically.
 
 First-version boundaries: no photo deletion, gallery editing, ZIP downloads or
 background conversion. Revoked/expired galleries cannot be uploaded to or

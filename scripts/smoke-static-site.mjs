@@ -137,6 +137,7 @@ try {
       : {}),
   });
   const page = await browser.newPage();
+  if (process.env.BLACKBURN_SMOKE_CLOCK) await page.clock.setFixedTime(new Date(process.env.BLACKBURN_SMOKE_CLOCK));
   const pageErrors = [];
   page.on("pageerror", (error) => pageErrors.push(error.message));
   await page.route("**/*", (route) =>
@@ -352,6 +353,7 @@ try {
   }) }));
   await page.route("**/api/admin/galleries**", async route => {
     const request = route.request();
+    if (request.method() === "GET" && new URL(request.url()).pathname.endsWith("/details")) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ gallery: adminGallery }) });
     if (request.method() === "GET") return route.fulfill({ contentType: "application/json", body: JSON.stringify({ galleries: adminGallery ? [adminGallery, otherAdminGallery] : [] }) });
     if (new URL(request.url()).pathname.endsWith("/assets")) {
       const form = await new Response(request.postDataBuffer(), { headers: { "Content-Type": request.headers()["content-type"] } }).formData();
@@ -376,7 +378,7 @@ try {
   await page.getByLabel("Gallery title", { exact: true }).fill("Synthetic portraits");
   await page.getByLabel("Client name", { exact: true }).fill("Test client");
   await page.getByLabel("Welcome message", { exact: true }).fill("Admin validation only");
-  await page.getByLabel("Available until", { exact: true }).fill("2026-11-01");
+  await page.getByLabel("Available until", { exact: true }).fill(await page.evaluate(() => new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10)));
   await page.getByRole("button", { name: "Create gallery", exact: true }).click();
   await page.getByLabel("Private client link").waitFor();
   assert.equal(await page.getByLabel("Private client link").inputValue(), adminLink);

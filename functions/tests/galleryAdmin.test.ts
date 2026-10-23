@@ -22,6 +22,7 @@ const context = new InvocationContext({
 });
 function setup() {
   const store: GalleryAdminStore = {
+    get: vi.fn(),
     list: vi.fn().mockResolvedValue({ galleries: [] }),
     create: vi.fn(),
     change: vi.fn(),
@@ -237,4 +238,24 @@ describe("gallery administration boundary", () => {
     expect(() => jpegDimensions(Buffer.from("not a jpeg"), 100)).toThrow();
     expect(() => jpegDimensions(Buffer.alloc(101), 100)).toThrow();
   });
+});
+
+it("refreshes an authorized selected gallery independently of listing pages", async () => {
+  const { handler, store } = setup();
+  vi.mocked(store.get).mockResolvedValue({
+    id,
+    title: "Later gallery",
+    clientDisplayName: "Client",
+    message: "",
+    status: "revoked",
+    expiresAt: 1,
+  });
+  const result = await handler(
+    req("GET", undefined, {}, { galleryId: id, action: "details" }),
+    context,
+  );
+  expect(result.status).toBe(200);
+  expect(result.jsonBody).toMatchObject({ gallery: { id, status: "revoked" } });
+  expect(store.get).toHaveBeenCalledWith(id);
+  expect(store.list).not.toHaveBeenCalled();
 });

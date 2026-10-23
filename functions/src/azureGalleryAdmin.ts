@@ -6,7 +6,10 @@ import {
   createConfiguredGalleryAccess,
   GALLERY_PARTITION,
 } from "./azureGalleryAccess";
-import { createGalleryAssetStore } from "./azureGalleryDelivery";
+import {
+  readGalleryAllocation,
+  publishGalleryAsset,
+} from "./galleryAssetPublication";
 import { adminGallery, type GalleryAdminStore } from "./galleryAdmin";
 import { galleryIsAvailable, validRecord } from "./galleryAccess";
 import {
@@ -71,7 +74,7 @@ export function createConfiguredGalleryAdmin(
     endpoint.origin,
     credential,
   ).getContainerClient(name);
-  const assets = createGalleryAssetStore(table);
+
   const read = async (id: string) => {
     const row = await table.getEntity(GALLERY_PARTITION, id);
     if (!validRecord(row, id) || !row.etag || row.etag === "*")
@@ -92,6 +95,9 @@ export function createConfiguredGalleryAdmin(
         galleries.push(adminGallery(row));
       }
       return { galleries, cursor: value?.continuationToken };
+    },
+    async get(id) {
+      return adminGallery(await read(id));
     },
     async create(record) {
       await table.createEntity({
@@ -127,22 +133,6 @@ export function createConfiguredGalleryAdmin(
       jpegDimensions(full, MAX_FULL_BYTES);
       if (dimensions.width > 2048 || dimensions.height > 2048)
         throw new Error("Web export too large");
-      // A container lease serializes admin uploads across tabs/instances, keeping
-      // the 250-photo bound and display order correct. It grants no browser access.
-      const lease = container
-        .getBlobClient("admin-upload-lock")
-        .getBlobLeaseClient();
-      // Lock creation is idempotent. Never overwrite a lock held by another request.
-      await container
-        .getBlockBlobClient("admin-upload-lock")
-        .uploadData(Buffer.alloc(0), { conditions: { ifNoneMatch: "*" } })
-        .catch((e: { statusCode?: number }) => {
-          if (e.statusCode !== 409 && e.statusCode !== 412) throw e;
-        });
-      const acquired = await lease.acquireLease(60);
-      const renew = setInterval(() => {
-        void lease.renewLease().catch(() => undefined);
-      }, 20000);
       const created: { name: string; etag: string }[] = [];
       let registrationAttempted = false;
       try {
@@ -151,16 +141,15 @@ export function createConfiguredGalleryAdmin(
         const row = await read(id);
         if (!galleryIsAvailable(row, Date.now()))
           throw new Error("Gallery unavailable");
-        const existing = await assets.listAssets(id);
-        if (existing.length >= MAX_GALLERY_ASSETS)
+        const allocation = await readGalleryAllocation(table, id);
+        if (allocation.assetCount >= MAX_GALLERY_ASSETS)
           throw new Error("Gallery full");
         const asset = {
           galleryId: id,
           id: `a_${randomBytes(16).toString("base64url")}`,
           altText,
           ...dimensions,
-          displayOrder:
-            Math.max(-1, ...existing.map((a) => a.displayOrder)) + 1,
+          displayOrder: allocation.nextDisplayOrder,
           webByteSize: web.length,
           fullByteSize: full.length,
         };
@@ -184,14 +173,8 @@ export function createConfiguredGalleryAdmin(
         const fresh = await read(id);
         if (!galleryIsAvailable(fresh, Date.now()) || fresh.etag !== row.etag)
           throw new Error("Gallery changed");
-        // Require our lease still to be valid before metadata publication.
-        await lease.renewLease();
         registrationAttempted = true;
-        await table.createEntity({
-          partitionKey: `gallery-assets-${id}`,
-          rowKey: asset.id,
-          ...asset,
-        });
+        await publishGalleryAsset(table, allocation, asset);
       } finally {
         if (!registrationAttempted)
           for (const b of created)
@@ -199,8 +182,6 @@ export function createConfiguredGalleryAdmin(
               .getBlobClient(b.name)
               .deleteIfExists({ conditions: { ifMatch: b.etag } })
               .catch(() => undefined);
-        clearInterval(renew);
-        if (acquired.leaseId) await lease.releaseLease().catch(() => undefined);
       }
     },
   };
