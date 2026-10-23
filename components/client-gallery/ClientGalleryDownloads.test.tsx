@@ -67,7 +67,9 @@ it("selects individual photos or all, clears selection, and packages only the ch
   ).toBe(true);
   fireEvent.click(screen.getByRole("button", { name: "Clear selection" }));
   expect(download).toBeDisabled();
-  fireEvent.click(screen.getAllByRole("checkbox")[1]);
+  fireEvent.click(screen.getByRole("checkbox", {
+    name: `Select photo 2: ${gallery.assets[1].altText}`,
+  }));
   fireEvent.click(download);
   const save = await screen.findByRole("link", { name: "Save ZIP · 1 photo" });
   expect(prepareGalleryZip).toHaveBeenCalledWith(

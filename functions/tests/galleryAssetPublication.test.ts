@@ -4,6 +4,7 @@ import {
   ALLOCATION_ROW,
   publishGalleryAsset,
   readGalleryAllocation,
+  removeGalleryAsset,
 } from "../src/galleryAssetPublication";
 import { createGalleryAssetStore } from "../src/azureGalleryDelivery";
 const id = "g_privateGallery123456";
@@ -26,6 +27,66 @@ const asset = (suffix: string) => ({
   displayOrder: 249,
   webByteSize: 12,
   fullByteSize: 12,
+});
+it("fences a stale uploader after removal while preserving next order and reusable capacity", async () => {
+  let state = { ...allocation, assetCount: 1, nextDisplayOrder: 249 };
+  const rows = new Map([[asset("a").id, asset("a")]]);
+  let version = 1;
+  const client = {
+    submitTransaction: vi.fn(async (actions) => {
+      const update = actions[0];
+      if (update[3].etag !== state.etag) throw new Error("Stale ETag");
+      state = { ...update[1], etag: `"v${++version}"` };
+      for (const action of actions.slice(1)) {
+        if (action[0] === "delete") rows.delete(action[1].rowKey);
+        else rows.set(action[1].id, action[1]);
+      }
+    }),
+  } as unknown as TableClient;
+  const stale = { ...state };
+  await removeGalleryAsset(client, stale, asset("a").id, true);
+  expect(state).toMatchObject({ assetCount: 0, nextDisplayOrder: 249 });
+  expect(rows.size).toBe(0);
+  await expect(publishGalleryAsset(client, stale, asset("b"))).rejects.toThrow(
+    "Stale ETag",
+  );
+  await expect(
+    removeGalleryAsset(client, stale, asset("a").id, true),
+  ).rejects.toThrow("Stale ETag");
+  await publishGalleryAsset(client, state, asset("c"));
+  expect(state).toMatchObject({ assetCount: 1, nextDisplayOrder: 250 });
+  expect(rows.size).toBe(1);
+});
+
+it("advances the allocation fence for an absent photo without decrementing twice", async () => {
+  const submitTransaction = vi.fn();
+  const client = { submitTransaction } as unknown as TableClient;
+  await removeGalleryAsset(
+    client,
+    { ...allocation, assetCount: 0 },
+    asset("a").id,
+    false,
+  );
+  expect(submitTransaction).toHaveBeenCalledWith([
+    [
+      "update",
+      expect.objectContaining({
+        assetCount: 0,
+        nextDisplayOrder: allocation.nextDisplayOrder,
+      }),
+      "Replace",
+      { etag: allocation.etag },
+    ],
+  ]);
+  await expect(
+    removeGalleryAsset(
+      client,
+      { ...allocation, assetCount: 0 },
+      asset("a").id,
+      true,
+    ),
+  ).rejects.toThrow("Invalid asset allocation");
+  expect(submitTransaction).toHaveBeenCalledTimes(1);
 });
 it("fences a delayed old writer at 249 photos so only one 250th asset can commit", async () => {
   let state = { ...allocation };

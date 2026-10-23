@@ -33,7 +33,7 @@ export function ClientGalleryGrid({
                   checked={selected?.has(asset.id) ?? false}
                   onChange={() => onToggleSelection(asset.id)}
                   className="h-4 w-4 accent-[#b9955a]"
-                  aria-label={`Select image ${index + 1}: ${asset.altText}`}
+                  aria-label={`Select photo ${index + 1}: ${asset.altText}`}
                 />
                 Select photo {index + 1}
               </label>

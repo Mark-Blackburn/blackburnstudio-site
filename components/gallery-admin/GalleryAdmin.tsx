@@ -1,5 +1,7 @@
 "use client";
 
+import { GalleryAdminPhotos } from "./GalleryAdminPhotos";
+
 import { useCallback, useEffect, useRef, useState } from "react";
 
 type Gallery = {
@@ -145,6 +147,7 @@ export function GalleryAdmin() {
   const [issuedLink, setIssuedLink] = useState<IssuedLink | null>(null);
   const link = issuedLink?.url ?? "";
   const [busy, setBusy] = useState(false);
+  const [photoRevision, setPhotoRevision] = useState(0);
   const [notice, setNotice] = useState("");
   const [error, setError] = useState("");
   const files = useRef<HTMLInputElement>(null);
@@ -351,6 +354,9 @@ export function GalleryAdmin() {
           `${uploaded} photo${uploaded === 1 ? "" : "s"} confirmed uploaded. Stopped at the next photo; no automatic retries.`,
         );
         throw e;
+      } finally {
+        // Include any successfully published photos when a batch stops early.
+        setPhotoRevision((value) => value + 1);
       }
     });
   return (
@@ -525,6 +531,14 @@ export function GalleryAdmin() {
                         have lost the link, replace it below.
                       </p>
                     )}
+                    <GalleryAdminPhotos
+                      key={selected.id}
+                      galleryId={selected.id}
+                      revision={photoRevision}
+                      busy={busy}
+                      request={api}
+                      run={run}
+                    />
                     {selected.status === "published" &&
                       selected.expiresAt > checkedAt && (
                         <>

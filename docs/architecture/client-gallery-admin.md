@@ -6,7 +6,7 @@ Microsoft sign-in and the `gallery_admin` role still protect gallery operations.
 
 The `/admin/galleries` screen manages the existing private-gallery service. It
 lists galleries with continuation paging, creates published galleries with an
-expiry, generates a replacement link, revokes access, and uploads JPEG pairs.
+expiry, generates a replacement link, revokes access, uploads JPEG pairs, and removes mistakenly uploaded photographs.
 A new/replacement bearer link is shown only in the current view, with Copy and
 Open controls. Save it before changing gallery or leaving. Stored hashes cannot
 recover old links; replacement invalidates the previous link and all sessions.
@@ -76,6 +76,41 @@ Release order:
    a small multi-file upload and confirm the admin never receives a storage key,
    SAS, original Blob path, or stored bearer hash. Keep the test link private.
 
+## Photo management and removal
+
+Choose Manage photographs in the selected gallery to load up to 250 thumbnails.
+The list and preview endpoints require the same Microsoft gallery_admin role as
+other administration operations. Previews read only the web JPEG via a bounded,
+private Blob read and are no-store. They do not create a client session or expose
+storage paths, SAS or original JPEGs. Revoked/expired galleries can still be
+reviewed and cleaned up by the administrator.
+
+Remove photo requires an explicit per-photo confirmation. The POST validates
+Origin, gallery ID and asset ID; it never accepts a Blob path. A conditional
+Table transaction advances the allocation ETag, decrements the live asset count
+and deletes the photo metadata in the same partition. It preserves the next
+display order. Concurrent upload/removal snapshots fail the ETag check, so they
+cannot duplicate an order or decrement the count twice. Even an already absent
+photo advances the ETag before cleanup, fencing a delayed publisher. Existing
+client view/download requests check photo metadata, so new requests cannot read
+a removed photo. Previously downloaded or in-flight bytes cannot be recalled.
+
+Only after an acknowledged Table transaction does the server delete the two
+canonical immutable JPEG paths derived from the validated IDs. If Blob cleanup
+fails, the response confirms removal but flags incomplete cleanup. The admin
+retains a Retry file cleanup card across photo-list refreshes; retrying an absent
+photo does not decrement again. A lost/ambiguous Table response does not delete
+any Blob and retains the existing uncertain-completion warning. There is no
+automatic mutation retry or durable cleanup queue: orphaned private bytes from
+an ambiguous response require operator follow-up, as with uncertain upload
+publication. No deletion is performed merely by opening or refreshing the UI.
+
+Deploy the Function package and static site together before using removal. No
+new Azure roles or settings are needed. Controlled live validation: upload a
+throwaway photo, remove it after confirmation, refresh the client gallery and
+verify the prior view/web/full URLs are unavailable. Do not use real client
+photos for this deployment check.
+
 ## Upload behavior and limits
 
 The browser generates a JPEG at up to 2048 pixels on the longest edge, JPEG
@@ -122,7 +157,7 @@ not disable copying. If clipboard access is unavailable, denied or waits more
 than eight seconds, the UI selects the visible link for manual copying. It does
 not block other admin actions while waiting for browser clipboard permission.
 
-First-version boundaries: no photo deletion, gallery editing or background
+First-version boundaries: no gallery editing or background
 conversion. Client-side selected ZIP downloads and JPEG file sharing are
 described in client-gallery-delivery.md. Revoked/expired galleries cannot be uploaded to or
 reactivated by link replacement. Admin list JSON exposes only display metadata,

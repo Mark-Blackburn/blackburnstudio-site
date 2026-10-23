@@ -436,6 +436,8 @@ try {
   let adminSignedIn = false;
   let adminGallery;
   let uploadedPair = false;
+  let adminPhotos = [];
+  let cleanupComplete = false;
   const otherAdminGallery = { id: "g_otherGallery12345678", title: "Other client", accessTokenVersion: 1, clientDisplayName: "Client B", message: "", status: "published", expiresAt: Date.parse("2099-01-01") };
   let rejectAccessChange = false;
   const adminLink = `${origin}/clients/${galleryId}#access=${token}`;
@@ -444,6 +446,14 @@ try {
   }) }));
   await page.route("**/api/gallery-management/galleries**", async route => {
     const request = route.request();
+    const pathname = new URL(request.url()).pathname;
+    if (request.method() === "GET" && pathname.endsWith("/assets")) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ assets: adminPhotos }) });
+    if (request.method() === "GET" && pathname.endsWith("/preview")) return route.fulfill({ contentType: "image/jpeg", body: photo, headers: { "Cache-Control": "no-store" } });
+    if (request.method() === "POST" && pathname.endsWith("/remove")) {
+      assert.deepEqual(request.postDataJSON(), { assetId });
+      adminPhotos = adminPhotos.filter(asset => asset.id !== assetId);
+      return route.fulfill({ contentType: "application/json", body: JSON.stringify({ success: true, cleanupComplete }) });
+    }
     if (request.method() === "GET" && new URL(request.url()).pathname.endsWith("/details")) return route.fulfill({ contentType: "application/json", body: JSON.stringify({ gallery: adminGallery }) });
     if (request.method() === "GET") return route.fulfill({ contentType: "application/json", body: JSON.stringify({ galleries: adminGallery ? [adminGallery, otherAdminGallery] : [] }) });
     if (new URL(request.url()).pathname.endsWith("/assets")) {
@@ -452,6 +462,7 @@ try {
       assert.equal(web.type, "image/jpeg"); assert.equal(full.type, "image/jpeg");
       assert.ok(web.size < full.size, "Web conversion makes a smaller download");
       uploadedPair = true;
+      adminPhotos = [{ id: assetId, altText: "Synthetic uploaded photo", width: 2048, height: 1536, displayOrder: 0 }];
       return route.fulfill({ status: 201, contentType: "application/json", body: '{"success":true}' });
     }
     if (new URL(request.url()).pathname.endsWith("/replace")) {
@@ -495,6 +506,18 @@ try {
   await page.getByRole("button", { name: "Upload selected photos" }).click();
   await page.getByRole("status").filter({ hasText: "1 photo uploaded" }).waitFor();
   assert.equal(uploadedPair, true);
+  await page.getByRole("button", { name: "Manage photographs", exact: true }).click();
+  const removePhoto = page.getByRole("button", { name: /Remove photo 1: Synthetic uploaded photo/ });
+  await removePhoto.waitFor();
+  page.once("dialog", dialog => dialog.accept());
+  await removePhoto.click();
+  const retryCleanup = page.getByRole("button", { name: "Retry file cleanup" });
+  await retryCleanup.waitFor();
+  assert.equal(await removePhoto.count(), 0);
+  cleanupComplete = true;
+  await retryCleanup.click();
+  await retryCleanup.waitFor({ state: "detached" });
+  await page.getByText("0 photographs. Remove any photographs uploaded by mistake.", { exact: true }).waitFor();
   await page.setViewportSize({ width: 390, height: 844 });
   assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, "Admin fits mobile viewport");
   if (process.env.BLACKBURN_ADMIN_SCREENSHOT) await page.screenshot({ path: process.env.BLACKBURN_ADMIN_SCREENSHOT, fullPage: true });

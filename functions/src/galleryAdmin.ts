@@ -1,6 +1,10 @@
 import { GalleryUploadValidationError } from "./galleryUploadValidation";
 import { randomBytes } from "node:crypto";
-import type { HttpRequest, InvocationContext } from "@azure/functions";
+import type {
+  HttpRequest,
+  HttpResponseInit,
+  InvocationContext,
+} from "@azure/functions";
 import {
   GALLERY_ID,
   hashGalleryToken,
@@ -8,6 +12,19 @@ import {
   type GalleryAccessRecord,
 } from "./galleryAccess";
 import { galleryResponse } from "./galleryHttp";
+import { ASSET_ID, type PrivateGalleryAsset } from "./galleryAssets";
+
+export type AdminPhoto = Pick<
+  PrivateGalleryAsset,
+  "id" | "altText" | "width" | "height" | "displayOrder"
+>;
+export const adminPhoto = (asset: PrivateGalleryAsset): AdminPhoto => ({
+  id: asset.id,
+  altText: asset.altText,
+  width: asset.width,
+  height: asset.height,
+  displayOrder: asset.displayOrder,
+});
 
 export type AdminGallery = Pick<
   GalleryAccessRecord,
@@ -40,6 +57,9 @@ export interface GalleryAdminStore {
     tokenHash?: string,
   ): Promise<number>;
   upload(id: string, web: Buffer, full: Buffer, altText: string): Promise<void>;
+  photos(id: string): Promise<AdminPhoto[]>;
+  preview(id: string, assetId: string): Promise<Buffer | null>;
+  remove(id: string, assetId: string): Promise<{ cleanupComplete: boolean }>;
 }
 
 // Trust only behind SWA's linked-backend ingress authentication. A gallery cookie
@@ -92,7 +112,10 @@ export function createGalleryAdminHandler(deps: {
   now?: () => number;
 }) {
   const now = deps.now ?? Date.now;
-  return async (request: HttpRequest, context: InvocationContext) => {
+  return async (
+    request: HttpRequest,
+    context: InvocationContext,
+  ): Promise<HttpResponseInit> => {
     if (!isGalleryAdmin(request))
       return galleryResponse(403, {
         message: "Gallery administrator access required.",
@@ -106,6 +129,38 @@ export function createGalleryAdminHandler(deps: {
     if (id && (!GALLERY_ID.test(id) || id === "g_7Rk3mN9xQ2vL8pT4"))
       return galleryResponse(400, { message: "Invalid gallery." });
     try {
+      if (
+        request.method === "GET" &&
+        id &&
+        request.params.action === "assets"
+      ) {
+        return galleryResponse(200, { assets: await deps.store.photos(id) });
+      }
+      if (
+        request.method === "GET" &&
+        id &&
+        request.params.action === "preview"
+      ) {
+        const assetId = request.query.get("assetId") ?? "";
+        if (!ASSET_ID.test(assetId))
+          return galleryResponse(400, { message: "Invalid photograph." });
+        const bytes = await deps.store.preview(id, assetId);
+        if (!bytes)
+          return galleryResponse(404, { message: "Photograph unavailable." });
+        return {
+          status: 200,
+          headers: {
+            "Content-Type": "image/jpeg",
+            "Cache-Control": "no-store",
+            "X-Content-Type-Options": "nosniff",
+            "Content-Security-Policy": "default-src 'none'; sandbox",
+            "Content-Disposition": "inline",
+            "X-Robots-Tag": "noindex, nofollow",
+            "Referrer-Policy": "no-referrer",
+          },
+          body: bytes,
+        };
+      }
       if (
         request.method === "GET" &&
         id &&
@@ -164,6 +219,14 @@ export function createGalleryAdminHandler(deps: {
       );
       if (!input || typeof input !== "object" || Array.isArray(input))
         return galleryResponse(400, { message: "Invalid gallery details." });
+      if (id && request.params.action === "remove") {
+        if (typeof input.assetId !== "string" || !ASSET_ID.test(input.assetId))
+          return galleryResponse(400, { message: "Invalid photograph." });
+        return galleryResponse(200, {
+          success: true,
+          ...(await deps.store.remove(id, input.assetId)),
+        });
+      }
       if (!id) {
         const galleryId = `g_${randomBytes(16).toString("base64url")}`;
         const token = randomBytes(32).toString("base64url");
@@ -218,7 +281,7 @@ export function createGalleryAdminHandler(deps: {
       context.error("[gallery-admin] Operation failed");
       return galleryResponse(409, {
         message:
-          "Operation could not be confirmed. Refresh the gallery list before retrying; an upload may have completed.",
+          "Operation could not be confirmed. Refresh the gallery or photographs before retrying; the change may already have completed.",
       });
     }
   };
