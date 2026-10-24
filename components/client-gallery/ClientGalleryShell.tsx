@@ -78,18 +78,20 @@ function GalleryLoader({ galleryId, sample, session }: {
   const [loading, setLoading] = useState(true);
   const [signOutError, setSignOutError] = useState(false);
   const [signingOut, setSigningOut] = useState(false);
+  const [screenCleared, setScreenCleared] = useState(false);
   const initial = useRef<Promise<GalleryData> | null>(null);
   const signedOut = useRef(false);
 
   useEffect(() => {
     let active = true;
+    let displayed = false;
     const token = takeGalleryFragment();
     // Keep one in-flight exchange across React Strict Mode's effect replay.
     // No token is persisted or retained in a ref; only the resulting promise.
     initial.current ??= sample ? Promise.resolve(sample) : galleryId
       ? session.load(galleryId, token)
       : Promise.reject(new Error("Gallery unavailable"));
-    initial.current.then(data => { if (active) setGallery(data); })
+    initial.current.then(data => { if (active) { displayed = true; setGallery(data); } })
       .catch(() => { if (active) setGallery(null); })
       .finally(() => { if (active) setLoading(false); });
     let refreshing = false;
@@ -102,8 +104,17 @@ function GalleryLoader({ galleryId, sample, session }: {
         await initial.current?.catch(() => undefined);
         if (!active || signedOut.current) return;
         const data = await session.load(galleryId);
-        if (active && !signedOut.current) setGallery(data);
-      } catch { if (active) setGallery(null); }
+        if (active && !signedOut.current) {
+          displayed = true;
+          setScreenCleared(false);
+          setGallery(data);
+        }
+      } catch {
+        if (active && !signedOut.current) {
+          setGallery(null);
+          setScreenCleared(displayed);
+        }
+      }
       finally { refreshing = false; }
     };
     const timer = window.setInterval(refresh, 60_000);
@@ -114,6 +125,7 @@ function GalleryLoader({ galleryId, sample, session }: {
   const signOut = async () => {
     signedOut.current = true;
     setSigningOut(true);
+    setScreenCleared(false);
     setGallery(null);
     try { await session.logout(galleryId!); }
     catch { setSignOutError(true); }
@@ -122,7 +134,7 @@ function GalleryLoader({ galleryId, sample, session }: {
   if (signingOut) return <ClientGalleryLoading signingOut />;
   if (loading) return <ClientGalleryLoading />;
   if (!gallery) return <>
-    <ClientGalleryUnavailable />
+    <ClientGalleryUnavailable screenCleared={screenCleared} />
     {signOutError ? <p role="alert" className="fixed bottom-4 left-4 right-4 bg-studio-surface p-4 text-sm text-studio-text">Sign-out could not be confirmed. On a shared device, clear this website’s cookies or site data in your browser settings before leaving it. Closing the browser may keep you signed in.</p> : null}
   </>;
   return <ClientGallery gallery={gallery} onSignOut={sample ? undefined : signOut} />;
