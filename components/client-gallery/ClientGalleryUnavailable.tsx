@@ -1,6 +1,6 @@
 import { SITE_EMAIL, SITE_NAME } from "@/lib/siteConfig";
 
-export function ClientGalleryUnavailable() {
+export function ClientGalleryUnavailable({ screenCleared = false }: { screenCleared?: boolean }) {
   return (
     <main className="flex min-h-screen bg-studio-base px-5 text-studio-muted sm:px-6">
       <div className="m-auto w-full max-w-xl border-y border-studio-border py-14 text-center">
@@ -8,11 +8,15 @@ export function ClientGalleryUnavailable() {
           {SITE_NAME}
         </p>
         <h1 className="mt-5 text-3xl font-medium text-studio-text sm:text-4xl">
-          This gallery is unavailable.
+          {screenCleared ? "Your gallery screen has been cleared." : "This gallery is unavailable."}
         </h1>
         <p className="mx-auto mt-5 max-w-md text-sm leading-7 text-studio-dim sm:text-base">
-          The link may no longer be active. If you believe this is an error,
-          contact Blackburn Studio.
+          {screenCleared
+            ? "To protect your photos, we’ve cleared this screen. Please reopen the original gallery link we sent you."
+            : "Please open the original gallery link we sent you. The link may have expired or been replaced."}
+        </p>
+        <p className="mx-auto mt-3 max-w-md text-sm leading-7 text-studio-dim sm:text-base">
+          If the original link still doesn’t open your gallery, contact Blackburn Studio.
         </p>
         <a
           href={`mailto:${SITE_EMAIL}`}
