@@ -4,6 +4,9 @@ import { createConfiguredGalleryArchiveHttp } from "./azureGalleryArchiveHttp";
 import { createConfiguredGalleryAdmin } from "./azureGalleryAdmin";
 import { app } from "@azure/functions";
 
+// Required for bounded-memory multi-gigabyte ZIP responses.
+if (process.env.GALLERY_ARCHIVE_API_ENABLED === "true") app.setup({ enableHttpStream: true });
+
 import { createContactHandler } from "./contact";
 import { createConfiguredContactRateLimiter } from "./azureContactRateLimiter";
 import { createConfiguredGalleryAccess } from "./azureGalleryAccess";
@@ -122,6 +125,7 @@ if (process.env.GALLERY_ARCHIVE_API_ENABLED === "true" &&
   for (const [name, method, route, action] of [
     ["galleryArchiveCreate", "POST", "galleries/{galleryId}/archives", "create"],
     ["galleryArchiveStatus", "GET", "galleries/{galleryId}/archives/{jobId}", "status"],
+    ["galleryArchiveDownload", "GET", "galleries/{galleryId}/archives/{jobId}/download", "download"],
   ] as const) {
     app.http(name, {
       methods: [method], authLevel: "anonymous", route,
