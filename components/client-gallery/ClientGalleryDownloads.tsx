@@ -7,6 +7,18 @@ import {
   type DownloadSize,
 } from "@/lib/client-galleries/downloads";
 
+function waitForPoll(signal: AbortSignal, milliseconds: number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) { reject(new Error("Stopped")); return; }
+    const onAbort = () => { clearTimeout(timer); reject(new Error("Stopped")); };
+    const timer = setTimeout(() => {
+      signal.removeEventListener("abort", onAbort);
+      resolve();
+    }, milliseconds);
+    signal.addEventListener("abort", onAbort, { once: true });
+  });
+}
+
 const button =
   "inline-flex min-h-11 items-center justify-center rounded border border-studio-border px-3 py-2 text-sm text-studio-text hover:border-studio-accent focus-visible:ring-2 focus-visible:ring-studio-accent disabled:opacity-40";
 
@@ -74,10 +86,7 @@ export function ClientGalleryDownloads({
         const job = await response.json() as { jobId: string; status: string; photosCompleted: number; photosTotal: number };
         const statusUrl = `/api/galleries/${encodeURIComponent(galleryId)}/archives/${encodeURIComponent(job.jobId)}`;
         while (!request.signal.aborted) {
-          await new Promise<void>((resolve, reject) => {
-            const timer = setTimeout(resolve, 2000);
-            request.signal.addEventListener("abort", () => { clearTimeout(timer); reject(new Error("Cancelled")); }, { once: true });
-          });
+          await waitForPoll(request.signal, 2000);
           const statusResponse = await fetch(statusUrl, { credentials: "same-origin", cache: "no-store", signal: request.signal });
           if (!statusResponse.ok) throw new Error("Unable to check archive progress.");
           const status = await statusResponse.json() as { status: string; photosCompleted: number; photosTotal: number };
@@ -173,10 +182,10 @@ export function ClientGalleryDownloads({
             className={button}
             onClick={() => {
               controller.current?.abort();
-              setMessage("Download cancelled.");
+              setMessage(serverArchive ? "Stopped waiting. Archive preparation may continue on the server." : "Download cancelled.");
             }}
           >
-            Cancel download
+            {serverArchive ? "Stop waiting" : "Cancel download"}
           </button>
         )}
         {ready && ready.selection === selection && (
@@ -192,7 +201,7 @@ export function ClientGalleryDownloads({
       <p className="text-xs leading-5 text-studio-dim">
         Web copies suit socials and online sharing. Full resolution preserves
         the originals. ZIP downloads contain your selection when preparation
-        starts, up to 100 MB at a time.
+        starts{serverArchive ? " in one ZIP file." : ", up to 100 MB at a time."}
       </p>
       {message && (
         <p role="status" className="text-sm">
