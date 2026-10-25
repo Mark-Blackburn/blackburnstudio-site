@@ -380,7 +380,7 @@ it.each([
   async (kind) => {
     let web = Buffer.from(jpeg),
       full = Buffer.from(jpeg);
-    if (kind === "full size") full = Buffer.alloc(20 * 1024 * 1024 + 1);
+    if (kind === "full size") full = Buffer.alloc(25 * 1024 * 1024 + 1);
     if (kind === "web size") web = Buffer.alloc(4 * 1024 * 1024 + 1);
     if (kind === "full dimensions") full.writeUInt16BE(30001, 9);
     if (kind === "web dimensions") web.writeUInt16BE(2049, 9);
@@ -416,4 +416,13 @@ it("adds photos to an existing 250-photo gallery without resetting its allocatio
     ["update", expect.objectContaining({ assetCount: 251, nextDisplayOrder: 271 }), "Replace", { etag: allocation.etag }],
     ["create", expect.objectContaining({ displayOrder: 270 })],
   ]);
+});
+
+
+it("publishes a 25 MiB original without altering the full JPEG bytes", async () => {
+  const full = Buffer.alloc(25 * 1024 * 1024);
+  jpeg.copy(full);
+  await createConfiguredGalleryAdmin(env).store.upload(id, jpeg, full, "Large original");
+  expect(fake.upload).toHaveBeenCalledTimes(2);
+  expect(fake.transaction.mock.calls[0][0][1][1]).toMatchObject({ fullByteSize: full.length });
 });

@@ -1,4 +1,4 @@
-import { MAX_GALLERY_ASSETS } from "./limits";
+import { MAX_GALLERY_ASSETS, MAX_WEB_BYTES, MAX_FULL_BYTES } from "./limits";
 import type { ClientGalleryAsset } from "./contracts";
 
 export type DownloadSize = "web" | "full";
@@ -86,7 +86,7 @@ export async function preparePhotoShare(
   await readPhoto(
     photoDownloadUrl(galleryId, asset, "web"),
     signal,
-    4 * 1024 * 1024,
+    MAX_WEB_BYTES,
     (chunk) => chunks.push(chunk),
   );
   signal.throwIfAborted();
@@ -138,7 +138,7 @@ export async function prepareGalleryZip(
         urls[index],
         signal,
         Math.min(
-          size === "web" ? 4 * 1024 * 1024 : 20 * 1024 * 1024,
+          size === "web" ? MAX_WEB_BYTES : MAX_FULL_BYTES,
           MAX_ZIP_BYTES - total,
         ),
         (chunk) => {

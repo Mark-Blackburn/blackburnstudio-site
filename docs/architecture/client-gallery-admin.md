@@ -116,13 +116,15 @@ photos for this deployment check.
 The browser generates a JPEG at up to 2048 pixels on the longest edge, JPEG
 quality .85, without copying EXIF. Smaller images are not enlarged. The full
 JPEG is unchanged and retains metadata; the screen explicitly says so. Operator
-input is JPEG-only, 20 MiB full / 4 MiB web; multipart bodies have a streamed
-25 MiB ceiling. Both variants are checked for JPEG headers, size and dimensions
+input is JPEG-only, 25 MiB full / 4 MiB web; multipart bodies have a streamed
+30 MiB ceiling. Both variants are checked for JPEG headers, size and dimensions
 on the server. Web dimensions cannot exceed 2048px. No filenames select Blob
 paths. There is no server native image processor or new runtime dependency.
 
 The browser uploads one photo at a time, publishes only after both private
-Blobs exist, and reports progress and partial completion. There are no automatic
+Blobs exist, and reports progress and partial completion. Failures identify the filename and
+its position in the batch, with separate guidance for non-JPEG files, originals
+above 25 MiB, and JPEGs the browser cannot open. Confirmed uploads remain saved. There are no automatic
 mutation retries. If a response is lost, the current photo might be published;
 the screen stops, clears the file selection, and warns the operator to inspect
 the gallery before retrying. This is not a resumable/background uploader. Keep

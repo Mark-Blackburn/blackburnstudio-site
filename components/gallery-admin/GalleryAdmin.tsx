@@ -1,5 +1,6 @@
 "use client";
 
+import { MAX_FULL_BYTES, MAX_WEB_BYTES } from "@/lib/client-galleries/limits";
 import { GalleryAdminPhotos } from "./GalleryAdminPhotos";
 
 import { useCallback, useEffect, useRef, useState } from "react";
@@ -104,10 +105,14 @@ async function api<T>(path: string, body?: object | FormData): Promise<T> {
 }
 
 export async function makeWebJpeg(file: File): Promise<Blob> {
-  if (file.type !== "image/jpeg" || file.size > 20 * 1024 * 1024)
-    throw new Error("Choose JPEGs up to 20 MiB each.");
+  if (file.type !== "image/jpeg")
+    throw new Error("This file is not recognised as a JPEG. Export it as a .jpg or .jpeg and try again.");
+  if (file.size > MAX_FULL_BYTES)
+    throw new Error("This JPEG exceeds the 25 MiB limit. Export a smaller JPEG and try again.");
   const image = await createImageBitmap(file, {
     imageOrientation: "from-image",
+  }).catch(() => {
+    throw new Error("This JPEG could not be opened. Re-export it as a JPEG and try again.");
   });
   try {
     const scale = Math.min(1, 2048 / Math.max(image.width, image.height));
@@ -128,7 +133,7 @@ export async function makeWebJpeg(file: File): Promise<Blob> {
         0.85,
       ),
     );
-    if (blob.size > 4 * 1024 * 1024)
+    if (blob.size > MAX_WEB_BYTES)
       throw new Error(
         "Web export exceeds 4 MiB. Export a smaller JPEG and try again.",
       );
@@ -351,9 +356,10 @@ export function GalleryAdmin() {
       } catch (e) {
         if (files.current) files.current.value = "";
         setNotice(
-          `${uploaded} photo${uploaded === 1 ? "" : "s"} confirmed uploaded. Stopped at the next photo; no automatic retries.`,
+          `${uploaded} photo${uploaded === 1 ? "" : "s"} confirmed uploaded. Stopped at photo ${uploaded + 1} of ${chosen.length}; no automatic retries. Do not re-upload the confirmed photos.`,
         );
-        throw e;
+        const reason = e instanceof Error ? e.message : "Unable to upload this photo.";
+        throw new Error(`“${chosen[uploaded].name}” (photo ${uploaded + 1} of ${chosen.length}): ${reason}`);
       } finally {
         // Include any successfully published photos when a batch stops early.
         setPhotoRevision((value) => value + 1);
@@ -379,7 +385,7 @@ export function GalleryAdmin() {
           )}
         </header>
         {error && (
-          <p role="alert" className="mb-5 rounded border border-red-500/50 p-4">
+          <p role="alert" className="mb-5 break-words rounded border border-red-500/50 p-4">
             {error}
           </p>
         )}
@@ -544,7 +550,7 @@ export function GalleryAdmin() {
                         <>
                           <h3 className="mb-3 text-lg">Upload photographs</h3>
                           <p className="mb-4 text-sm text-studio-muted">
-                            Select JPEGs up to 20 MiB each. Web copies are
+                            Select JPEGs up to 25 MiB each. Web copies are
                             generated at up to 2,048 pixels on the longest edge.
                             Original JPEGs are preserved, including any embedded
                             metadata.
