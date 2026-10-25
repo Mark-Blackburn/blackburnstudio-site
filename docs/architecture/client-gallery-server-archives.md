@@ -40,7 +40,7 @@ Keep existing per-photo downloads functioning. Do not merge PR #56's 500 MB brow
 - CI builds/tests are necessary but not proof of real Azure execution, streaming ZIP compatibility or reliability.
 
 ## Blocking reliability work before enabling
-1. **Worker recovery:** Current processing jobs cannot be reclaimed after a worker crash. Add an ETag-guarded attempt/lease with heartbeat and a scheduled reconciliation pass. Never let two attempts commit the same archive; use attempt-specific blob names or a safe conditional publication protocol.
+1. **Worker recovery:** Processing jobs now carry a durable claim timestamp; status requests mark them failed after 50 minutes (five minutes beyond the worker timeout), so the customer can request a new archive. This is **not** an automatic retry or full lease-based recovery. Add an ETag-guarded attempt/lease with heartbeat and a scheduled reconciliation pass. Never let two attempts commit the same archive; use attempt-specific blob names or a safe conditional publication protocol.
 2. **Retries and cancellation:** Current failure handler marks jobs FAILED and rethrows, so queue redelivery does not retry them. Define bounded retry classification, stale-attempt recovery and customer cancellation behavior.
 3. **Request limits:** Enforce a durable per-gallery cap on active jobs, request throttling and deduplication to prevent expensive repeated 7.5 GiB preparations.
 4. **Cleanup:** Add scheduled deletion of expired/revoked ready blobs and abandoned staging uploads. Confirm container lifecycle policies; an expired job must never authorize a download.
