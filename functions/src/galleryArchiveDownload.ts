@@ -54,6 +54,7 @@ export function createGalleryArchiveDownloadHandler(deps: ArchiveDownloadDepende
     const blob = deps.container.getBlobClient(`${gallery.id}/${jobId}.zip`);
     const metadata = await blob.getProperties();
     const length = metadata.contentLength ?? NaN;
+    if (stored.job.archiveBytes !== length) throw new Error("Archive size mismatch");
     if (!Number.isSafeInteger(length) || length < 100 || length > MAX_ARCHIVE_BYTES ||
         metadata.contentType !== "application/zip") throw new Error("Invalid archive blob");
     const range = parseArchiveRange(request.headers.get("range"), length);
