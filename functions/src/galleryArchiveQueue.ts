@@ -35,7 +35,8 @@ export function parseArchiveQueueMessage(value: unknown): ArchiveQueueMessage {
 /**
  * Queue handler: claim job by ETag, verify live publication, stream archive,
  * and publish READY only if the gallery still authorizes this job.
- * Exceptions currently mark the job failed; queue redelivery cannot retry a\n * terminal job. Production automatic retry needs attempt leases and recovery.
+ * Exceptions currently mark the job failed; queue redelivery cannot retry a
+ * terminal job. Production automatic retry needs attempt leases and recovery.
  */
 export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies) {
   const clock = deps.now ?? Date.now;
