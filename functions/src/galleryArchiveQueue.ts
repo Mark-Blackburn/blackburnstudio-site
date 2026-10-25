@@ -55,7 +55,9 @@ export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies
       await deps.jobs.update(stored, { ...stored.job, status: "expired" });
       return;
     }
-    if (!await deps.jobs.update(stored, { ...stored.job, status: "processing" })) return;
+    if (!await deps.jobs.update(stored, {
+      ...stored.job, status: "processing", processingStartedAt: clock(),
+    })) return;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(new Error("Archive preparation timed out")), timeoutMs);
     try {
