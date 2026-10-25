@@ -1,12 +1,6 @@
 import { DefaultAzureCredential } from "@azure/identity";
 import type { ArchiveMessageQueue, QueueReceipt } from "./galleryArchiveQueueConsumer";
 
-const XML = /<([A-Za-z]+)>([^<]*)<\/\1>/g;
-function fields(xml: string): Record<string, string> {
-  const result: Record<string, string> = {};
-  for (const match of xml.matchAll(XML)) result[match[1]] = match[2];
-  return result;
-}
 function xmlValue(xml: string, name: string): string {
   const match = xml.match(new RegExp("<" + name + ">([^<]*)<\\/" + name + ">"));
   if (!match) throw new Error("Malformed Azure queue response: " + name);
@@ -55,8 +49,9 @@ export function createAzureArchiveMessageQueue(environment: NodeJS.ProcessEnv = 
         "?popreceipt=" + encodeURIComponent(receipt.popReceipt) +
         "&visibilitytimeout=" + visibilitySeconds;
       const response = await request("PUT", url);
-      const xml = await response.text();
-      return { ...receipt, popReceipt: xmlValue(xml, "PopReceipt") };
+      const popReceipt = response.headers.get("x-ms-popreceipt");
+      if (!popReceipt) throw new Error("Archive queue renewal missing pop receipt");
+      return { ...receipt, popReceipt };
     },
     async delete(receipt) {
       await request("DELETE", base + "/" + encodeURIComponent(receipt.id) +
