@@ -41,7 +41,7 @@ export function parseArchiveQueueMessage(value: unknown): ArchiveQueueMessage {
 export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies) {
   const clock = deps.now ?? Date.now;
   const timeoutMs = deps.timeoutMs ?? 45 * 60 * 1000;
-  return async (message: unknown): Promise<void> => {
+  return async (message: unknown, externalSignal?: AbortSignal): Promise<void> => {
     const { galleryId, jobId } = parseArchiveQueueMessage(message);
     let stored = await deps.jobs.read(galleryId, jobId);
     if (!stored || stored.job.status === "ready" || stored.job.status === "expired" ||
@@ -60,6 +60,9 @@ export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies
       ...stored.job, status: "processing", processingStartedAt: clock(),
     })) return;
     const controller = new AbortController();
+    const cancelOnLeaseLoss = () => controller.abort(externalSignal?.reason ?? new Error("Queue lease lost"));
+    if (externalSignal?.aborted) cancelOnLeaseLoss();
+    else externalSignal?.addEventListener("abort", cancelOnLeaseLoss, { once: true });
     const timeout = setTimeout(() => controller.abort(new Error("Archive preparation timed out")), timeoutMs);
     try {
       const selection = stored.job.selection;
@@ -110,6 +113,7 @@ export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies
       throw error;
     } finally {
       clearTimeout(timeout);
+      externalSignal?.removeEventListener("abort", cancelOnLeaseLoss);
       controller.abort();
     }
   };
