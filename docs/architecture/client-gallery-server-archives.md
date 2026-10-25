@@ -55,3 +55,12 @@ Keep existing per-photo downloads functioning. Do not merge PR #56's 500 MB brow
 - `GALLERY_ARCHIVE_QUEUE_STORAGE` is the Azure Functions queue-trigger connection prefix; configure the appropriate identity-based `__queueServiceUri` and required host storage settings.
 - `GALLERY_ARCHIVE_BLOB_CONTAINER` must name a **private container distinct** from the original gallery images container.
 - Confirm required least-privilege data-plane roles, hosting timeout and queue poison-message handling before activation.
+
+## Preflight and release runbook (not executed)
+1. In Azure Portal, inspect `func-blackburnstudio-api` → Overview / Scale out / Configuration. Record hosting plan name, SKU, memory, execution timeout, identity and storage account. **Do not enable archive settings until this is checked.**
+2. Confirm `stblackburnstudiodata` has a private archive Blob container and a private `gallery-archive-jobs` Storage Queue. Use a dedicated container and a lifecycle rule that removes committed archive blobs after a suitable safety margin beyond 24 hours; do not delete original photographs.
+3. Grant the Function App managed identity minimum required Blob Data Reader for the source container, Blob Data Contributor for the archive container, Queue Data Message Sender for the queue and Queue Data Message Processor for the worker. Confirm identity-based queue-trigger connection settings and `AzureWebJobsStorage` host permissions.
+4. Test a single 3-photo archive with archive worker/API enabled in an isolated test environment and the client UI flag **off**. Confirm queue enqueue/trigger, private Blob upload, ETag job transitions, authenticated status, GET/HEAD, Range 206/416, session revocation and expiry.
+5. Independently extract the ZIP and compare JPEG bytes, filename numbering and entry count; then test the actual 268-photo / 3.48 GB selection. Record time to ready, peak worker memory, download completion and Azure request/storage costs.
+6. Only after passing all tests, enable the client UI flag for a controlled deployment. Preserve the existing browser download fallback and document rollback.
+7. **Do not merge this draft PR on the basis of green CI alone.** Remaining blocking work includes automatic retry, stale-attempt cleanup, per-gallery request limits and tested retention.
