@@ -128,7 +128,7 @@ if (process.env.GALLERY_ARCHIVE_API_ENABLED === "true" &&
     ["galleryArchiveDownload", "GET", "galleries/{galleryId}/archives/{jobId}/download", "download"],
   ] as const) {
     app.http(name, {
-      methods: [method], authLevel: "anonymous", route,
+      methods: action === "download" ? ["GET", "HEAD"] : [method], authLevel: "anonymous", route,
       handler: async (request, context) => {
         try {
           handlers ??= createConfiguredGalleryArchiveHttp();
