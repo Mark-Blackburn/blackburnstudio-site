@@ -269,14 +269,14 @@ try {
   const zipDownload = page.waitForEvent("download");
   await saveZip.click();
   const zipFile = await zipDownload;
-  assert.ok(zipFile.suggestedFilename().endsWith("-web.zip"));
+  assert.ok(zipFile.suggestedFilename().endsWith("-web-part-01.zip"));
   const archive = unzipSync(new Uint8Array(await readFile(await zipFile.path())));
   assert.deepEqual(Object.keys(archive), ["photo-001-web.jpg", "photo-002-web.jpg"]);
   assert.deepEqual(Buffer.from(archive["photo-001-web.jpg"]), photo);
   await page.getByRole("button", { name: "Clear selection" }).click();
   await page.getByRole("checkbox", { name: /^Select photo 2:/ }).check();
   await page.getByRole("button", { name: "Download selected · web", exact: true }).click();
-  const saveSingleZip = page.getByRole("link", { name: "Save ZIP · 1 photo" });
+  const saveSingleZip = page.getByRole("link", { name: "Save part 1 · 1 photo" });
   await saveSingleZip.waitFor();
   const singleDownload = page.waitForEvent("download");
   await saveSingleZip.click();
