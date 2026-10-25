@@ -58,7 +58,7 @@ it("permits queued -> processing -> ready with optimistic concurrency", async ()
   expect(await store.update(first, { ...job, status: "processing" })).toBe(true);
   expect(await store.update(first, { ...job, status: "processing" })).toBe(false);
   const second = (await store.read(job.galleryId, job.id))!;
-  expect(await store.update(second, { ...job, status: "ready", photosCompleted: 1, bytesCompleted: 1000 })).toBe(true);
+  expect(await store.update(second, { ...job, status: "ready", photosCompleted: 1, bytesCompleted: 1000, archiveBytes: 1200 })).toBe(true);
 });
 
 it("rejects identity changes, invalid state transitions and regressing progress", async () => {
