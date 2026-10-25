@@ -4,7 +4,8 @@ import { ARCHIVE_JOB_ID } from "./galleryArchiveJobs";
 import { GALLERY_ID } from "./galleryAccess";
 
 const PARTITION_PREFIX = "gallery-archives-";
-const MAX_SNAPSHOT_CHARS = 50000;
+// Azure Tables string properties are limited to 64 KiB UTF-16 (32768 code units).
+const MAX_SNAPSHOT_CHARS = 32768;
 
 export interface StoredArchiveJob {
   job: GalleryArchiveJob;
@@ -48,7 +49,7 @@ function validJob(job: GalleryArchiveJob, galleryId: string, jobId: string): boo
        job.processingStartedAt <= job.expiresAt)) &&
     (job.status !== "processing" || job.processingStartedAt !== undefined) &&
     (job.archiveBytes === undefined ||
-      (job.status === "ready" && Number.isSafeInteger(job.archiveBytes) &&
+      (["ready", "expired"].includes(job.status) && Number.isSafeInteger(job.archiveBytes) &&
        job.archiveBytes >= job.selection.totalBytes &&
        job.archiveBytes <= job.selection.totalBytes + 1024 * 1024)) &&
     (job.status !== "ready" || job.archiveBytes !== undefined);
