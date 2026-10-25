@@ -3,7 +3,7 @@ import type { GalleryAccessStore } from "./galleryAccess";
 import { archiveJobIsAccessible, ARCHIVE_JOB_ID } from "./galleryArchiveJobs";
 import { GALLERY_ID } from "./galleryAccess";
 import type { GalleryAssetStore } from "./azureGalleryDelivery";
-import type { ArchiveSelection } from "./galleryArchiveSelection";
+import { validateArchiveSelection, type ArchiveSelection } from "./galleryArchiveSelection";
 
 export interface ArchiveQueueMessage { galleryId: string; jobId: string }
 export interface ArchiveUploadResult { blobName: string; archiveBytes: number }
@@ -63,14 +63,14 @@ export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies
       // Verify current asset metadata before streaming to reject unpublished
       // or modified photographs, not just stale IDs from the original request.
       const published = await deps.assets.listAssets(galleryId);
-      const byId = new Map(published.map(asset => [asset.id, asset]));
-      for (const asset of selection.assets) {
-        const live = byId.get(asset.id);
-        if (!live || (selection.variant === "full" ? live.fullByteSize : live.webByteSize) !== asset.byteSize)
-          throw new Error("Archive selection is no longer available");
-      }
+      const verified = validateArchiveSelection({
+        variant: selection.variant,
+        assetIds: selection.assets.map(asset => asset.id),
+      }, published);
+      if (JSON.stringify(verified) !== JSON.stringify(selection))
+        throw new Error("Archive selection changed since preparation was requested");
       let lastUpdate = 0;
-      await deps.upload(galleryId, jobId, selection, controller.signal, async (photos, bytes) => {
+      const uploaded = await deps.upload(galleryId, jobId, selection, controller.signal, async (photos, bytes) => {
         controller.signal.throwIfAborted();
         const now = clock();
         if (now - lastUpdate < 3000 && photos !== selection.assets.length) return;
@@ -84,6 +84,11 @@ export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies
         })) throw new Error("Archive progress update conflicted");
         lastUpdate = now;
       });
+      if (uploaded.blobName !== `${galleryId}/${jobId}.zip` ||
+          !Number.isSafeInteger(uploaded.archiveBytes) ||
+          uploaded.archiveBytes < selection.totalBytes ||
+          uploaded.archiveBytes > selection.totalBytes + 1024 * 1024)
+        throw new Error("Archive upload result invalid");
       stored = await deps.jobs.read(galleryId, jobId);
       const currentGallery = await deps.access.readGallery(galleryId);
       if (!stored || stored.job.status !== "processing" || !currentGallery ||
@@ -92,6 +97,7 @@ export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies
       if (!await deps.jobs.update(stored, {
         ...stored.job, status: "ready",
         photosCompleted: selection.assets.length, bytesCompleted: selection.totalBytes,
+        archiveBytes: uploaded.archiveBytes,
       })) throw new Error("Archive completion update conflicted");
     } catch (error) {
       const current = await deps.jobs.read(galleryId, jobId);
