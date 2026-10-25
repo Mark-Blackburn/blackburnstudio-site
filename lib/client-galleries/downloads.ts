@@ -133,8 +133,7 @@ export async function prepareGalleryZipPart(
     for (; nextIndex < assets.length; nextIndex++) {
       signal.throwIfAborted();
       const limit = size === "web" ? MAX_WEB_BYTES : MAX_FULL_BYTES;
-      // A boundary is decided before adding an entry. If it doesn't fit, the
-      // fetched bytes become the first entry of the next part on retry.
+      // The first image that would exceed the target is deferred to the next part.
       const photoChunks: Uint8Array<ArrayBuffer>[] = [];
       const bytes = await readPhoto(urls[nextIndex], signal, limit, chunk => photoChunks.push(chunk));
       if (total > 0 && total + bytes > TARGET_ZIP_BYTES) break;
