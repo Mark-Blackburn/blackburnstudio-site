@@ -24,7 +24,7 @@ export interface ArchiveConsumerOptions {
  */
 export async function consumeOneArchiveMessage(
   queue: ArchiveMessageQueue,
-  handler: (message: { galleryId: string; jobId: string }) => Promise<void>,
+  handler: (message: { galleryId: string; jobId: string }, signal?: AbortSignal) => Promise<void>,
   options: ArchiveConsumerOptions = {},
 ): Promise<"empty" | "processed"> {
   const visibility = options.visibilitySeconds ?? 120;
@@ -39,19 +39,23 @@ export async function consumeOneArchiveMessage(
   let receipt = initial;
   let stopped = false;
   let renewalFailure: unknown;
+  const leaseController = new AbortController();
   let renewing = Promise.resolve();
   const timer = setInterval(() => {
     renewing = renewing.then(async () => {
       if (stopped || renewalFailure) return;
       try { receipt = await queue.renew(receipt, visibility); }
-      catch (error) { renewalFailure = error; }
+      catch (error) {
+        renewalFailure = error;
+        leaseController.abort(new Error("Archive queue visibility renewal failed", { cause: error }));
+      }
     });
   }, interval);
   try {
     if (initial.dequeueCount > maxAttempts)
       throw new Error("Archive queue message exceeded delivery limit; poison handling required");
     const message = parseArchiveQueueMessage(initial.text);
-    await handler(message);
+    await handler(message, leaseController.signal);
     stopped = true;
     clearInterval(timer);
     await renewing;
