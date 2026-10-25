@@ -41,7 +41,12 @@ function validJob(job: GalleryArchiveJob, galleryId: string, jobId: string): boo
     Number.isSafeInteger(job.selection.totalBytes) &&
     job.selection.totalBytes === job.selection.assets.reduce((n, a) => n + a.byteSize, 0) &&
     job.photosCompleted <= job.selection.assets.length &&
-    job.bytesCompleted <= job.selection.totalBytes;
+    job.bytesCompleted <= job.selection.totalBytes &&
+    (job.archiveBytes === undefined ||
+      (job.status === "ready" && Number.isSafeInteger(job.archiveBytes) &&
+       job.archiveBytes >= job.selection.totalBytes &&
+       job.archiveBytes <= job.selection.totalBytes + 1024 * 1024)) &&
+    (job.status !== "ready" || job.archiveBytes !== undefined);
 }
 
 function encode(job: GalleryArchiveJob) {
