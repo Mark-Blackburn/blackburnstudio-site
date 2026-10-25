@@ -21,6 +21,8 @@ export interface ArchiveHttpDependencies {
 }
 
 const MAX_BODY_BYTES = 24 * 1024;
+const QUEUED_STALE_MS = 15 * 60 * 1000;
+const PROCESSING_STALE_MS = 50 * 60 * 1000;
 const unavailable = () => galleryResponse(404, { message: "Archive unavailable." });
 
 async function readRequest(request: HttpRequest): Promise<unknown> {
@@ -96,11 +98,13 @@ export function createGalleryArchiveHttpHandlers(deps: ArchiveHttpDependencies) 
     if (!jobId || !ARCHIVE_JOB_ID.test(jobId)) return unavailable();
     let saved = await deps.jobs.read(gallery.id, jobId);
     if (!saved || !archiveJobIsAccessible(saved.job, gallery, now())) return unavailable();
-    // The worker has a 45-minute timeout. A crash may leave a job stuck;
-    // after a 50-minute grace period, fail it using ETag concurrency control.
-    if (saved.job.status === "processing" &&
-        saved.job.processingStartedAt !== undefined &&
-        now() - saved.job.processingStartedAt > 50 * 60 * 1000) {
+    // Fail abandoned jobs with an ETag guard; never overwrite a concurrent
+    // successful completion. A queued job can also be stranded by lost queue
+    // delivery before any worker has claimed it.
+    if ((saved.job.status === "queued" && now() - saved.job.createdAt > QUEUED_STALE_MS) ||
+        (saved.job.status === "processing" &&
+         saved.job.processingStartedAt !== undefined &&
+         now() - saved.job.processingStartedAt > PROCESSING_STALE_MS)) {
       await deps.jobs.update(saved, { ...saved.job, status: "failed" });
       saved = await deps.jobs.read(gallery.id, jobId);
       if (!saved || !archiveJobIsAccessible(saved.job, gallery, now())) return unavailable();
