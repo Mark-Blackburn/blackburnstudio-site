@@ -3,6 +3,7 @@ import type { ContainerClient } from "@azure/storage-blob";
 import type { HttpRequest, HttpResponseInit } from "@azure/functions";
 import type { GalleryArchiveJobStore } from "./azureGalleryArchiveJobs";
 import type { GalleryAccessStore } from "./galleryAccess";
+import type { GalleryAssetStore } from "./azureGalleryDelivery";
 import { authorizeGalleryRequest, GALLERY_HEADERS, galleryResponse } from "./galleryHttp";
 import { archiveJobIsAccessible, ARCHIVE_JOB_ID } from "./galleryArchiveJobs";
 
@@ -13,6 +14,7 @@ export interface ArchiveDownloadDependencies {
   store: GalleryAccessStore;
   secret: string;
   jobs: GalleryArchiveJobStore;
+  assets: GalleryAssetStore;
   container: ContainerClient;
   now?: () => number;
 }
@@ -57,7 +59,7 @@ export function createGalleryArchiveDownloadHandler(deps: ArchiveDownloadDepende
     if (stored.job.archiveBytes !== length) throw new Error("Archive size mismatch");
     if (!Number.isSafeInteger(length) || length < 100 || length > MAX_ARCHIVE_BYTES ||
         metadata.contentType !== "application/zip") throw new Error("Invalid archive blob");
-    const range = parseArchiveRange(request.headers.get("range"), length);
+    const range = request.method === "HEAD" ? null : parseArchiveRange(request.headers.get("range"), length);
     if (range === "invalid") return {
       status: 416,
       headers: { ...GALLERY_HEADERS, "Content-Range": `bytes */${length}`,
@@ -75,6 +77,10 @@ export function createGalleryArchiveDownloadHandler(deps: ArchiveDownloadDepende
       "Content-Security-Policy": "default-src 'none'; sandbox",
       ...(range ? { "Content-Range": `bytes ${start}-${end}/${length}` } : {}),
     };
+    // Ensure no selected photograph was removed after archive preparation.
+    const published = await deps.assets.listAssets(gallery.id);
+    const currentIds = new Set(published.map(asset => asset.id));
+    if (stored.job.selection.assets.some(asset => !currentIds.has(asset.id))) return unavailable();
     // Do not start the private blob stream until authorization is rechecked.
     const latest = await authorizeGalleryRequest(request, deps);
     if (!latest || !archiveJobIsAccessible(stored.job, latest, now()))
@@ -83,6 +89,11 @@ export function createGalleryArchiveDownloadHandler(deps: ArchiveDownloadDepende
     const response = await blob.download(start, size, { maxRetryRequests: 0 });
     if (!response.readableStreamBody || response.contentLength !== size)
       throw new Error("Archive download stream unavailable");
+    const finalAuth = await authorizeGalleryRequest(request, deps);
+    if (!finalAuth || !archiveJobIsAccessible(stored.job, finalAuth, now())) {
+      response.readableStreamBody.destroy();
+      return unavailable();
+    }
     // Azure Functions Node v4 HTTP streaming must be enabled at host startup.
     return {
       status: range ? 206 : 200,
