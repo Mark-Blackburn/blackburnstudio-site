@@ -94,8 +94,17 @@ export function createGalleryArchiveHttpHandlers(deps: ArchiveHttpDependencies) 
     if (!gallery) return unavailable();
     const jobId = request.params.jobId;
     if (!jobId || !ARCHIVE_JOB_ID.test(jobId)) return unavailable();
-    const saved = await deps.jobs.read(gallery.id, jobId);
+    let saved = await deps.jobs.read(gallery.id, jobId);
     if (!saved || !archiveJobIsAccessible(saved.job, gallery, now())) return unavailable();
+    // The worker has a 45-minute timeout. A crash may leave a job stuck;
+    // after a 50-minute grace period, fail it using ETag concurrency control.
+    if (saved.job.status === "processing" &&
+        saved.job.processingStartedAt !== undefined &&
+        now() - saved.job.processingStartedAt > 50 * 60 * 1000) {
+      await deps.jobs.update(saved, { ...saved.job, status: "failed" });
+      saved = await deps.jobs.read(gallery.id, jobId);
+      if (!saved || !archiveJobIsAccessible(saved.job, gallery, now())) return unavailable();
+    }
     return galleryResponse(200, publicArchiveStatus(saved.job));
   }
 
