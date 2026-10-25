@@ -8,15 +8,14 @@ import { parseArchiveQueueMessage } from "./galleryArchiveQueue";
 
 export async function runGalleryArchiveContainerJob(
   environment: NodeJS.ProcessEnv = process.env,
-  run: (message: { galleryId: string; jobId: string }) => Promise<void> =
-    createConfiguredGalleryArchiveWorker(environment),
+  run?: (message: { galleryId: string; jobId: string }) => Promise<void>,
 ): Promise<void> {
   if (environment.GALLERY_ARCHIVE_CONTAINER_JOB_ENABLED !== "true")
     throw new Error("Archive container job is disabled");
   const raw = environment.GALLERY_ARCHIVE_JOB_MESSAGE;
   if (!raw || raw.length > 2048) throw new Error("Missing or oversized archive job message");
   const message = parseArchiveQueueMessage(raw);
-  await run(message);
+  await (run ?? createConfiguredGalleryArchiveWorker(environment))(message);
 }
 
 if (require.main === module) {
