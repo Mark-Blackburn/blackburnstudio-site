@@ -3,7 +3,6 @@
  * The worker reads source JPEGs as streams and uploads archive blocks
  * without buffering the completed archive in the Function process.
  */
-import { Readable } from "node:stream";
 import type { ContainerClient } from "@azure/storage-blob";
 import { assetBlobName, type PrivateGalleryAsset } from "./galleryAssets";
 import { streamGalleryZip64, type ZipSource } from "./galleryZip64";
@@ -39,7 +38,6 @@ export async function uploadGalleryArchive(
   let archiveBytes = 0;
   let photosCompleted = 0;
   let sourceBytes = 0;
-  let completed = false;
 
   async function* sources(): AsyncGenerator<ZipSource> {
     for (const selected of selection.assets) {
@@ -112,13 +110,9 @@ export async function uploadGalleryArchive(
       blobHTTPHeaders: { blobContentType: "application/zip", blobCacheControl: "private, no-store" },
       conditions: { ifNoneMatch: "*" },
     });
-    completed = true;
     return { blobName, archiveBytes };
   } finally {
-    if (!completed) {
-      // Uncommitted blocks expire automatically in Azure; also remove any
-      // committed partial target left by a prior failed attempt when possible.
-      await target.deleteIfExists({ conditions: { ifMatch: "*" } }).catch(() => undefined);
-    }
+    // Uncommitted blocks are not visible as an archive and expire in Azure.
+    // Never delete a pre-existing committed archive on a failed retry.
   }
 }
