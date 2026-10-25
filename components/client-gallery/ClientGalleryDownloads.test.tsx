@@ -55,7 +55,7 @@ afterEach(() => {
 });
 
 it("selects individual photos or all, clears selection, and packages only the chosen web copies", async () => {
-  vi.mocked(prepareGalleryZipPart).mockResolvedValue(new Blob(["zip"]));
+  vi.mocked(prepareGalleryZipPart).mockResolvedValue({ part: { blob: new Blob(["zip"]), count: 1, firstPhoto: 2, lastPhoto: 2 }, nextIndex: 1 });
   render(<ClientGallery gallery={gallery} />);
   const download = screen.getByRole("button", {
     name: "Download selected · web",
@@ -131,7 +131,7 @@ it("shows preparation failures without offering a partial ZIP", async () => {
 });
 
 it("revokes a prepared ZIP URL when the gallery closes", async () => {
-  vi.mocked(prepareGalleryZipPart).mockResolvedValue(new Blob(["zip"]));
+  vi.mocked(prepareGalleryZipPart).mockResolvedValue({ part: { blob: new Blob(["zip"]), count: 1, firstPhoto: 2, lastPhoto: 2 }, nextIndex: 1 });
   const view = render(<ClientGallery gallery={gallery} />);
   fireEvent.click(screen.getByRole("button", { name: "Select all" }));
   fireEvent.click(
