@@ -42,6 +42,11 @@ function validJob(job: GalleryArchiveJob, galleryId: string, jobId: string): boo
     job.selection.totalBytes === job.selection.assets.reduce((n, a) => n + a.byteSize, 0) &&
     job.photosCompleted <= job.selection.assets.length &&
     job.bytesCompleted <= job.selection.totalBytes &&
+    (job.processingStartedAt === undefined ||
+      (Number.isSafeInteger(job.processingStartedAt) &&
+       job.processingStartedAt >= job.createdAt &&
+       job.processingStartedAt <= job.expiresAt)) &&
+    (job.status !== "processing" || job.processingStartedAt !== undefined) &&
     (job.archiveBytes === undefined ||
       (job.status === "ready" && Number.isSafeInteger(job.archiveBytes) &&
        job.archiveBytes >= job.selection.totalBytes &&
