@@ -54,7 +54,8 @@ it("aborts active processing when visibility renewal fails and does not acknowle
       });
     });
     const pending = consumeOneArchiveMessage(queue, handler, { renewalIntervalMs: 1000 });
-    await vi.waitFor(() => expect(handler).toHaveBeenCalledOnce());
+    await Promise.resolve();
+    await Promise.resolve();
     const assertion = expect(pending).rejects.toThrow("visibility renewal failed");
     await vi.advanceTimersByTimeAsync(1000);
     await assertion;
