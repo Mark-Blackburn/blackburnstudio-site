@@ -32,7 +32,7 @@ function setup() {
   const assets = { listAssets: vi.fn(async () => [asset]), readAsset: vi.fn() } as unknown as GalleryAssetStore;
   const upload = vi.fn(async (_g, _j, _s, _signal, progress) => {
     await progress(1, 6);
-    return { blobName: "private", archiveBytes: 200 };
+    return { blobName: `${gallery.id}/${job.id}.zip`, archiveBytes: 200 };
   });
   const handler = createGalleryArchiveQueueHandler({ jobs, access, assets, upload, now: () => now });
   return { handler, jobs, access, assets, upload, getJob: () => job };
@@ -51,6 +51,7 @@ it("claims and finishes a queued job after publication and asset checks", async 
   await env.handler({ galleryId: gallery.id, jobId: job.id });
   expect(env.getJob().status).toBe("ready");
   expect(env.getJob().photosCompleted).toBe(1);
+  expect(env.getJob().archiveBytes).toBe(200);
   expect(env.upload).toHaveBeenCalledTimes(1);
   await env.handler({ galleryId: gallery.id, jobId: job.id });
   expect(env.upload).toHaveBeenCalledTimes(1);
@@ -69,7 +70,7 @@ it("fails closed if an asset changes during preparation", async () => {
   const env = setup();
   (env.assets.listAssets as ReturnType<typeof vi.fn>).mockResolvedValue([{ ...asset, fullByteSize: 10 }]);
   const job = env.getJob();
-  await expect(env.handler({ galleryId: gallery.id, jobId: job.id })).rejects.toThrow("no longer available");
+  await expect(env.handler({ galleryId: gallery.id, jobId: job.id })).rejects.toThrow("changed since preparation");
   expect(env.getJob().status).toBe("failed");
   expect(env.upload).not.toHaveBeenCalled();
 });
