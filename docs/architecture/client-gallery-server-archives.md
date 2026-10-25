@@ -64,3 +64,21 @@ Keep existing per-photo downloads functioning. Do not merge PR #56's 500 MB brow
 5. Independently extract the ZIP and compare JPEG bytes, filename numbering and entry count; then test the actual 268-photo / 3.48 GB selection. Record time to ready, peak worker memory, download completion and Azure request/storage costs.
 6. Only after passing all tests, enable the client UI flag for a controlled deployment. Preserve the existing browser download fallback and document rollback.
 7. **Do not merge this draft PR on the basis of green CI alone.** Remaining blocking work includes automatic retry, stale-attempt cleanup, per-gallery request limits and tested retention.
+
+
+## Hosting decision — 25 October 2026
+
+The Azure Portal screenshots establish two distinct services:
+- `func-blackburnstudio-api`: Azure Functions **Consumption Y1** (not a dedicated App Service plan). The Consumption execution ceiling is **10 minutes**, so the existing 45-minute in-process abort does **not** extend the host limit.
+- `swa-blackburnstudio-v2`: **Azure Static Web Apps Standard**. This is not an App Service Standard compute plan and cannot be repurposed as an always-running ZIP worker.
+
+**Decision:** keep the website and API on their current plans. Do not enable the existing `app.storageQueue` ZIP worker in production on Consumption Y1 for a 268-image / ~3.48 GB workload. Treat the current Function queue registration as a prototype adapter, not the target production executor.
+
+**Preferred production executor to validate:** an event-driven Azure Container Apps Job, using the same private storage, Table job ledger, ZIP64 encoder and managed identity. The queue message must remain the durable work item. Implement a Node CLI entrypoint that claims a job and exits nonzero on failure, then deploy a Container Apps event-driven Job with queue-based scaling and a sufficiently long replica timeout. Set a maximum concurrent execution count appropriate to storage throughput and budget. A container job must not rely on the 10-minute Function limit. The worker should reuse `createConfiguredGalleryArchiveWorker` and the existing queue message format rather than duplicating archive logic.
+
+**Important design constraints:**
+- The existing queue worker marks processing jobs `failed` on caught exceptions; it does **not** implement genuine automatic retries despite the current comment. A process crash can leave a job `processing`; status polling currently marks it failed after 50 minutes. The new executor needs attempt ownership/lease renewal and a recovery/requeue path, with idempotent blob commits and cleanup of orphaned uploads.
+- The current HTTP download streams a Blob through the Function App. HTTP response duration, upstream Static Web Apps routing, idle timeouts, client interruptions and resume behavior must be verified separately. Do not infer that a 3.48 GB authenticated download works merely because the ZIP worker is moved.
+- Never expose archive blobs publicly or issue long-lived anonymous download URLs. Preserve session/token revocation and expiry checks at download time.
+- Container Apps Jobs incur execution/resource and storage/queue costs. Compare a low-concurrency event-driven job against a dedicated Functions plan and alternative direct-to-Blob authenticated delivery using real test duration, memory and throughput; **no cost estimate is verified yet**.
+- Keep `GALLERY_ARCHIVE_WORKER_ENABLED`, `GALLERY_ARCHIVE_API_ENABLED` and `NEXT_PUBLIC_GALLERY_SERVER_ARCHIVES_ENABLED` disabled in production until the end-to-end trial passes. No Azure resources or paid services have been provisioned as part of this design decision.
