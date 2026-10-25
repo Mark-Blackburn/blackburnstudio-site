@@ -78,8 +78,8 @@ it("fails closed if an asset changes during preparation", async () => {
 it("rejects a changed published ordering before uploading any ZIP bytes", async () => {
   const env = setup();
   (env.assets.listAssets as ReturnType<typeof vi.fn>).mockResolvedValue([
-    { ...asset, displayOrder: 1 },
     { ...asset, id: "a_anotherAsset123456", displayOrder: 0 },
+    { ...asset, displayOrder: 1 },
   ]);
   const job = env.getJob();
   await expect(env.handler({ galleryId: gallery.id, jobId: job.id }))
