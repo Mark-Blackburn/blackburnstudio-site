@@ -58,17 +58,21 @@ function validJob(job: GalleryArchiveJob, galleryId: string, jobId: string): boo
 function encode(job: GalleryArchiveJob) {
   if (!validJob(job, job.galleryId, job.id)) throw new Error("Invalid archive job");
   const snapshot = JSON.stringify(job);
-  if (snapshot.length > MAX_SNAPSHOT_CHARS) throw new Error("Archive snapshot too large");
-  return { partitionKey: PARTITION_PREFIX + job.galleryId, rowKey: job.id, snapshot };
+  if (snapshot.length > MAX_SNAPSHOT_CHARS * 2) throw new Error("Archive snapshot too large");
+  return { partitionKey: PARTITION_PREFIX + job.galleryId, rowKey: job.id,
+    snapshot: snapshot.slice(0, MAX_SNAPSHOT_CHARS),
+    snapshotTail: snapshot.slice(MAX_SNAPSHOT_CHARS) };
 }
 
 function decode(value: unknown, galleryId: string, jobId: string): GalleryArchiveJob {
   if (!value || typeof value !== "object") throw new Error("Invalid archive row");
-  const row = value as { snapshot?: unknown; partitionKey?: unknown; rowKey?: unknown };
+  const row = value as { snapshot?: unknown; snapshotTail?: unknown; partitionKey?: unknown; rowKey?: unknown };
   if (row.partitionKey !== PARTITION_PREFIX + galleryId || row.rowKey !== jobId ||
-      typeof row.snapshot !== "string" || row.snapshot.length > MAX_SNAPSHOT_CHARS)
+      typeof row.snapshot !== "string" || row.snapshot.length > MAX_SNAPSHOT_CHARS ||
+      (row.snapshotTail !== undefined && (typeof row.snapshotTail !== "string" ||
+       row.snapshotTail.length > MAX_SNAPSHOT_CHARS)))
     throw new Error("Invalid archive row");
-  const job: GalleryArchiveJob = JSON.parse(row.snapshot);
+  const job: GalleryArchiveJob = JSON.parse(row.snapshot + (row.snapshotTail ?? ""));
   if (!validJob(job, galleryId, jobId)) throw new Error("Invalid archive snapshot");
   return job;
 }
