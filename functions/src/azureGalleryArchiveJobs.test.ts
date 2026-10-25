@@ -55,8 +55,8 @@ it("permits queued -> processing -> ready with optimistic concurrency", async ()
   const job = createArchiveJob(gallery, selection, now);
   await store.create(job);
   const first = (await store.read(job.galleryId, job.id))!;
-  expect(await store.update(first, { ...job, status: "processing" })).toBe(true);
-  expect(await store.update(first, { ...job, status: "processing" })).toBe(false);
+  expect(await store.update(first, { ...job, status: "processing", processingStartedAt: now })).toBe(true);
+  expect(await store.update(first, { ...job, status: "processing", processingStartedAt: now })).toBe(false);
   const second = (await store.read(job.galleryId, job.id))!;
   expect(await store.update(second, { ...job, status: "ready", photosCompleted: 1, bytesCompleted: 1000, archiveBytes: 1200 })).toBe(true);
 });
@@ -68,7 +68,7 @@ it("rejects identity changes, invalid state transitions and regressing progress"
   const first = (await store.read(job.galleryId, job.id))!;
   await expect(store.update(first, { ...job, gallerySessionVersion: 99 })).rejects.toThrow("identity");
   await expect(store.update(first, { ...job, status: "ready" })).rejects.toThrow("transition");
-  await store.update(first, { ...job, status: "processing", bytesCompleted: 500 });
+  await store.update(first, { ...job, status: "processing", processingStartedAt: now, bytesCompleted: 500 });
   const second = (await store.read(job.galleryId, job.id))!;
   await expect(store.update(second, { ...second.job, bytesCompleted: 200 })).rejects.toThrow("transition");
 });
