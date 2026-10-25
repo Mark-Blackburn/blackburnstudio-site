@@ -113,3 +113,16 @@ describe("gallery cookie operation ordering", () => {
     ]);
   });
 });
+
+
+it.each([250, 300, 301])("validates a gallery with %s photos against the 300-photo limit", async (count) => {
+  const assets = Array.from({ length: count }, (_, index) => {
+    const assetId = `a_${String(index).padStart(22, "0")}`;
+    const path = `/api/galleries/${id}/assets/${assetId}`;
+    return { ...gallery.assets[0], id: assetId, displayOrder: index,
+      webImageUrl: `${path}/view`, webDownloadUrl: `${path}/web`, fullDownloadUrl: `${path}/full` };
+  });
+  fetchMock.mockResolvedValue(json({ ...gallery, assets }));
+  if (count <= 300) expect((await loadClientGallery(id)).assets).toHaveLength(count);
+  else await expect(loadClientGallery(id)).rejects.toThrow("Gallery unavailable");
+});

@@ -204,11 +204,11 @@ it("rejects invalid namespaces and public containers before removal", async () =
   expect(fake.remove).not.toHaveBeenCalled();
 });
 
-it("lists whitelisted admin photo metadata including all 250 assets and no storage fields", async () => {
+it("lists whitelisted admin photo metadata including all 300 assets and no storage fields", async () => {
   fake.list.mockReturnValue({
     async *[Symbol.asyncIterator]() {
-      yield { ...allocation, assetCount: 250, nextDisplayOrder: 250 };
-      for (let i = 0; i < 250; i++)
+      yield { ...allocation, assetCount: 300, nextDisplayOrder: 300 };
+      for (let i = 0; i < 300; i++)
         yield {
           ...photo,
           id: `a_${String(i).padStart(22, "0")}`,
@@ -219,7 +219,7 @@ it("lists whitelisted admin photo metadata including all 250 assets and no stora
     },
   });
   const result = await createConfiguredGalleryAdmin(env).store.photos(id);
-  expect(result).toHaveLength(250);
+  expect(result).toHaveLength(300);
   expect(Object.keys(result[0]).sort()).toEqual([
     "altText",
     "displayOrder",
@@ -355,16 +355,16 @@ it("rejects a stale allocation at publication without retrying", async () => {
   expect(fake.remove).not.toHaveBeenCalled(); // Ambiguous publication preserves supplied bytes.
 });
 
-it("reports the 250-photo limit before writing any blobs", async () => {
+it("reports the 300-photo limit before writing any blobs", async () => {
   fake.get.mockImplementation(async (_partition, key) =>
     key === ALLOCATION_ROW
-      ? { ...allocation, assetCount: 250, nextDisplayOrder: 250 }
+      ? { ...allocation, assetCount: 300, nextDisplayOrder: 300 }
       : row,
   );
   await expect(
     createConfiguredGalleryAdmin(env).store.upload(id, jpeg, jpeg, "Test"),
   ).rejects.toMatchObject({
-    message: expect.stringContaining("250-photo maximum"),
+    message: expect.stringContaining("300-photo maximum"),
   });
   expect(fake.upload).not.toHaveBeenCalled();
   expect(fake.transaction).not.toHaveBeenCalled();
@@ -401,4 +401,19 @@ it("returns the exact link version committed rather than a later reader's versio
   expect(await store.change(id, "replace", "b".repeat(64))).toBe(2);
   expect(fake.get).toHaveBeenCalledTimes(1);
   expect(await store.get(id)).toMatchObject({ accessTokenVersion: 3 });
+});
+
+
+it("adds photos to an existing 250-photo gallery without resetting its allocation", async () => {
+  fake.get.mockImplementation(async (_partition, key) =>
+    key === ALLOCATION_ROW
+      ? { ...allocation, assetCount: 250, nextDisplayOrder: 270 }
+      : row,
+  );
+  await createConfiguredGalleryAdmin(env).store.upload(id, jpeg, jpeg, "Test");
+  expect(fake.upload).toHaveBeenCalledTimes(2);
+  expect(fake.transaction).toHaveBeenCalledWith([
+    ["update", expect.objectContaining({ assetCount: 251, nextDisplayOrder: 271 }), "Replace", { etag: allocation.etag }],
+    ["create", expect.objectContaining({ displayOrder: 270 })],
+  ]);
 });

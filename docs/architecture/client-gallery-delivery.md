@@ -64,7 +64,7 @@ restrictive sandbox CSP. Downloads use generated safe attachment filenames;
 original filenames and Blob paths are not exposed. Missing/failed storage reads
 produce a generic failure without printing SDK details.
 
-The first version supports JPEG only, at most 250 photographs per gallery,
+The first version supports JPEG only, at most 300 photographs per gallery,
 4 MiB per web export and 20 MiB per full-resolution file. These are application
 limits, not a claim about Azure's maximum response size. Reads have a 20-second
 deadline and validate declared/actual length and JPEG signature. Responses are

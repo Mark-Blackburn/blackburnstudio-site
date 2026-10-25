@@ -1,7 +1,7 @@
 import type { ClientGalleryAsset } from "../../lib/client-galleries/contracts";
 
 export const ASSET_ID = /^a_[A-Za-z0-9_-]{16,64}$/;
-export const MAX_GALLERY_ASSETS = 250;
+export { MAX_GALLERY_ASSETS } from "../../lib/client-galleries/limits";
 export const MAX_WEB_BYTES = 4 * 1024 * 1024;
 export const MAX_FULL_BYTES = 20 * 1024 * 1024;
 

@@ -207,7 +207,7 @@ export function createConfiguredGalleryAdmin(
         const allocation = await readGalleryAllocation(table, id);
         if (allocation.assetCount >= MAX_GALLERY_ASSETS)
           throw new GalleryUploadValidationError(
-            "This gallery already contains the 250-photo maximum. Create another gallery for additional photographs.",
+            `This gallery already contains the ${MAX_GALLERY_ASSETS}-photo maximum. Create another gallery for additional photographs.`,
           );
         const asset = {
           galleryId: id,

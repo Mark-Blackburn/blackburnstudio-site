@@ -1,3 +1,4 @@
+import { MAX_GALLERY_ASSETS } from "./limits";
 import type { ClientGallery, ClientGalleryAsset } from "./contracts";
 
 const GALLERY_ID = /^g_[A-Za-z0-9_-]{16,64}$/;
@@ -32,7 +33,7 @@ function validateGallery(value: unknown, id: string): ClientGallery {
       (g.clientDisplayName !== undefined && (typeof g.clientDisplayName !== "string" || g.clientDisplayName.length > 200)) ||
       (g.message !== undefined && (typeof g.message !== "string" || g.message.length > 2000)) ||
       typeof g.expiresAt !== "string" || !Number.isFinite(Date.parse(g.expiresAt)) ||
-      !Array.isArray(g.assets) || g.assets.length > 250) throw new Error("Gallery unavailable");
+      !Array.isArray(g.assets) || g.assets.length > MAX_GALLERY_ASSETS) throw new Error("Gallery unavailable");
   const seen = new Set<string>();
   const assets: ClientGalleryAsset[] = g.assets.map(a => {
     if (!a || typeof a.id !== "string" || !ASSET_ID.test(a.id) || seen.has(a.id)) throw new Error("Gallery unavailable");

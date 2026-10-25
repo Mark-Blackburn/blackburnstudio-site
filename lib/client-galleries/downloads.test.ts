@@ -167,11 +167,30 @@ it("cancels an in-flight stream and never fetches the next photo", async () => {
 });
 
 
-it.each([0, 1.5, 251, 2])("rejects invalid or duplicate photo number %s before fetching", async (photoNumber) => {
+it.each([0, 1.5, 301, 2])("rejects invalid or duplicate photo number %s before fetching", async (photoNumber) => {
   const fetch = vi.fn();
   vi.stubGlobal("fetch", fetch);
   await expect(prepareGalleryZip(galleryId,
     [{ ...assets[0], photoNumber }, assets[1]], "web", new AbortController().signal, vi.fn(),
   )).rejects.toThrow("numbering changed");
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+
+it("downloads all 300 photos with the last gallery number and rejects 301 before fetching", async () => {
+  const fetch = vi.fn().mockImplementation(async () => photoResponse());
+  vi.stubGlobal("fetch", fetch);
+  const selection = Array.from({ length: 300 }, (_, index) => {
+    const id = `a_${String(index).padStart(22, "0")}`;
+    return { ...assets[0], id, photoNumber: index + 1,
+      webDownloadUrl: `/api/galleries/${galleryId}/assets/${id}/web` };
+  });
+  const blob = await prepareGalleryZip(galleryId, selection, "web", new AbortController().signal, vi.fn());
+  const entries = unzipSync(new Uint8Array(await blob.arrayBuffer()));
+  expect(Object.keys(entries)).toHaveLength(300);
+  expect(entries["photo-300-web.jpg"]).toEqual(jpeg);
+  expect(fetch).toHaveBeenCalledTimes(300);
+  fetch.mockClear();
+  await expect(prepareGalleryZip(galleryId, [...selection, { ...assets[0], photoNumber: 301 }], "web", new AbortController().signal, vi.fn())).rejects.toThrow("Select between 1 and 300");
   expect(fetch).not.toHaveBeenCalled();
 });
