@@ -4,8 +4,8 @@ import type { ClientGalleryAsset } from "./contracts";
 export type DownloadSize = "web" | "full";
 // The one-based position in the displayed gallery, captured before filtering.
 export type NumberedGalleryAsset = ClientGalleryAsset & { photoNumber: number };
-export const MAX_ZIP_BYTES = 100_000_000;
-export const TARGET_ZIP_BYTES = 90_000_000;
+export const MAX_ZIP_BYTES = 500_000_000;
+export const TARGET_ZIP_BYTES = 475_000_000;
 
 export function photoDownloadUrl(
   galleryId: string,
@@ -49,7 +49,7 @@ async function readPhoto(
   }
   const tooLarge = () =>
     new Error(
-      "This download is too large. ZIP downloads can contain up to 100 MB. Select fewer photographs or choose web size.",
+      "This download is too large. ZIP downloads can contain up to 500 MB. Select fewer photographs or choose web size.",
     );
   if (Number(response.headers.get("content-length")) > limit) {
     await response.body.cancel();
