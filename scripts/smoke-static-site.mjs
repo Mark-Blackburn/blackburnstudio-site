@@ -264,7 +264,7 @@ try {
   await page.getByRole("button", { name: "Select all", exact: true }).click();
   assert.equal(await page.getByRole("checkbox", { checked: true }).count(), 2);
   await page.getByRole("button", { name: "Download selected · web", exact: true }).click();
-  const saveZip = page.getByRole("link", { name: "Save ZIP · 2 photos" });
+  const saveZip = page.getByRole("link", { name: "Save part 1 · 2 photos" });
   await saveZip.waitFor();
   const zipDownload = page.waitForEvent("download");
   await saveZip.click();
