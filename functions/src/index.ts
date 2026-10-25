@@ -1,4 +1,5 @@
 import { createGalleryAdminHandler } from "./galleryAdmin";
+import { createConfiguredGalleryArchiveWorker } from "./azureGalleryArchiveQueue";
 import { createConfiguredGalleryAdmin } from "./azureGalleryAdmin";
 import { app } from "@azure/functions";
 
@@ -88,4 +89,24 @@ if (process.env.GALLERY_ADMIN_ENABLED === "true") {
       },
     });
   }
+}
+
+ 
+// Separate opt-in: do not register the worker until queue identity, storage
+// permissions and the private temporary archive container are provisioned.
+if (process.env.GALLERY_ARCHIVE_WORKER_ENABLED === "true") {
+  let worker: ReturnType<typeof createConfiguredGalleryArchiveWorker> | undefined;
+  app.storageQueue("galleryArchiveWorker", {
+    queueName: "gallery-archive-jobs",
+    connection: "GALLERY_ARCHIVE_QUEUE_STORAGE",
+    handler: async (message, context) => {
+      try {
+        worker ??= createConfiguredGalleryArchiveWorker();
+        await worker(message);
+      } catch (error) {
+        context.error("[gallery-archive] Queue job failed", error);
+        throw error;
+      }
+    },
+  });
 }
