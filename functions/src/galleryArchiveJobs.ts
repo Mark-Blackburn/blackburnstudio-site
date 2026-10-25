@@ -18,6 +18,7 @@ export interface GalleryArchiveJob {
   photosCompleted: number;
   bytesCompleted: number;
   archiveBytes?: number;
+  processingStartedAt?: number;
 }
 
 export function createArchiveJob(
