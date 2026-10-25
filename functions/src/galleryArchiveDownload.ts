@@ -53,7 +53,7 @@ export function createGalleryArchiveDownloadHandler(deps: ArchiveDownloadDepende
     if (properties.blobPublicAccess) throw new Error("Archive container is public");
     const blob = deps.container.getBlobClient(`${gallery.id}/${jobId}.zip`);
     const metadata = await blob.getProperties();
-    const length = metadata.contentLength;
+    const length = metadata.contentLength ?? NaN;
     if (!Number.isSafeInteger(length) || length < 100 || length > MAX_ARCHIVE_BYTES ||
         metadata.contentType !== "application/zip") throw new Error("Invalid archive blob");
     const range = parseArchiveRange(request.headers.get("range"), length);
@@ -86,7 +86,7 @@ export function createGalleryArchiveDownloadHandler(deps: ArchiveDownloadDepende
     return {
       status: range ? 206 : 200,
       headers,
-      body: Readable.toWeb(response.readableStreamBody) as ReadableStream,
+      body: Readable.toWeb(response.readableStreamBody as Readable) as ReadableStream,
     };
   };
 }
