@@ -14,8 +14,8 @@ const allocation = {
   rowKey: ALLOCATION_ROW,
   galleryId: id,
   schemaVersion: 1,
-  assetCount: 249,
-  nextDisplayOrder: 249,
+  assetCount: 299,
+  nextDisplayOrder: 299,
   etag: '"v1"',
 };
 const asset = (suffix: string) => ({
@@ -24,12 +24,12 @@ const asset = (suffix: string) => ({
   altText: "Test",
   width: 100,
   height: 100,
-  displayOrder: 249,
+  displayOrder: 299,
   webByteSize: 12,
   fullByteSize: 12,
 });
 it("fences a stale uploader after removal while preserving next order and reusable capacity", async () => {
-  let state = { ...allocation, assetCount: 1, nextDisplayOrder: 249 };
+  let state = { ...allocation, assetCount: 1, nextDisplayOrder: 299 };
   const rows = new Map([[asset("a").id, asset("a")]]);
   let version = 1;
   const client = {
@@ -45,7 +45,7 @@ it("fences a stale uploader after removal while preserving next order and reusab
   } as unknown as TableClient;
   const stale = { ...state };
   await removeGalleryAsset(client, stale, asset("a").id, true);
-  expect(state).toMatchObject({ assetCount: 0, nextDisplayOrder: 249 });
+  expect(state).toMatchObject({ assetCount: 0, nextDisplayOrder: 299 });
   expect(rows.size).toBe(0);
   await expect(publishGalleryAsset(client, stale, asset("b"))).rejects.toThrow(
     "Stale ETag",
@@ -54,7 +54,7 @@ it("fences a stale uploader after removal while preserving next order and reusab
     removeGalleryAsset(client, stale, asset("a").id, true),
   ).rejects.toThrow("Stale ETag");
   await publishGalleryAsset(client, state, asset("c"));
-  expect(state).toMatchObject({ assetCount: 1, nextDisplayOrder: 250 });
+  expect(state).toMatchObject({ assetCount: 1, nextDisplayOrder: 300 });
   expect(rows.size).toBe(1);
 });
 
@@ -88,7 +88,7 @@ it("advances the allocation fence for an absent photo without decrementing twice
   ).rejects.toThrow("Invalid asset allocation");
   expect(submitTransaction).toHaveBeenCalledTimes(1);
 });
-it("fences a delayed old writer at 249 photos so only one 250th asset can commit", async () => {
+it("fences a delayed old writer at 299 photos so only one 300th asset can commit", async () => {
   let state = { ...allocation };
   const published: unknown[] = [];
   let release!: () => void;
@@ -123,12 +123,12 @@ it("fences a delayed old writer at 249 photos so only one 250th asset can commit
   await publishGalleryAsset(client, allocation, asset("b"));
   release();
   await rejection;
-  expect(state.assetCount).toBe(250);
-  expect(state.nextDisplayOrder).toBe(250);
+  expect(state.assetCount).toBe(300);
+  expect(state.nextDisplayOrder).toBe(300);
   expect(published).toHaveLength(1);
-  expect(published[0]).toMatchObject({ id: asset("b").id, displayOrder: 249 });
+  expect(published[0]).toMatchObject({ id: asset("b").id, displayOrder: 299 });
   await expect(
-    publishGalleryAsset(client, state, { ...asset("c"), displayOrder: 250 }),
+    publishGalleryAsset(client, state, { ...asset("c"), displayOrder: 300 }),
   ).rejects.toThrow("Invalid asset allocation");
   expect(submitTransaction).toHaveBeenCalledTimes(2);
 });
@@ -181,14 +181,14 @@ it("does not reset allocation on storage failure or malformed state", async () =
   await expect(readGalleryAllocation(client, id)).rejects.toMatchObject({
     statusCode: 503,
   });
-  getEntity.mockResolvedValue({ ...allocation, assetCount: 251 });
+  getEntity.mockResolvedValue({ ...allocation, assetCount: 301 });
   await expect(readGalleryAllocation(client, id)).rejects.toThrow(
     "Invalid allocation",
   );
   expect(createEntity).not.toHaveBeenCalled();
 });
-it("keeps gallery reads working with 250 photos plus the allocation row", async () => {
-  const rows = Array.from({ length: 250 }, (_, n) => {
+it("keeps gallery reads working with 300 photos plus the allocation row", async () => {
+  const rows = Array.from({ length: 300 }, (_, n) => {
     const item = {
       ...asset("a"),
       id: `a_${String(n).padStart(22, "0")}`,
@@ -199,17 +199,17 @@ it("keeps gallery reads working with 250 photos plus the allocation row", async 
   const client = {
     listEntities: () => ({
       async *[Symbol.asyncIterator]() {
-        yield { ...allocation, assetCount: 250, nextDisplayOrder: 250 };
+        yield { ...allocation, assetCount: 300, nextDisplayOrder: 300 };
         yield* rows;
       },
     }),
   } as unknown as TableClient;
   const listed = await createGalleryAssetStore(client).listAssets(id);
-  expect(listed).toHaveLength(250);
-  expect(listed[249].displayOrder).toBe(249);
+  expect(listed).toHaveLength(300);
+  expect(listed[299].displayOrder).toBe(299);
 });
 
-it.each([2, 250])(
+it.each([2, 300])(
   "bootstraps %s legacy photos with duplicate orders without storing an invalid allocation",
   async (count) => {
     let stored: unknown;

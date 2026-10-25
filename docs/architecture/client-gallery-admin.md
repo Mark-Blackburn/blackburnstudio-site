@@ -78,7 +78,7 @@ Release order:
 
 ## Photo management and removal
 
-Choose Manage photographs in the selected gallery to load up to 250 thumbnails.
+Choose Manage photographs in the selected gallery to load up to 300 thumbnails.
 The list and preview endpoints require the same Microsoft gallery_admin role as
 other administration operations. Previews read only the web JPEG via a bounded,
 private Blob read and are no-store. They do not create a client session or expose
@@ -139,7 +139,7 @@ the uploaded bytes, since a metadata row may have committed.
 Both the admin API and the updated CLI use this protocol. Existing galleries
 bootstrap the count/order from their current asset rows with create-if-absent;
 concurrent initializers converge on the winning row. Readers validate and skip
-the allocation row, so 250 photographs still list correctly. Stop old CLI
+the allocation row, so 300 photographs still list correctly. Stop old CLI
 processes before deploying this version and rebuild the CLI before using it
 again: older binaries do not participate in conditional allocation. After the
 first allocation row exists, keep a compatible Function reader when rolling

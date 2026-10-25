@@ -1,3 +1,4 @@
+import { MAX_GALLERY_ASSETS } from "./limits";
 import type { ClientGalleryAsset } from "./contracts";
 
 export type DownloadSize = "web" | "full";
@@ -101,12 +102,12 @@ export async function prepareGalleryZip(
   signal: AbortSignal,
   onProgress: (completed: number) => void,
 ) {
-  if (!assets.length || assets.length > 250)
-    throw new Error("Select between 1 and 250 photographs.");
+  if (!assets.length || assets.length > MAX_GALLERY_ASSETS)
+    throw new Error(`Select between 1 and ${MAX_GALLERY_ASSETS} photographs.`);
   const numbers = assets.map((asset) => asset.photoNumber);
   if (
     numbers.some(
-      (number) => !Number.isInteger(number) || number < 1 || number > 250,
+      (number) => !Number.isInteger(number) || number < 1 || number > MAX_GALLERY_ASSETS,
     ) ||
     new Set(numbers).size !== numbers.length
   )

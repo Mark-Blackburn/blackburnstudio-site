@@ -398,7 +398,7 @@ it.each([true, false])(
   async (safe) => {
     const { handler, store } = setup();
     const message = safe
-      ? "This gallery already contains the 250-photo maximum."
+      ? "This gallery already contains the 300-photo maximum."
       : "private SDK endpoint or key";
     vi.mocked(store.upload).mockRejectedValue(
       safe ? new GalleryUploadValidationError(message) : new Error(message),
