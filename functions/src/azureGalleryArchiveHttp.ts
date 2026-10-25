@@ -52,6 +52,7 @@ export function createConfiguredGalleryArchiveHttp(environment: NodeJS.ProcessEn
   const download = createGalleryArchiveDownloadHandler({
     ...access,
     jobs: createAzureArchiveJobStore(table),
+    assets: createGalleryAssetStore(table),
     container: blobs.getContainerClient(archiveContainer),
   });
   return { ...api, download };
