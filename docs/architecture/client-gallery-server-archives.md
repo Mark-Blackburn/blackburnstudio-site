@@ -1,7 +1,7 @@
 # Server-side client gallery archives — implementation plan (issue #55)
 
 ## Decision and scope
-Supersede browser-generated multi-part ZIPs in PR #56. A 268-image / ~3.48 GB full-resolution gallery should yield **one ZIP**. This branch starts with the server-side selection validation contract; **it does not yet generate or serve archives**. Do not deploy archive routes until the durable worker, authorization, limits and cleanup are complete.
+Supersede browser-generated multi-part ZIPs in PR #56. A 268-image / ~3.48 GB full-resolution gallery should yield **one ZIP**. The draft branch now implements authenticated archive request/status/download routes, a queue worker, private block-blob upload, ZIP64 streaming and an opt-in gallery UI. These components are **not production-ready or enabled**. Do not deploy archive routes until the durable worker, authorization, limits and cleanup are complete.
 
 ## Existing constraints verified from repository
 - Next.js website is statically exported; API routes are handled by a separate Azure Functions Node 22 app.
@@ -33,3 +33,25 @@ Supersede browser-generated multi-part ZIPs in PR #56. A 268-image / ~3.48 GB fu
 
 ## Release safety
 Keep existing per-photo downloads functioning. Do not merge PR #56's 500 MB browser archive implementation. Ship server-side routes behind a separate opt-in feature flag only after worker tests and Azure provisioning are ready. Roll back by disabling the flag, leaving existing gallery access untouched.
+
+## Implementation checkpoint (25 October 2026)
+- Archive output byte count is now persisted with READY job records and checked against the private Blob's actual size on download. ZIP source numbering is revalidated against current published ordering before upload.
+- The download route streams Blob data with HTTP byte-range support; runtime and reverse-proxy handling of multi-gigabyte streams **has not been verified**.
+- CI builds/tests are necessary but not proof of real Azure execution, streaming ZIP compatibility or reliability.
+
+## Blocking reliability work before enabling
+1. **Worker recovery:** Current processing jobs cannot be reclaimed after a worker crash. Add an ETag-guarded attempt/lease with heartbeat and a scheduled reconciliation pass. Never let two attempts commit the same archive; use attempt-specific blob names or a safe conditional publication protocol.
+2. **Retries and cancellation:** Current failure handler marks jobs FAILED and rethrows, so queue redelivery does not retry them. Define bounded retry classification, stale-attempt recovery and customer cancellation behavior.
+3. **Request limits:** Enforce a durable per-gallery cap on active jobs, request throttling and deduplication to prevent expensive repeated 7.5 GiB preparations.
+4. **Cleanup:** Add scheduled deletion of expired/revoked ready blobs and abandoned staging uploads. Confirm container lifecycle policies; an expired job must never authorize a download.
+5. **HTTP behavior:** Validate Azure Functions HTTP streaming, Front Door/App Service same-origin proxy, Content-Length/Range forwarding and disconnect behavior at 3.48 GiB.
+6. **ZIP correctness:** Independently extract a generated ZIP with a standard unzip implementation and test >4 GiB ZIP64 behavior.
+7. **Queue configuration:** Provision private queue and archive container; verify managed-identity enqueue, dequeue and Blob/Table access. Confirm queue message encoding expectations for the trigger.
+8. **Frontend:** Verify selection/status payload contracts, avoid leaking server-only flags into production unexpectedly, handle polling timeouts and preserve the prior download flow while disabled.
+
+## Azure settings to provision only after plan validation
+- `GALLERY_ARCHIVE_API_ENABLED=true` and `GALLERY_ARCHIVE_WORKER_ENABLED=true` are separate opt-in gates. `NEXT_PUBLIC_GALLERY_SERVER_ARCHIVES_ENABLED=true` enables the client UI path at build time.
+- `GALLERY_ARCHIVE_QUEUE_ENDPOINT` is the HTTPS queue-service origin used for managed-identity enqueue.
+- `GALLERY_ARCHIVE_QUEUE_STORAGE` is the Azure Functions queue-trigger connection prefix; configure the appropriate identity-based `__queueServiceUri` and required host storage settings.
+- `GALLERY_ARCHIVE_BLOB_CONTAINER` must name a **private container distinct** from the original gallery images container.
+- Confirm required least-privilege data-plane roles, hosting timeout and queue poison-message handling before activation.
