@@ -9,7 +9,6 @@ import { streamGalleryZip64, type ZipSource } from "./galleryZip64";
 import type { ArchiveSelection } from "./galleryArchiveSelection";
 
 const BLOCK_BYTES = 4 * 1024 * 1024;
-const MAX_BUFFERED_BYTES = BLOCK_BYTES + 64 * 1024;
 const BLOCK_LIMIT = 50000;
 
 export interface ArchiveProgress {
@@ -34,7 +33,8 @@ export async function uploadGalleryArchive(
   const target = archiveContainer.getBlockBlobClient(blobName);
   const blockIds: string[] = [];
   let blockNumber = 0;
-  let pending = Buffer.alloc(0);
+  let pending = Buffer.allocUnsafe(BLOCK_BYTES);
+  let pendingLength = 0;
   let archiveBytes = 0;
   let photosCompleted = 0;
   let sourceBytes = 0;
@@ -92,17 +92,18 @@ export async function uploadGalleryArchive(
       signal.throwIfAborted();
       let cursor = 0;
       while (cursor < chunk.length) {
-        const take = Math.min(BLOCK_BYTES - pending.length, chunk.length - cursor);
-        pending = Buffer.concat([pending, chunk.subarray(cursor, cursor + take)]);
+        const take = Math.min(BLOCK_BYTES - pendingLength, chunk.length - cursor);
+        chunk.copy(pending, pendingLength, cursor, cursor + take);
+        pendingLength += take;
         cursor += take;
-        if (pending.length === BLOCK_BYTES) {
+        if (pendingLength === BLOCK_BYTES) {
           await stage(pending);
-          pending = Buffer.alloc(0);
+          pending = Buffer.allocUnsafe(BLOCK_BYTES);
+          pendingLength = 0;
         }
-        if (pending.length > MAX_BUFFERED_BYTES) throw new Error("Archive upload buffer exceeded");
       }
     }
-    if (pending.length) await stage(pending);
+    if (pendingLength) await stage(pending.subarray(0, pendingLength));
     if (!blockIds.length) throw new Error("Archive empty");
     signal.throwIfAborted();
     await target.commitBlockList(blockIds, {
