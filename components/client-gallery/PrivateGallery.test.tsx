@@ -222,13 +222,33 @@ describe("private gallery shell", () => {
     expect(screen.queryByRole("heading", { name: dto.title })).not.toBeInTheDocument();
   });
 
-  it("removes displayed metadata when the session is revoked on refresh", async () => {
+  it("clears photos and directs the client to their original link when access is lost on focus", async () => {
     fetchMock.mockResolvedValueOnce(json(dto)).mockResolvedValueOnce(json({}, 404));
     render(<ClientGalleryShell />);
     await screen.findByRole("heading", { name: dto.title });
+    fireEvent.click(screen.getByRole("button", { name: "Open image 1: Synthetic portrait" }));
     fireEvent(window, new Event("focus"));
-    await screen.findByRole("heading", { name: "This gallery is unavailable." });
+    await screen.findByRole("heading", { name: "Your gallery screen has been cleared." });
+    expect(screen.getByText(/To protect your photos/)).toHaveTextContent("Please reopen the original gallery link we sent you.");
     expect(screen.queryByRole("heading", { name: dto.title })).not.toBeInTheDocument();
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    expect(screen.queryByRole("img")).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.filter(call => call[0].endsWith("/exchange"))).toHaveLength(0);
+  });
+
+  it("shows reopen guidance after a timer refresh fails and clears it after recovery", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockResolvedValueOnce(json(dto)).mockResolvedValueOnce(json({}, 404)).mockResolvedValueOnce(json(dto));
+    render(<StrictMode><ClientGalleryShell /></StrictMode>);
+    await act(async () => { await vi.advanceTimersByTimeAsync(100); });
+    expect(screen.getByRole("heading", { name: dto.title })).toBeInTheDocument();
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    expect(screen.getByRole("heading", { name: "Your gallery screen has been cleared." })).toBeInTheDocument();
+    expect(screen.queryByRole("heading", { name: dto.title })).not.toBeInTheDocument();
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    expect(screen.getByRole("heading", { name: dto.title })).toBeInTheDocument();
+    expect(screen.queryByText(/Your gallery screen has been cleared/)).not.toBeInTheDocument();
+    expect(fetchMock.mock.calls.filter(call => call[0].endsWith("/exchange"))).toHaveLength(0);
   });
 
   it("does not retain a prior gallery while navigating to an unauthorized one", async () => {
