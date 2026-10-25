@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { ClientGalleryAsset } from "@/lib/client-galleries/contracts";
 import {
-  prepareGalleryZip,
+  prepareGalleryZipPart,
   type DownloadSize,
 } from "@/lib/client-galleries/downloads";
 
@@ -31,6 +31,10 @@ export function ClientGalleryDownloads({
     filename: string;
     count: number;
     selection: string;
+    partNumber: number;
+    nextIndex: number;
+    total: number;
+    size: DownloadSize;
   } | null>(null);
   const controller = useRef<AbortController | null>(null);
   const url = useRef<string | null>(null);
@@ -51,38 +55,39 @@ export function ClientGalleryDownloads({
     .map((asset, index) => ({ ...asset, photoNumber: index + 1 }))
     .filter((asset) => selected.has(asset.id));
   const selection = chosen.map((asset) => `${asset.id}:${asset.photoNumber}`).join(",");
-  const prepare = async (size: DownloadSize) => {
+  const prepare = async (size: DownloadSize, startIndex = 0, partNumber = 1) => {
     if (controller.current) return;
     const request = new AbortController();
     controller.current = request;
     setBusy(true);
     setError("");
-    setMessage(`Preparing 0 of ${chosen.length} photographs…`);
+    setMessage(`Preparing ZIP part ${partNumber} · ${startIndex} of ${chosen.length} photographs…`);
     if (url.current) URL.revokeObjectURL(url.current);
     url.current = null;
     setReady(null);
     try {
-      const blob = await prepareGalleryZip(
+      const { part, nextIndex } = await prepareGalleryZipPart(
         galleryId,
         chosen,
         size,
+        startIndex,
         request.signal,
         (count) => {
           if (mounted.current && !request.signal.aborted)
-            setMessage(`Preparing ${count} of ${chosen.length} photographs…`);
+            setMessage(`Preparing ZIP part ${partNumber} · ${count} of ${chosen.length} photographs…`);
         },
       );
       if (!mounted.current || request.signal.aborted) return;
-      const objectUrl = URL.createObjectURL(blob);
+      const objectUrl = URL.createObjectURL(part.blob);
       url.current = objectUrl;
       const filename = `${
         title
           .replace(/[^a-zA-Z0-9]+/g, "-")
           .replace(/^-|-$/g, "")
           .slice(0, 80) || "gallery"
-      }-${size}.zip`;
-      setReady({ url: objectUrl, filename, count: chosen.length, selection });
-      setMessage("Your ZIP is ready. Choose Save ZIP to download it.");
+      }-${size}-part-${String(partNumber).padStart(2, '0')}.zip`;
+      setReady({ url: objectUrl, filename, count: part.count, selection, partNumber, nextIndex, total: chosen.length, size });
+      setMessage(`Part ${partNumber} ready (${part.count} photos, ${(part.blob.size / 1_000_000).toFixed(1)} MB). Save this ZIP${nextIndex < chosen.length ? " before preparing the next part." : ". All photographs are prepared."}`);
     } catch (e) {
       if (mounted.current && !request.signal.aborted)
         setError(
@@ -154,14 +159,14 @@ export function ClientGalleryDownloads({
             download={ready.filename}
             className={button + " border-studio-accent"}
           >
-            Save ZIP · {ready.count} photo{ready.count === 1 ? "" : "s"}
+            Save part {ready.partNumber} · {ready.count} photo{ready.count === 1 ? "" : "s"}
           </a>
         )}
       </div>
+      {ready && ready.selection === selection && ready.nextIndex < ready.total && <button type="button" className={button} disabled={busy} onClick={() => void prepare(ready.size, ready.nextIndex, ready.partNumber + 1)}>Prepare next ZIP · part {ready.partNumber + 1}</button>}
       <p className="text-xs leading-5 text-studio-dim">
         Web copies suit socials and online sharing. Full resolution preserves
-        the originals. ZIP downloads contain your selection when preparation
-        starts, up to 100 MB at a time.
+        the originals. Large selections are prepared in numbered ZIP parts (up to 500 MB each). Save each part before preparing the next.
       </p>
       {message && (
         <p role="status" className="text-sm">

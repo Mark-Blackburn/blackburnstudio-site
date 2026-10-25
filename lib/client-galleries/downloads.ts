@@ -4,7 +4,8 @@ import type { ClientGalleryAsset } from "./contracts";
 export type DownloadSize = "web" | "full";
 // The one-based position in the displayed gallery, captured before filtering.
 export type NumberedGalleryAsset = ClientGalleryAsset & { photoNumber: number };
-export const MAX_ZIP_BYTES = 100_000_000;
+export const MAX_ZIP_BYTES = 500_000_000;
+export const TARGET_ZIP_BYTES = 475_000_000;
 
 export function photoDownloadUrl(
   galleryId: string,
@@ -48,7 +49,7 @@ async function readPhoto(
   }
   const tooLarge = () =>
     new Error(
-      "This download is too large. ZIP downloads can contain up to 100 MB. Select fewer photographs or choose web size.",
+      "This download is too large. ZIP downloads can contain up to 500 MB. Select fewer photographs or choose web size.",
     );
   if (Number(response.headers.get("content-length")) > limit) {
     await response.body.cancel();
@@ -93,6 +94,67 @@ export async function preparePhotoShare(
   return new File(chunks, `photo-${asset.displayOrder + 1}-web.jpg`, {
     type: "image/jpeg",
   });
+}
+
+export type GalleryZipPart = {
+  blob: Blob;
+  count: number;
+  firstPhoto: number;
+  lastPhoto: number;
+};
+
+export async function prepareGalleryZipPart(
+  galleryId: string,
+  assets: NumberedGalleryAsset[],
+  size: DownloadSize,
+  startIndex: number,
+  signal: AbortSignal,
+  onProgress: (completed: number) => void,
+): Promise<{ part: GalleryZipPart; nextIndex: number }> {
+  if (!assets.length || assets.length > MAX_GALLERY_ASSETS || startIndex < 0 || startIndex >= assets.length)
+    throw new Error("Invalid photograph selection.");
+  const numbers = assets.map(asset => asset.photoNumber);
+  if (numbers.some(number => !Number.isInteger(number) || number < 1 || number > MAX_GALLERY_ASSETS) || new Set(numbers).size !== numbers.length)
+    throw new Error("The photo numbering changed. Refresh the gallery and try again.");
+  const urls = assets.map(asset => photoDownloadUrl(galleryId, asset, size));
+  const { Zip, ZipPassThrough } = await import("fflate");
+  signal.throwIfAborted();
+  const chunks: BlobPart[] = [];
+  let zipError: Error | null = null;
+  let finished = false;
+  const zip = new Zip((error, data, final) => {
+    if (error) zipError = error;
+    else chunks.push(data);
+    if (final) finished = true;
+  });
+  let total = 0;
+  let nextIndex = startIndex;
+  try {
+    for (; nextIndex < assets.length; nextIndex++) {
+      signal.throwIfAborted();
+      const limit = size === "web" ? MAX_WEB_BYTES : MAX_FULL_BYTES;
+      // The first image that would exceed the target is deferred to the next part.
+      const photoChunks: Uint8Array<ArrayBuffer>[] = [];
+      const bytes = await readPhoto(urls[nextIndex], signal, limit, chunk => photoChunks.push(chunk));
+      if (total > 0 && total + bytes > TARGET_ZIP_BYTES) break;
+      const entry = new ZipPassThrough(`photo-${String(assets[nextIndex].photoNumber).padStart(3, "0")}-${size}.jpg`);
+      zip.add(entry);
+      for (const chunk of photoChunks) entry.push(chunk);
+      entry.push(new Uint8Array(0), true);
+      if (zipError) throw zipError;
+      total += bytes;
+      onProgress(nextIndex + 1);
+    }
+    signal.throwIfAborted();
+    zip.end();
+    if (zipError) throw zipError;
+    if (!finished) throw new Error("The ZIP could not be prepared. Please try again.");
+    const blob = new Blob(chunks, { type: "application/zip" });
+    if (blob.size > MAX_ZIP_BYTES) throw new Error("The ZIP exceeded the download limit. Try fewer photographs.");
+    return { part: { blob, count: nextIndex - startIndex, firstPhoto: assets[startIndex].photoNumber, lastPhoto: assets[nextIndex - 1].photoNumber }, nextIndex };
+  } finally {
+    zip.terminate();
+  }
 }
 
 export async function prepareGalleryZip(
