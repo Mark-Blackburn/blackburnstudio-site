@@ -131,16 +131,21 @@ it("enforces the cumulative ZIP limit and stops before the next large body", asy
     return response;
   });
   vi.stubGlobal("fetch", fetch);
+  const selection = Array.from({ length: 26 }, (_, index) => {
+    const id = `a_testAsset${String(index).padStart(15, "0")}`;
+    return { ...assets[0], id, photoNumber: index + 1,
+      fullDownloadUrl: `/api/galleries/${galleryId}/assets/${id}/full` };
+  });
   await expect(
     prepareGalleryZip(
       galleryId,
-      assets,
+      selection,
       "full",
       new AbortController().signal,
       vi.fn(),
     ),
   ).rejects.toThrow("Select fewer");
-  expect(fetch).toHaveBeenCalledTimes(5);
+  expect(fetch).toHaveBeenCalledTimes(24);
 });
 
 it("cancels an in-flight stream and never fetches the next photo", async () => {
