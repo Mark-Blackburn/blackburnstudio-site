@@ -85,3 +85,9 @@ The Azure Portal screenshots establish two distinct services:
 
 ### Stranded queued jobs
 The status endpoint also marks queued jobs failed after 15 minutes without a worker claim, using ETag concurrency protection. This is a customer-visible escape hatch, not durable automatic retry; a production queue worker must reconcile lost messages and crashed processing attempts without requiring an active browser polling session.
+
+### Container prototype checkpoint
+
+`functions/Dockerfile.gallery-archive` builds the Node 22 worker image; `functions/src/galleryArchiveContainerJob.ts` provides a disabled-by-default one-message entrypoint and `.github/workflows/gallery-archive-container.yml` builds the image in CI without publishing it. This entrypoint is **not** a Storage Queue consumer and must not be deployed as an event-driven Container Apps Job yet: Container Apps queue scaling creates replicas, but each replica must explicitly dequeue and acknowledge a queue message with visibility renewal, or the queue will not drain correctly. The `GALLERY_ARCHIVE_JOB_MESSAGE` environment input is suitable for isolated testing only, not automatic queue delivery.
+
+Production prerequisites: implement a real Storage Queue consumer with managed identity, bounded dequeue visibility, renewal during ZIP upload, delete-on-terminal completion, retry/poison handling, job claim recovery and a per-job processing lease. Coordinate the existing 15-minute queued and 50-minute processing status timeouts with these leases; otherwise long-running valid work can be falsely failed. Validate container memory and ZIP integrity under representative load. Container image CI is intentionally build-only.
