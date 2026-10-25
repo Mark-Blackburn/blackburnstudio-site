@@ -10,7 +10,7 @@ import { createAzureArchiveMessageQueue } from "./azureGalleryArchiveMessageQueu
 
 export async function runGalleryArchiveContainerJob(
   environment: NodeJS.ProcessEnv = process.env,
-  run?: (message: { galleryId: string; jobId: string }) => Promise<void>,
+  run?: (message: { galleryId: string; jobId: string }, signal?: AbortSignal) => Promise<void>,
 ): Promise<void> {
   if (environment.GALLERY_ARCHIVE_CONTAINER_JOB_ENABLED !== "true")
     throw new Error("Archive container job is disabled");
