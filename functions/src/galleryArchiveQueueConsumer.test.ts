@@ -42,3 +42,24 @@ it("rejects malformed and over-retried messages without acknowledgement", async 
   await expect(consumeOneArchiveMessage(retry.queue, retry.handler)).rejects.toThrow("delivery limit");
   expect(retry.handler).not.toHaveBeenCalled();
 });
+
+it("aborts active processing when visibility renewal fails and does not acknowledge", async () => {
+  vi.useFakeTimers();
+  try {
+    const { queue } = setup();
+    queue.renew = vi.fn(async () => { throw new Error("lease lost"); });
+    const handler = vi.fn(async (_message: unknown, signal?: AbortSignal) => {
+      await new Promise<void>((_resolve, reject) => {
+        signal?.addEventListener("abort", () => reject(signal.reason), { once: true });
+      });
+    });
+    const pending = consumeOneArchiveMessage(queue, handler, { renewalIntervalMs: 1000 });
+    await vi.waitFor(() => expect(handler).toHaveBeenCalledOnce());
+    const assertion = expect(pending).rejects.toThrow("visibility renewal failed");
+    await vi.advanceTimersByTimeAsync(1000);
+    await assertion;
+    expect(queue.delete).not.toHaveBeenCalled();
+  } finally {
+    vi.useRealTimers();
+  }
+});
