@@ -82,3 +82,6 @@ The Azure Portal screenshots establish two distinct services:
 - Never expose archive blobs publicly or issue long-lived anonymous download URLs. Preserve session/token revocation and expiry checks at download time.
 - Container Apps Jobs incur execution/resource and storage/queue costs. Compare a low-concurrency event-driven job against a dedicated Functions plan and alternative direct-to-Blob authenticated delivery using real test duration, memory and throughput; **no cost estimate is verified yet**.
 - Keep `GALLERY_ARCHIVE_WORKER_ENABLED`, `GALLERY_ARCHIVE_API_ENABLED` and `NEXT_PUBLIC_GALLERY_SERVER_ARCHIVES_ENABLED` disabled in production until the end-to-end trial passes. No Azure resources or paid services have been provisioned as part of this design decision.
+
+### Stranded queued jobs
+The status endpoint also marks queued jobs failed after 15 minutes without a worker claim, using ETag concurrency protection. This is a customer-visible escape hatch, not durable automatic retry; a production queue worker must reconcile lost messages and crashed processing attempts without requiring an active browser polling session.
