@@ -70,11 +70,29 @@ This verifies the direct Function endpoint, not linked same-origin SWA routing.
 It does not prove live rolling expiry, denied-storage recovery, retention or
 production ingress controls. Keep those distinctions in the release record.
 
+## Evidence from 22–23 October 2026
+
+The [live validation record](contact-retention-validation-2026-10-22.md)
+records isolated Azure retention deletion/concurrency and permission
+failure/recovery, followed by actual production removal of three aged rows.
+A temporary clone of the health alert fired and automatically resolved, with
+both emails delivered; the permanent rule remained unchanged.
+
+Separate compiled contact-handler checks against an isolated Azure table
+verified configuration failure, storage denial, generic 503 responses without
+email or sensitive logs, and recovery to 200 with a fake sender. Recovery used
+a fresh synthetic identity after Cloud Shell session replacement. These checks
+did not change production runtime permissions or exercise denial through the
+deployed HTTP host. Temporary tables and assignments were removed.
+Production schema inspection, ingress/abuse and cost monitoring, public build
+configuration and rollback evidence remain to be completed.
+
 ## Gates before enabling the switch
 
-1. Complete the outstanding limiter gates in `contact-rate-limiter.md`: scheduled
-   ETag-safe retention, a controlled storage/configuration failure and recovery,
-   storage contents inspection, and appropriate ingress/abuse and cost monitoring.
+1. Complete the remaining limiter gates in `contact-rate-limiter.md`:
+   production storage contents inspection and appropriate ingress/abuse and cost
+   monitoring. Retention and isolated handler failure/recovery evidence is linked
+   above; retain its stated limits.
    Do not weaken table permissions or enable anonymous blobs to fix failures.
    The opt-in timer and its dry-run/live checks are documented in
    `contact-rate-limit-retention.md`; deploying it alone does not satisfy these gates.
