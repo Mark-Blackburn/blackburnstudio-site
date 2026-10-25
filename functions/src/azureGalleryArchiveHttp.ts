@@ -1,4 +1,6 @@
 import { TableClient } from "@azure/data-tables";
+import { BlobServiceClient } from "@azure/storage-blob";
+import { createGalleryArchiveDownloadHandler } from "./galleryArchiveDownload";
 import { DefaultAzureCredential } from "@azure/identity";
 import { createConfiguredGalleryAccess } from "./azureGalleryAccess";
 import { createGalleryAssetStore } from "./azureGalleryDelivery";
@@ -15,7 +17,7 @@ export function createConfiguredGalleryArchiveHttp(environment: NodeJS.ProcessEn
   const table = new TableClient(environment.GALLERY_TABLE_ENDPOINT!, environment.GALLERY_TABLE_NAME!, credential,
     { retryOptions: { maxRetries: 2 } });
 
-  return createGalleryArchiveHttpHandlers({
+  const api = createGalleryArchiveHttpHandlers({
     ...access,
     assets: createGalleryAssetStore(table),
     jobs: createAzureArchiveJobStore(table),
@@ -39,4 +41,18 @@ export function createConfiguredGalleryArchiveHttp(environment: NodeJS.ProcessEn
       },
     },
   });
+  const blobEndpoint = new URL(environment.GALLERY_BLOB_ENDPOINT ?? "");
+  const archiveContainer = environment.GALLERY_ARCHIVE_BLOB_CONTAINER ?? "";
+  if (blobEndpoint.protocol !== "https:" || blobEndpoint.username || blobEndpoint.password ||
+      blobEndpoint.pathname !== "/" || blobEndpoint.search || blobEndpoint.hash ||
+      !/^[a-z0-9](?:[a-z0-9]|-(?!-)){1,61}[a-z0-9]$/.test(archiveContainer) ||
+      archiveContainer === environment.GALLERY_BLOB_CONTAINER)
+    throw new Error("Invalid archive download storage configuration");
+  const blobs = new BlobServiceClient(blobEndpoint.origin, credential);
+  const download = createGalleryArchiveDownloadHandler({
+    ...access,
+    jobs: createAzureArchiveJobStore(table),
+    container: blobs.getContainerClient(archiveContainer),
+  });
+  return { ...api, download };
 }
