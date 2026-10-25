@@ -77,7 +77,7 @@ it("creates a gallery and shows its copyable private link without storage persis
 it("rejects files beyond original JPEG limits before decoding", async () => {
   await expect(
     makeWebJpeg(new File(["x"], "x.png", { type: "image/png" })),
-  ).rejects.toThrow("Choose JPEGs");
+  ).rejects.toThrow("not recognised as a JPEG");
 });
 it("resizes to 2048 pixels and re-encodes web bytes while preserving the source file", async () => {
   const close = vi.fn();
@@ -618,3 +618,31 @@ it.each([1, 2])(
     }
   },
 );
+
+
+it.each([25 * 1024 * 1024, 25 * 1024 * 1024 + 1])("validates the original size boundary at %s bytes before decoding", async (size) => {
+  const decode = vi.fn().mockRejectedValue(new Error("decode"));
+  vi.stubGlobal("createImageBitmap", decode);
+  const file = new File(["jpeg"], "large.jpg", { type: "image/jpeg" });
+  Object.defineProperty(file, "size", { value: size });
+  await expect(makeWebJpeg(file)).rejects.toThrow(size > 25 * 1024 * 1024 ? "exceeds the 25 MiB limit" : "could not be opened");
+  expect(decode).toHaveBeenCalledTimes(size > 25 * 1024 * 1024 ? 0 : 1);
+});
+
+it("names the failed file and batch position while preserving confirmed uploads", async () => {
+  await createGalleryWithLink();
+  vi.stubGlobal("createImageBitmap", vi.fn().mockResolvedValue({ width: 100, height: 100, close: vi.fn() }));
+  vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue({ drawImage: vi.fn() } as unknown as CanvasRenderingContext2D);
+  vi.spyOn(HTMLCanvasElement.prototype, "toBlob").mockImplementation(callback => callback(new Blob(["web"], { type: "image/jpeg" })));
+  mockFetch.mockResolvedValueOnce(response({ success: true }, 201));
+  const oversized = new File(["jpeg"], "Bridie-028.jpg", { type: "image/jpeg" });
+  Object.defineProperty(oversized, "size", { value: 25 * 1024 * 1024 + 1 });
+  fireEvent.change(screen.getByLabelText("JPEG photographs"), { target: { files: [
+    new File(["jpeg"], "Bridie-027.jpg", { type: "image/jpeg" }), oversized,
+    new File(["jpeg"], "Bridie-029.jpg", { type: "image/jpeg" }),
+  ] } });
+  fireEvent.click(screen.getByRole("button", { name: "Upload selected photos" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("“Bridie-028.jpg” (photo 2 of 3): This JPEG exceeds the 25 MiB limit");
+  expect(screen.getByRole("status")).toHaveTextContent("1 photo confirmed uploaded. Stopped at photo 2 of 3");
+  expect(mockFetch.mock.calls.filter(call => String(call[0]).endsWith("/assets") && call[1]?.method === "POST")).toHaveLength(1);
+});

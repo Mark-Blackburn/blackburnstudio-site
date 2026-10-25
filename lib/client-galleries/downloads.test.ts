@@ -194,3 +194,17 @@ it("downloads all 300 photos with the last gallery number and rejects 301 before
   await expect(prepareGalleryZip(galleryId, [...selection, { ...assets[0], photoNumber: 301 }], "web", new AbortController().signal, vi.fn())).rejects.toThrow("Select between 1 and 300");
   expect(fetch).not.toHaveBeenCalled();
 });
+
+
+it("downloads a 25 MiB original and rejects a larger advertised original", async () => {
+  const bytes = new Uint8Array(25 * 1024 * 1024);
+  const fetch = vi.fn().mockResolvedValueOnce(photoResponse(bytes));
+  vi.stubGlobal("fetch", fetch);
+  const blob = await prepareGalleryZip(galleryId, [assets[0]], "full", new AbortController().signal, vi.fn());
+  const decoded = unzipSync(new Uint8Array(await blob.arrayBuffer()))["photo-001-full.jpg"];
+  expect(Buffer.from(decoded).equals(Buffer.from(bytes))).toBe(true);
+  const tooLarge = photoResponse();
+  tooLarge.headers.set("content-length", String(bytes.length + 1));
+  fetch.mockResolvedValueOnce(tooLarge);
+  await expect(prepareGalleryZip(galleryId, [assets[0]], "full", new AbortController().signal, vi.fn())).rejects.toThrow("too large");
+});

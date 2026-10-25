@@ -1,9 +1,8 @@
 import type { ClientGalleryAsset } from "../../lib/client-galleries/contracts";
 
 export const ASSET_ID = /^a_[A-Za-z0-9_-]{16,64}$/;
-export { MAX_GALLERY_ASSETS } from "../../lib/client-galleries/limits";
-export const MAX_WEB_BYTES = 4 * 1024 * 1024;
-export const MAX_FULL_BYTES = 20 * 1024 * 1024;
+import { MAX_WEB_BYTES, MAX_FULL_BYTES } from "../../lib/client-galleries/limits";
+export { MAX_GALLERY_ASSETS, MAX_WEB_BYTES, MAX_FULL_BYTES } from "../../lib/client-galleries/limits";
 
 // Only JPEGs in deterministic gallery/asset namespaces are supported initially.
 // No stored URL, filename or Blob path can select a different storage object.

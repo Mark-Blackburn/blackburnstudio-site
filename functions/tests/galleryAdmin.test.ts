@@ -336,13 +336,13 @@ describe("gallery administration boundary", () => {
     expect(r.status).toBe(409);
     expect(JSON.stringify(r)).not.toContain("secret-endpoint");
   });
-  it("accepts one multipart JPEG pair", async () => {
+  it("accepts a 25 MiB original plus a 4 MiB web JPEG in one multipart body", async () => {
     const { handler, store } = setup();
     const form = new FormData();
-    form.append("web", new Blob([new Uint8Array([255, 216, 255])]), "web.jpg");
+    form.append("web", new Blob([new Uint8Array(4 * 1024 * 1024)]), "web.jpg");
     form.append(
       "full",
-      new Blob([new Uint8Array([255, 216, 255])]),
+      new Blob([new Uint8Array(25 * 1024 * 1024)]),
       "full.jpg",
     );
     form.append("altText", "Test");

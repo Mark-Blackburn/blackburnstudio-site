@@ -1,3 +1,4 @@
+import { MAX_ADMIN_UPLOAD_BYTES } from "../../lib/client-galleries/limits";
 import { GalleryUploadValidationError } from "./galleryUploadValidation";
 import { randomBytes } from "node:crypto";
 import type {
@@ -180,7 +181,7 @@ export function createGalleryAdminHandler(deps: {
         const type = request.headers.get("content-type") ?? "";
         if (!type.startsWith("multipart/form-data;"))
           return galleryResponse(400, { message: "JPEG upload required." });
-        const bytes = await readAdminBody(request, 25 * 1024 * 1024);
+        const bytes = await readAdminBody(request, MAX_ADMIN_UPLOAD_BYTES);
         const form = await new Response(new Uint8Array(bytes), {
           headers: { "Content-Type": type },
         }).formData();
