@@ -1,5 +1,6 @@
 import { createGalleryAdminHandler } from "./galleryAdmin";
 import { createConfiguredGalleryArchiveWorker } from "./azureGalleryArchiveQueue";
+import { createConfiguredGalleryArchiveHttp } from "./azureGalleryArchiveHttp";
 import { createConfiguredGalleryAdmin } from "./azureGalleryAdmin";
 import { app } from "@azure/functions";
 
@@ -109,4 +110,30 @@ if (process.env.GALLERY_ARCHIVE_WORKER_ENABLED === "true") {
       }
     },
   });
+}
+
+ 
+// Client archive API is separately gated until queue, table and blob
+// permissions are provisioned and end-to-end download testing is complete.
+if (process.env.GALLERY_ARCHIVE_API_ENABLED === "true" &&
+    process.env.GALLERY_API_ENABLED === "true" &&
+    process.env.GALLERY_DELIVERY_ENABLED === "true") {
+  let handlers: ReturnType<typeof createConfiguredGalleryArchiveHttp> | undefined;
+  for (const [name, method, route, action] of [
+    ["galleryArchiveCreate", "POST", "galleries/{galleryId}/archives", "create"],
+    ["galleryArchiveStatus", "GET", "galleries/{galleryId}/archives/{jobId}", "status"],
+  ] as const) {
+    app.http(name, {
+      methods: [method], authLevel: "anonymous", route,
+      handler: async (request, context) => {
+        try {
+          handlers ??= createConfiguredGalleryArchiveHttp();
+          return await handlers[action](request);
+        } catch (error) {
+          context.error("[gallery-archive] Request failed", error);
+          return galleryResponse(503, { message: "Archive temporarily unavailable." });
+        }
+      },
+    });
+  }
 }
