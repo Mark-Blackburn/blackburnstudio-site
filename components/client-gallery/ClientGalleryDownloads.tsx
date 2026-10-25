@@ -24,6 +24,7 @@ export function ClientGalleryDownloads({
   onSelectionChange: (ids: Set<string>) => void;
 }) {
   const [busy, setBusy] = useState(false);
+  const serverArchive = process.env.NEXT_PUBLIC_GALLERY_SERVER_ARCHIVES_ENABLED === "true";
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [ready, setReady] = useState<{
@@ -62,6 +63,36 @@ export function ClientGalleryDownloads({
     url.current = null;
     setReady(null);
     try {
+      if (chosen.length > 0 && serverArchive) {
+        const response = await fetch(`/api/galleries/${encodeURIComponent(galleryId)}/archives`, {
+          method: "POST", credentials: "same-origin",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ variant: size, assetIds: chosen.map(asset => asset.id) }),
+          signal: request.signal,
+        });
+        if (!response.ok) throw new Error("Unable to start archive preparation.");
+        const job = await response.json() as { jobId: string; status: string; photosCompleted: number; photosTotal: number };
+        const statusUrl = `/api/galleries/${encodeURIComponent(galleryId)}/archives/${encodeURIComponent(job.jobId)}`;
+        while (!request.signal.aborted) {
+          await new Promise<void>((resolve, reject) => {
+            const timer = setTimeout(resolve, 2000);
+            request.signal.addEventListener("abort", () => { clearTimeout(timer); reject(new Error("Cancelled")); }, { once: true });
+          });
+          const statusResponse = await fetch(statusUrl, { credentials: "same-origin", cache: "no-store", signal: request.signal });
+          if (!statusResponse.ok) throw new Error("Unable to check archive progress.");
+          const status = await statusResponse.json() as { status: string; photosCompleted: number; photosTotal: number };
+          if (mounted.current) setMessage(`Preparing ${status.photosCompleted} of ${status.photosTotal} photographs…`);
+          if (status.status === "failed" || status.status === "expired") throw new Error("Archive preparation did not complete. Please try again.");
+          if (status.status === "ready") {
+            if (mounted.current) {
+              setReady({ url: `${statusUrl}/download`, filename: "blackburnstudio-gallery.zip", count: chosen.length, selection });
+              setMessage("Your ZIP is ready. Choose Save ZIP to download it.");
+            }
+            return;
+          }
+        }
+        return;
+      }
       const blob = await prepareGalleryZip(
         galleryId,
         chosen,
