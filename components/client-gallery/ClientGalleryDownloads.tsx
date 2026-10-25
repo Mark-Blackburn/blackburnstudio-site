@@ -166,7 +166,7 @@ export function ClientGalleryDownloads({
       {ready && ready.selection === selection && ready.nextIndex < ready.total && <button type="button" className={button} disabled={busy} onClick={() => void prepare(ready.size, ready.nextIndex, ready.partNumber + 1)}>Prepare next ZIP · part {ready.partNumber + 1}</button>}
       <p className="text-xs leading-5 text-studio-dim">
         Web copies suit socials and online sharing. Full resolution preserves
-        the originals. Large selections are prepared in numbered ZIP parts (up to 100 MB each). Save each part before preparing the next.
+        the originals. Large selections are prepared in numbered ZIP parts (up to 500 MB each). Save each part before preparing the next.
       </p>
       {message && (
         <p role="status" className="text-sm">
