@@ -46,8 +46,8 @@ export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies
     if (!stored || stored.job.status === "ready" || stored.job.status === "expired" ||
         stored.job.status === "failed") return;
     if (stored.job.status === "processing") {
-      // Never run two uploads for the same job. Recovery of abandoned
-      // processing jobs requires a separate lease-aware reconciliation path.
+      // A claimed job is not retried by a duplicate queue delivery. The
+      // status endpoint detects abandoned attempts and marks them failed.
       return;
     }
     const gallery = await deps.access.readGallery(galleryId);
