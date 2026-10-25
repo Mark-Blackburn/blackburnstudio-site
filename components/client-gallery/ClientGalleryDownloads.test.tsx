@@ -9,7 +9,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import { ClientGallery } from "./ClientGallery";
 import { ClientGalleryActions } from "./ClientGalleryActions";
 import {
-  prepareGalleryZip,
+  prepareGalleryZipPart,
   preparePhotoShare,
 } from "@/lib/client-galleries/downloads";
 import {
@@ -18,7 +18,7 @@ import {
 } from "@/lib/client-galleries/fixtures/sampleClientGallery";
 
 vi.mock("@/lib/client-galleries/downloads", () => ({
-  prepareGalleryZip: vi.fn(),
+  prepareGalleryZipPart: vi.fn(),
   preparePhotoShare: vi.fn(),
 }));
 vi.mock("next/navigation", () => ({ usePathname: () => "/clients/g_testGallery" }));
@@ -35,7 +35,7 @@ const gallery = {
 const createUrl = vi.fn(() => "blob:zip");
 const revokeUrl = vi.fn();
 beforeEach(() => {
-  vi.mocked(prepareGalleryZip).mockReset();
+  vi.mocked(prepareGalleryZipPart).mockReset();
   vi.mocked(preparePhotoShare).mockReset();
   createUrl.mockClear();
   revokeUrl.mockClear();
@@ -55,7 +55,7 @@ afterEach(() => {
 });
 
 it("selects individual photos or all, clears selection, and packages only the chosen web copies", async () => {
-  vi.mocked(prepareGalleryZip).mockResolvedValue(new Blob(["zip"]));
+  vi.mocked(prepareGalleryZipPart).mockResolvedValue(new Blob(["zip"]));
   render(<ClientGallery gallery={gallery} />);
   const download = screen.getByRole("button", {
     name: "Download selected · web",
@@ -73,26 +73,27 @@ it("selects individual photos or all, clears selection, and packages only the ch
     name: `Select photo 2: ${gallery.assets[1].altText}`,
   }));
   fireEvent.click(download);
-  const save = await screen.findByRole("link", { name: "Save ZIP · 1 photo" });
-  expect(prepareGalleryZip).toHaveBeenCalledWith(
+  const save = await screen.findByRole("link", { name: "Save part 1 · 1 photo" });
+  expect(prepareGalleryZipPart).toHaveBeenCalledWith(
     gallery.id,
     [{ ...gallery.assets[1], photoNumber: 2 }],
     "web",
+    0,
     expect.any(AbortSignal),
     expect.any(Function),
   );
   expect(save).toHaveAttribute("href", "blob:zip");
-  expect(save).toHaveAttribute("download", expect.stringContaining("-web.zip"));
+  expect(save).toHaveAttribute("download", expect.stringContaining("-web-part-01.zip"));
   fireEvent.click(screen.getAllByRole("checkbox")[0]);
   expect(
-    screen.queryByRole("link", { name: /Save ZIP/ }),
+    screen.queryByRole("link", { name: /Save part/ }),
   ).not.toBeInTheDocument();
   expect(screen.getByRole("status")).toHaveTextContent("Selection changed");
 });
 
 it("aborts ZIP preparation on leaving the gallery and never exposes a late download", async () => {
-  let finish!: (value: Blob) => void;
-  vi.mocked(prepareGalleryZip).mockReturnValue(
+  let finish!: (value: Awaited<ReturnType<typeof prepareGalleryZipPart>>) => void;
+  vi.mocked(prepareGalleryZipPart).mockReturnValue(
     new Promise((resolve) => {
       finish = resolve;
     }),
@@ -102,17 +103,17 @@ it("aborts ZIP preparation on leaving the gallery and never exposes a late downl
   fireEvent.click(
     screen.getByRole("button", { name: "Download selected · full resolution" }),
   );
-  const signal = vi.mocked(prepareGalleryZip).mock.calls[0][3];
+  const signal = vi.mocked(prepareGalleryZipPart).mock.calls[0][4];
   view.unmount();
   expect(signal.aborted).toBe(true);
   await act(async () => {
-    finish(new Blob(["zip"]));
+    finish({ part: { blob: new Blob(["zip"]), count: 3, firstPhoto: 1, lastPhoto: 3 }, nextIndex: 3 });
   });
   expect(createUrl).not.toHaveBeenCalled();
 });
 
 it("shows preparation failures without offering a partial ZIP", async () => {
-  vi.mocked(prepareGalleryZip).mockRejectedValue(
+  vi.mocked(prepareGalleryZipPart).mockRejectedValue(
     new Error("Access expired. Refresh."),
   );
   render(<ClientGallery gallery={gallery} />);
@@ -122,7 +123,7 @@ it("shows preparation failures without offering a partial ZIP", async () => {
   );
   expect(await screen.findByRole("alert")).toHaveTextContent("Access expired");
   expect(
-    screen.queryByRole("link", { name: /Save ZIP/ }),
+    screen.queryByRole("link", { name: /Save part/ }),
   ).not.toBeInTheDocument();
   expect(
     screen.getByRole("button", { name: "Download selected · web" }),
@@ -130,20 +131,20 @@ it("shows preparation failures without offering a partial ZIP", async () => {
 });
 
 it("revokes a prepared ZIP URL when the gallery closes", async () => {
-  vi.mocked(prepareGalleryZip).mockResolvedValue(new Blob(["zip"]));
+  vi.mocked(prepareGalleryZipPart).mockResolvedValue(new Blob(["zip"]));
   const view = render(<ClientGallery gallery={gallery} />);
   fireEvent.click(screen.getByRole("button", { name: "Select all" }));
   fireEvent.click(
     screen.getByRole("button", { name: "Download selected · web" }),
   );
-  await screen.findByRole("link", { name: /Save ZIP/ });
+  await screen.findByRole("link", { name: /Save part/ });
   view.unmount();
   expect(revokeUrl).toHaveBeenCalledWith("blob:zip");
 });
 
 it("lets the visitor cancel preparation without reporting a failure", async () => {
-  vi.mocked(prepareGalleryZip).mockImplementation(
-    async (_id, _assets, _size, signal) =>
+  vi.mocked(prepareGalleryZipPart).mockImplementation(
+    async (_id, _assets, _size, _start, signal) =>
       new Promise((_resolve, reject) => {
         signal.addEventListener("abort", () =>
           reject(new DOMException("Cancelled", "AbortError")),
