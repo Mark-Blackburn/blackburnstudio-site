@@ -109,6 +109,8 @@ export function createGalleryArchiveHttpHandlers(deps: ArchiveHttpDependencies) 
       saved = await deps.jobs.read(gallery.id, jobId);
       if (!saved || !archiveJobIsAccessible(saved.job, gallery, now())) return unavailable();
     }
+    const latest = await authorizeGalleryRequest(request, deps);
+    if (!latest || !archiveJobIsAccessible(saved.job, latest, now())) return unavailable();
     return galleryResponse(200, publicArchiveStatus(saved.job));
   }
 
