@@ -91,7 +91,7 @@ export function createGalleryArchiveDownloadHandler(deps: ArchiveDownloadDepende
       throw new Error("Archive download stream unavailable");
     const finalAuth = await authorizeGalleryRequest(request, deps);
     if (!finalAuth || !archiveJobIsAccessible(stored.job, finalAuth, now())) {
-      response.readableStreamBody.destroy();
+      (response.readableStreamBody as Readable).destroy();
       return unavailable();
     }
     // Azure Functions Node v4 HTTP streaming must be enabled at host startup.
