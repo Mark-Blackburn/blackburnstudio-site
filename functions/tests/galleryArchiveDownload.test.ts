@@ -21,7 +21,7 @@ function harness() {
   const selection = { variant: "full" as const, assets: [{ id: assetId, photoNumber: 1, byteSize: 120 }], totalBytes: 120 };
   const job = { ...createArchiveJob(gallery, selection, now), status: "ready" as const, archiveBytes: 500 };
   const stream = Readable.from([Buffer.alloc(500)]);
-  const download = vi.fn(async () => ({ readableStreamBody: stream, contentLength: 500 }));
+  const download = vi.fn(async () => ({ readableStreamBody: stream, contentLength: 100 }));
   const blob = { getProperties: vi.fn(async () => ({ contentLength: 500, contentType: "application/zip" })), download };
   const container = { getProperties: vi.fn(async () => ({ blobPublicAccess: undefined })),
     getBlobClient: vi.fn(() => blob) };
