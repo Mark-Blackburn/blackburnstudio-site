@@ -27,4 +27,8 @@ jobs:
             echo "Container must fail closed without explicit enablement"
             exit 1
           }
-          grep -q "Archive container job is disabled" /tmp/gallery-archive.out
+          if ! grep -q "Archive container job is disabled" /tmp/gallery-archive.out; then
+            echo "Container startup did not reach the disabled-entrypoint guard:"
+            sed -n '1,35p' /tmp/gallery-archive.out
+            exit 1
+          fi
