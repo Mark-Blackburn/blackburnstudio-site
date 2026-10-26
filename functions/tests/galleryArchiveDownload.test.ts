@@ -21,13 +21,13 @@ function harness() {
   const selection = { variant: "full" as const, assets: [{ id: assetId, photoNumber: 1, byteSize: 120 }], totalBytes: 120 };
   const job = { ...createArchiveJob(gallery, selection, now), status: "ready" as const, archiveBytes: 500 };
   const stream = Readable.from([Buffer.alloc(500)]);
-  const download = vi.fn(async () => ({ readableStreamBody: stream, contentLength: 100 }));
+  const download = vi.fn(async (_offset = 0, count = 500) => ({ readableStreamBody: count === 500 ? stream : Readable.from([Buffer.alloc(count)]), contentLength: count }));
   const blob = { getProperties: vi.fn(async () => ({ contentLength: 500, contentType: "application/zip" })), download };
   const container = { getProperties: vi.fn(async () => ({ blobPublicAccess: undefined })),
     getBlobClient: vi.fn(() => blob) };
-  const store = { readGallery: vi.fn(async () => gallery) };
-  const assets = { listAssets: vi.fn(async () => [asset]) };
-  const jobs = { read: vi.fn(async () => ({ job, etag: "etag" })) };
+  const store = { readGallery: vi.fn(async () => gallery), consumeExchange: vi.fn(async () => true) };
+  const assets = { listAssets: vi.fn(async () => [asset]), readAsset: vi.fn(async () => asset) };
+  const jobs = { read: vi.fn(async () => ({ job, etag: "etag" })), create: vi.fn(async () => {}), update: vi.fn(async () => true) };
   const handler = createGalleryArchiveDownloadHandler({
     store, secret, assets, jobs, container: container as unknown as ContainerClient, now: () => now,
   });
@@ -49,7 +49,7 @@ it("denies requests without a session before touching archive storage", async ()
   expect(h.container.getProperties).not.toHaveBeenCalled();
 });
 
-it("streams full and ranged GET responses with exact private headers", async () => {
+it("streams ranged GET responses with exact private headers", async () => {
   const h = harness();
   const response = await h.handler(h.request("GET", { range: "bytes=100-199" }));
   expect(response.status).toBe(206);
@@ -102,4 +102,16 @@ it("destroys an opened blob stream when authorization is revoked during download
   const response = await h.handler(h.request());
   expect(response.status).toBe(404);
   expect(destroy).toHaveBeenCalled();
+});
+
+
+
+it("streams a complete GET response with the exact full length", async () => {
+  const h = harness();
+  const response = await h.handler(h.request());
+  expect(response.status).toBe(200);
+  expect(response.headers).toMatchObject({ "Content-Length": "500", "Content-Type": "application/zip", "Cache-Control": "no-store" });
+  expect((response.headers as Record<string, string>)["Content-Range"]).toBeUndefined();
+  expect(h.download).toHaveBeenCalledWith(0, 500, { maxRetryRequests: 0 });
+  expect((await new Response(response.body as ReadableStream).arrayBuffer()).byteLength).toBe(500);
 });

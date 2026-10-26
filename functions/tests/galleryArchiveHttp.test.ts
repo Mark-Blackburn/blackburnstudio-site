@@ -20,8 +20,8 @@ function harness() {
     displayOrder: 0, webByteSize: 120, fullByteSize: 120 };
   const selection = { variant: "full" as const, assets: [{ id: assetId, photoNumber: 1, byteSize: 120 }], totalBytes: 120 };
   const job = createArchiveJob(gallery, selection, now);
-  const store = { readGallery: vi.fn(async () => gallery) };
-  const assets = { listAssets: vi.fn(async () => [asset]) };
+  const store = { readGallery: vi.fn(async () => gallery), consumeExchange: vi.fn(async () => true) };
+  const assets = { listAssets: vi.fn(async () => [asset]), readAsset: vi.fn(async () => asset) };
   const jobs = {
     create: vi.fn(async () => {}),
     read: vi.fn(async () => ({ job, etag: "etag" })),
@@ -40,20 +40,11 @@ function harness() {
         ...(options.authorized === false ? {} : { cookie: `${galleryCookieName(galleryId)}=${session}` }),
         ...(method === "POST" ? { origin: options.origin ?? origin, "content-type": "application/json" } : {}),
       },
-      ...(method === "POST" ? { body: new ReadableStream<Uint8Array>({ start(controller) {
-        controller.enqueue(Buffer.from(options.body ?? JSON.stringify({ variant: "full", assetIds: [assetId] })));
-        controller.close();
-      } }) } : {}),
-    });
-    if (method === "POST") Object.defineProperty(req, "body", {
-      value: new ReadableStream<Uint8Array>({ start(controller) {
-        controller.enqueue(Buffer.from(options.body ?? JSON.stringify({ variant: "full", assetIds: [assetId] })));
-        controller.close();
-      } }), configurable: true,
+      ...(method === "POST" ? { body: { string: options.body ?? JSON.stringify({ variant: "full", assetIds: [assetId] }) } } : {}),
     });
     return req;
   }
-  return { gallery, job, store, assets, jobs, queue, handlers, request,
+  return { gallery, asset, job, store, assets, jobs, queue, handlers, request,
     setTime: (value: number) => { clock = value; } };
 }
 
@@ -80,8 +71,8 @@ it("creates and enqueues an authenticated archive", async () => {
 
 it("fails closed if the gallery is revoked while validating the selection", async () => {
   const h = harness();
-  h.assets.listAssets.mockImplementationOnce(async () => { h.gallery.sessionVersion++; return []; });
-  expect((await h.handlers.create(h.request("POST"))).status).not.toBe(202);
+  h.assets.listAssets.mockImplementationOnce(async () => { h.gallery.sessionVersion++; return [h.asset]; });
+  expect((await h.handlers.create(h.request("POST"))).status).toBe(404);
   expect(h.queue.enqueue).not.toHaveBeenCalled();
 });
 
@@ -121,3 +112,4 @@ it("does not overwrite a concurrently completed stale archive job", async () => 
   expect(response.jsonBody).toMatchObject({ status: "ready" });
   expect(h.jobs.update).toHaveBeenCalledOnce();
 });
+
