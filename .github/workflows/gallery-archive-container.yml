@@ -5,6 +5,7 @@ on:
     paths:
       - 'functions/**'
       - 'lib/contact/**'
+      - 'lib/client-galleries/**'
       - '.dockerignore'
       - '.github/workflows/gallery-archive-container.yml'
   workflow_dispatch:
