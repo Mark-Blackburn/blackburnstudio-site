@@ -40,7 +40,10 @@ function harness() {
         ...(options.authorized === false ? {} : { cookie: `${galleryCookieName(galleryId)}=${session}` }),
         ...(method === "POST" ? { origin: options.origin ?? origin, "content-type": "application/json" } : {}),
       },
-      ...(method === "POST" ? { body: options.body ?? JSON.stringify({ variant: "full", assetIds: [assetId] }) } : {}),
+      ...(method === "POST" ? { body: new ReadableStream<Uint8Array>({ start(controller) {
+        controller.enqueue(Buffer.from(options.body ?? JSON.stringify({ variant: "full", assetIds: [assetId] })));
+        controller.close();
+      } }) } : {}),
     });
   }
   return { gallery, job, store, assets, jobs, queue, handlers, request,
