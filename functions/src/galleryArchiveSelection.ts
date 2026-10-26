@@ -1,3 +1,4 @@
+import { galleryAssetListRevision } from "../../lib/client-galleries/assetListRevision";
 import { MAX_GALLERY_ASSETS } from "./galleryAssets";
 import type { PrivateGalleryAsset } from "./galleryAssets";
 
@@ -15,7 +16,7 @@ const MAX_ARCHIVE_SOURCE_BYTES = MAX_GALLERY_ASSETS * 25 * 1024 * 1024;
 /**
  * Validate a requested archive against server-owned gallery metadata.
  * Never trust caller-supplied byte sizes, filenames, display order or paths.
- * The client supplies only opaque asset IDs and the requested variant.
+ * The client supplies opaque asset IDs, the displayed list revision and variant.
  */
 export function validateArchiveSelection(
   request: unknown,
@@ -35,6 +36,9 @@ export function validateArchiveSelection(
     throw new InvalidArchiveSelection("Duplicate photograph");
   if (publishedAssets.length > MAX_GALLERY_ASSETS)
     throw new InvalidArchiveSelection("Invalid gallery asset collection");
+  if (typeof value.assetListRevision !== "string" ||
+      value.assetListRevision !== galleryAssetListRevision(publishedAssets))
+    throw new InvalidArchiveSelection("Gallery photographs changed. Refresh the gallery and select your photos again.");
   const indexed = new Map(publishedAssets.map((asset, index) => [asset.id, { asset, photoNumber: index + 1 }]));
   if (indexed.size !== publishedAssets.length)
     throw new InvalidArchiveSelection("Invalid gallery asset collection");
@@ -59,3 +63,4 @@ export function archiveEntryName(photoNumber: number, variant: ArchiveVariant): 
     throw new InvalidArchiveSelection("Invalid archive entry");
   return `photo-${String(photoNumber).padStart(3, "0")}-${variant}.jpg`;
 }
+

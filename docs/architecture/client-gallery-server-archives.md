@@ -97,3 +97,18 @@ Production prerequisites: implement a real Storage Queue consumer with managed i
 The opt-in container entrypoint now supports `GALLERY_ARCHIVE_QUEUE_CONSUMER_ENABLED=true` when `GALLERY_ARCHIVE_CONTAINER_JOB_ENABLED=true` and no test-only `GALLERY_ARCHIVE_JOB_MESSAGE` is provided. `galleryArchiveQueueConsumer.ts` consumes one message, renews visibility, and acknowledges after the handler returns; `azureGalleryArchiveMessageQueue.ts` uses managed identity and Azure Storage Queue REST operations. No deployment configuration has been enabled.
 
 **Still not production ready:** the archive handler currently marks errors terminal, so queue redelivery is not a functional retry; processing ownership does not have a recoverable heartbeat/lease; a visibility renewal error must interrupt the upload, not merely prevent acknowledgement; poison queue messages need explicit dead-letter handling; and the 50-minute status timeout must be aligned to a configurable worker deadline. These are mandatory release gates, along with verifying the Azure REST adapter against real queue responses and the full-size ZIP download path.
+
+
+### Review corrections — displayed-list revision and request races
+Archive requests now include `assetListRevision`, the exact comma-separated ordered
+asset IDs displayed by the browser. Asset IDs cannot contain commas. The server
+compares it with the current ordered list before assigning photo numbers; stale
+requests fail with refresh guidance. No caller-provided filename, number or size
+is trusted. The streamed JSON request cap is 64 KiB, sufficient for both a full
+300-photo revision and selection with maximum-length IDs. Workers still compare
+current server-derived numbers and sizes with their persisted selection.
+
+Ambiguous enqueue failures only attempt to fail jobs still queued, with the
+existing ETag guard. Claimed and ready jobs are preserved. Download streams are
+destroyed on every pre-handoff failure. Flag-enabled UI tests cover preparation,
+polling, failures, stop/unmount and late responses without browser ZIP fallback.

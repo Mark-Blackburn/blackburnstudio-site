@@ -87,18 +87,21 @@ export function createGalleryArchiveDownloadHandler(deps: ArchiveDownloadDepende
       return unavailable();
     if (request.method === "HEAD") return { status: range ? 206 : 200, headers };
     const response = await blob.download(start, size, { maxRetryRequests: 0 });
-    if (!response.readableStreamBody || response.contentLength !== size)
-      throw new Error("Archive download stream unavailable");
-    const finalAuth = await authorizeGalleryRequest(request, deps);
-    if (!finalAuth || !archiveJobIsAccessible(stored.job, finalAuth, now())) {
-      (response.readableStreamBody as Readable).destroy();
-      return unavailable();
+    const stream = response.readableStreamBody as Readable | undefined;
+    let handedOff = false;
+    try {
+      if (!stream || response.contentLength !== size)
+        throw new Error("Archive download stream unavailable");
+      const finalAuth = await authorizeGalleryRequest(request, deps);
+      if (!finalAuth || !archiveJobIsAccessible(stored.job, finalAuth, now()))
+        return unavailable();
+      // Preserve the Blob stream only after conversion and successful handoff.
+      const body = Readable.toWeb(stream) as ReadableStream;
+      const result = { status: range ? 206 : 200, headers, body };
+      handedOff = true;
+      return result;
+    } finally {
+      if (!handedOff) stream?.destroy();
     }
-    // Azure Functions Node v4 HTTP streaming must be enabled at host startup.
-    return {
-      status: range ? 206 : 200,
-      headers,
-      body: Readable.toWeb(response.readableStreamBody as Readable) as ReadableStream,
-    };
   };
 }

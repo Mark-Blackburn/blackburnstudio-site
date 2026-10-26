@@ -25,7 +25,7 @@ function harness() {
   const jobs = {
     create: vi.fn(async () => {}),
     read: vi.fn(async () => ({ job, etag: "etag" })),
-    update: vi.fn(async () => true),
+    update: vi.fn(async (_current: unknown, _next: unknown) => true),
   };
   const queue = { enqueue: vi.fn(async () => {}) };
   const handlers = createGalleryArchiveHttpHandlers({
@@ -40,7 +40,7 @@ function harness() {
         ...(options.authorized === false ? {} : { cookie: `${galleryCookieName(galleryId)}=${session}` }),
         ...(method === "POST" ? { origin: options.origin ?? origin, "content-type": "application/json" } : {}),
       },
-      ...(method === "POST" ? { body: { string: options.body ?? JSON.stringify({ variant: "full", assetIds: [assetId] }) } } : {}),
+      ...(method === "POST" ? { body: { string: options.body ?? JSON.stringify({ variant: "full", assetIds: [assetId], assetListRevision: assetId }) } } : {}),
     });
     return req;
   }
@@ -85,7 +85,7 @@ it("marks a newly created job failed when queue submission fails", async () => {
 
 it("rejects oversized request bodies without creating an archive", async () => {
   const h = harness();
-  const response = await h.handlers.create(h.request("POST", { body: " ".repeat(25000) }));
+  const response = await h.handlers.create(h.request("POST", { body: " ".repeat(70000) }));
   expect(response.status).toBe(400);
   expect(h.jobs.create).not.toHaveBeenCalled();
 });
@@ -113,3 +113,30 @@ it("does not overwrite a concurrently completed stale archive job", async () => 
   expect(h.jobs.update).toHaveBeenCalledOnce();
 });
 
+
+
+it.each(["processing", "ready"] as const)("preserves a %s job when enqueue times out after delivery", async (status) => {
+  const h = harness();
+  h.queue.enqueue.mockRejectedValueOnce(new Error("enqueue timeout"));
+  h.jobs.read.mockResolvedValueOnce({ job: { ...h.job, status, ...(status === "ready" ? { archiveBytes: 500 } : {}) }, etag: "worker" });
+  await expect(h.handlers.create(h.request("POST"))).rejects.toThrow("enqueue timeout");
+  expect(h.jobs.update).not.toHaveBeenCalled();
+});
+
+it("preserves an ETag conflict when a worker claims the queued job during enqueue failure cleanup", async () => {
+  const h = harness();
+  h.queue.enqueue.mockRejectedValueOnce(new Error("enqueue timeout"));
+  h.jobs.update.mockResolvedValueOnce(false);
+  await expect(h.handlers.create(h.request("POST"))).rejects.toThrow("enqueue timeout");
+  expect(h.jobs.update).toHaveBeenCalledOnce();
+  expect(h.jobs.update.mock.calls[0][0]).toMatchObject({ etag: "etag", job: { status: "queued" } });
+});
+
+it("rejects an archive from a stale displayed gallery before creating or queuing work", async () => {
+  const h = harness();
+  const response = await h.handlers.create(h.request("POST", { body: JSON.stringify({ variant: "full", assetIds: [assetId], assetListRevision: `a_removedAsset12345678,${assetId}` }) }));
+  expect(response.status).toBe(400);
+  expect(response.jsonBody).toMatchObject({ message: expect.stringContaining("Refresh the gallery") });
+  expect(h.jobs.create).not.toHaveBeenCalled();
+  expect(h.queue.enqueue).not.toHaveBeenCalled();
+});

@@ -1,3 +1,4 @@
+import { galleryAssetListRevision } from "../../lib/client-galleries/assetListRevision";
 import { expect, it } from "vitest";
 import { archiveEntryName, validateArchiveSelection } from "./galleryArchiveSelection";
 import type { PrivateGalleryAsset } from "./galleryAssets";
@@ -10,7 +11,7 @@ const assets: PrivateGalleryAsset[] = [1, 2, 3].map((n) => ({
 
 it("uses published order for numbering while preserving selection order", () => {
   const result = validateArchiveSelection(
-    { variant: "full", assetIds: [assets[2].id, assets[0].id] }, assets,
+    { variant: "full", assetIds: [assets[2].id, assets[0].id], assetListRevision: galleryAssetListRevision(assets) }, assets,
   );
   expect(result).toEqual({
     variant: "full", totalBytes: 10000,
@@ -30,17 +31,32 @@ it("rejects duplicate, unknown, empty and malformed selections", () => {
     { variant: "web", assetIds: [assets[0].id, assets[0].id] },
     { variant: "web", assetIds: ["a_unknown"] },
     { variant: "web", assetIds: [1] },
-  ]) expect(() => validateArchiveSelection(value, assets)).toThrow();
+  ]) expect(() => validateArchiveSelection(value && typeof value === "object" ? { ...value, assetListRevision: galleryAssetListRevision(assets) } : value, assets)).toThrow();
 });
 
 it("rejects invalid server-owned sizes and duplicate published IDs", () => {
-  expect(() => validateArchiveSelection({ variant: "full", assetIds: [assets[0].id] },
+  expect(() => validateArchiveSelection({ variant: "full", assetIds: [assets[0].id], assetListRevision: galleryAssetListRevision([assets[0]]) },
     [{ ...assets[0], fullByteSize: 26 * 1024 * 1024 }])).toThrow();
-  expect(() => validateArchiveSelection({ variant: "web", assetIds: [assets[0].id] },
+  expect(() => validateArchiveSelection({ variant: "web", assetIds: [assets[0].id], assetListRevision: galleryAssetListRevision([assets[0], assets[0]]) },
     [assets[0], assets[0]])).toThrow();
 });
 
 it("rejects invalid entry numbers", () => {
   expect(() => archiveEntryName(0, "web")).toThrow();
   expect(() => archiveEntryName(301, "full")).toThrow();
+});
+
+
+
+it("rejects old numbering after an unselected earlier photograph is removed", () => {
+  const request = { variant: "full", assetIds: [assets[2].id], assetListRevision: galleryAssetListRevision(assets) };
+  expect(() => validateArchiveSelection(request, assets.slice(1))).toThrow("Gallery photographs changed");
+  expect(validateArchiveSelection({ ...request, assetListRevision: galleryAssetListRevision(assets.slice(1)) }, assets.slice(1)).assets[0].photoNumber).toBe(2);
+});
+
+it("fits a full revision and selection with 300 maximum-length IDs in the bounded request", () => {
+  const published = Array.from({ length: 300 }, (_, n) => ({ ...assets[0], id: `a_${String(n).padStart(64, "0")}`, displayOrder: n }));
+  const request = { variant: "full", assetIds: published.map(a => a.id), assetListRevision: galleryAssetListRevision(published) };
+  expect(Buffer.byteLength(JSON.stringify(request))).toBeLessThan(64 * 1024);
+  expect(validateArchiveSelection(request, published).assets).toHaveLength(300);
 });

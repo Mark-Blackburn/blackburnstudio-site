@@ -1,5 +1,6 @@
 "use client";
 
+import { galleryAssetListRevision } from "@/lib/client-galleries/assetListRevision";
 import { useEffect, useRef, useState } from "react";
 import type { ClientGalleryAsset } from "@/lib/client-galleries/contracts";
 import {
@@ -79,17 +80,23 @@ export function ClientGalleryDownloads({
         const response = await fetch(`/api/galleries/${encodeURIComponent(galleryId)}/archives`, {
           method: "POST", credentials: "same-origin",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ variant: size, assetIds: chosen.map(asset => asset.id) }),
+          body: JSON.stringify({ variant: size, assetIds: chosen.map(asset => asset.id), assetListRevision: galleryAssetListRevision(assets) }),
           signal: request.signal,
         });
-        if (!response.ok) throw new Error("Unable to start archive preparation.");
+        if (!response.ok) {
+          const error = await response.json().catch(() => null);
+          throw new Error(response.status === 400 && typeof error?.message === "string" && error.message.length <= 500
+            ? error.message : "Unable to start archive preparation.");
+        }
         const job = await response.json() as { jobId: string; status: string; photosCompleted: number; photosTotal: number };
+        if (!mounted.current || request.signal.aborted) return;
         const statusUrl = `/api/galleries/${encodeURIComponent(galleryId)}/archives/${encodeURIComponent(job.jobId)}`;
         while (!request.signal.aborted) {
           await waitForPoll(request.signal, 2000);
           const statusResponse = await fetch(statusUrl, { credentials: "same-origin", cache: "no-store", signal: request.signal });
           if (!statusResponse.ok) throw new Error("Unable to check archive progress.");
           const status = await statusResponse.json() as { status: string; photosCompleted: number; photosTotal: number };
+          if (!mounted.current || request.signal.aborted) return;
           if (mounted.current) setMessage(`Preparing ${status.photosCompleted} of ${status.photosTotal} photographs…`);
           if (status.status === "failed" || status.status === "expired") throw new Error("Archive preparation did not complete. Please try again.");
           if (status.status === "ready") {
@@ -218,3 +225,4 @@ export function ClientGalleryDownloads({
     </div>
   );
 }
+

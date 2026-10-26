@@ -1,3 +1,4 @@
+import { galleryAssetListRevision } from "../../lib/client-galleries/assetListRevision";
 import type { GalleryArchiveJobStore } from "./azureGalleryArchiveJobs";
 import type { GalleryAccessStore } from "./galleryAccess";
 import { archiveJobIsAccessible, ARCHIVE_JOB_ID } from "./galleryArchiveJobs";
@@ -70,6 +71,7 @@ export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies
       // or modified photographs, not just stale IDs from the original request.
       const published = await deps.assets.listAssets(galleryId);
       const verified = validateArchiveSelection({
+        assetListRevision: galleryAssetListRevision(published),
         variant: selection.variant,
         assetIds: selection.assets.map(asset => asset.id),
       }, published);
@@ -118,3 +120,4 @@ export function createGalleryArchiveQueueHandler(deps: ArchiveWorkerDependencies
     }
   };
 }
+

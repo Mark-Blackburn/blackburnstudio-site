@@ -20,7 +20,7 @@ export interface ArchiveHttpDependencies {
   now?: () => number;
 }
 
-const MAX_BODY_BYTES = 24 * 1024;
+const MAX_BODY_BYTES = 64 * 1024;
 const QUEUED_STALE_MS = 15 * 60 * 1000;
 const PROCESSING_STALE_MS = 50 * 60 * 1000;
 const unavailable = () => galleryResponse(404, { message: "Archive unavailable." });
@@ -84,7 +84,7 @@ export function createGalleryArchiveHttpHandlers(deps: ArchiveHttpDependencies) 
       await deps.queue.enqueue({ galleryId: gallery.id, jobId: job.id });
     } catch (error) {
       const saved = await deps.jobs.read(gallery.id, job.id);
-      if (saved) await deps.jobs.update(saved, { ...saved.job, status: "failed" });
+      if (saved?.job.status === "queued") await deps.jobs.update(saved, { ...saved.job, status: "failed" });
       throw error;
     }
     return galleryResponse(202, publicArchiveStatus(job));
@@ -116,3 +116,4 @@ export function createGalleryArchiveHttpHandlers(deps: ArchiveHttpDependencies) 
 
   return { create, status };
 }
+

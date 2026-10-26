@@ -1,10 +1,12 @@
 import { Readable } from "node:stream";
 import type { ContainerClient } from "@azure/storage-blob";
 import { HttpRequest } from "@azure/functions";
-import { expect, it, vi } from "vitest";
+import { afterEach, expect, it, vi } from "vitest";
 import { createGallerySession, galleryCookieName, type GalleryAccessRecord } from "../src/galleryAccess";
 import { createArchiveJob } from "../src/galleryArchiveJobs";
 import { createGalleryArchiveDownloadHandler } from "../src/galleryArchiveDownload";
+
+afterEach(() => vi.restoreAllMocks());
 
 const galleryId = "g_privateGallery123456";
 const assetId = "a_privateAsset12345678";
@@ -114,4 +116,17 @@ it("streams a complete GET response with the exact full length", async () => {
   expect((response.headers as Record<string, string>)["Content-Range"]).toBeUndefined();
   expect(h.download).toHaveBeenCalledWith(0, 500, { maxRetryRequests: 0 });
   expect((await new Response(response.body as ReadableStream).arrayBuffer()).byteLength).toBe(500);
+});
+
+
+it.each(["length", "lookup", "conversion"])("destroys an opened stream on pre-handoff %s failure", async (failure) => {
+  const h = harness();
+  const destroy = vi.spyOn(h.stream, "destroy");
+  if (failure === "length") h.download.mockResolvedValueOnce({ readableStreamBody: h.stream, contentLength: 499 });
+  if (failure === "lookup") {
+    h.store.readGallery.mockResolvedValueOnce(h.gallery).mockResolvedValueOnce(h.gallery).mockRejectedValueOnce(new Error("lookup failed"));
+  }
+  if (failure === "conversion") vi.spyOn(Readable, "toWeb").mockImplementationOnce(() => { throw new Error("conversion failed"); });
+  await expect(h.handler(h.request())).rejects.toThrow();
+  expect(destroy).toHaveBeenCalledOnce();
 });
