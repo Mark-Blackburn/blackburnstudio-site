@@ -107,9 +107,9 @@ if (process.env.GALLERY_ARCHIVE_WORKER_ENABLED === "true") {
       try {
         worker ??= createConfiguredGalleryArchiveWorker();
         await worker(message);
-      } catch (error) {
-        context.error("[gallery-archive] Queue job failed", error);
-        throw error;
+      } catch {
+        context.error("[gallery-archive] Queue job failed");
+        throw new Error("Archive queue processing failed");
       }
     },
   });
@@ -133,8 +133,8 @@ if (process.env.GALLERY_ARCHIVE_API_ENABLED === "true" &&
         try {
           handlers ??= createConfiguredGalleryArchiveHttp();
           return await handlers[action](request);
-        } catch (error) {
-          context.error("[gallery-archive] Request failed", error);
+        } catch {
+          context.error("[gallery-archive] Request failed");
           return galleryResponse(503, { message: "Archive temporarily unavailable." });
         }
       },
