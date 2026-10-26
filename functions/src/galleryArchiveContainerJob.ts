@@ -29,7 +29,7 @@ export async function runGalleryArchiveContainerJob(
 
 if (require.main === module) {
   runGalleryArchiveContainerJob().catch(error => {
-    console.error("[gallery-archive-job] Execution failed", error);
+    console.error("[gallery-archive-job] Execution failed");
     process.exitCode = 1;
   });
 }
