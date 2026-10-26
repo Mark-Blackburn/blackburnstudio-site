@@ -33,7 +33,7 @@ function harness() {
   });
   const session = createGallerySession(gallery, secret, now).value;
   function request(method: "POST" | "GET", options: { authorized?: boolean; origin?: string; body?: string; jobId?: string } = {}) {
-    return new HttpRequest({
+    const req = new HttpRequest({
       method, url: `${origin}/api/galleries/${galleryId}/archives`,
       params: { galleryId, jobId: options.jobId ?? job.id },
       headers: {
@@ -45,6 +45,13 @@ function harness() {
         controller.close();
       } }) } : {}),
     });
+    if (method === "POST") Object.defineProperty(req, "body", {
+      value: new ReadableStream<Uint8Array>({ start(controller) {
+        controller.enqueue(Buffer.from(options.body ?? JSON.stringify({ variant: "full", assetIds: [assetId] })));
+        controller.close();
+      } }), configurable: true,
+    });
+    return req;
   }
   return { gallery, job, store, assets, jobs, queue, handlers, request,
     setTime: (value: number) => { clock = value; } };
