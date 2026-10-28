@@ -1,6 +1,11 @@
 import { createGalleryAdminHandler } from "./galleryAdmin";
+import { createConfiguredGalleryArchiveWorker } from "./azureGalleryArchiveQueue";
+import { createConfiguredGalleryArchiveHttp } from "./azureGalleryArchiveHttp";
 import { createConfiguredGalleryAdmin } from "./azureGalleryAdmin";
 import { app } from "@azure/functions";
+
+// Required for bounded-memory multi-gigabyte ZIP responses.
+if (process.env.GALLERY_ARCHIVE_API_ENABLED === "true") app.setup({ enableHttpStream: true });
 
 import { createContactHandler } from "./contact";
 import { createConfiguredContactRateLimiter } from "./azureContactRateLimiter";
@@ -85,6 +90,53 @@ if (process.env.GALLERY_ADMIN_ENABLED === "true") {
       handler: async (request, context) => {
         try { admin ??= createGalleryAdminHandler(createConfiguredGalleryAdmin()); return await admin(request, context); }
         catch { context.error("[gallery-admin] Configuration unavailable"); return galleryResponse(503, { message: "Gallery administration temporarily unavailable." }); }
+      },
+    });
+  }
+}
+
+ 
+// Separate opt-in: do not register the worker until queue identity, storage
+// permissions and the private temporary archive container are provisioned.
+if (process.env.GALLERY_ARCHIVE_WORKER_ENABLED === "true") {
+  let worker: ReturnType<typeof createConfiguredGalleryArchiveWorker> | undefined;
+  app.storageQueue("galleryArchiveWorker", {
+    queueName: "gallery-archive-jobs",
+    connection: "GALLERY_ARCHIVE_QUEUE_STORAGE",
+    handler: async (message, context) => {
+      try {
+        worker ??= createConfiguredGalleryArchiveWorker();
+        await worker(message);
+      } catch {
+        context.error("[gallery-archive] Queue job failed");
+        throw new Error("Archive queue processing failed");
+      }
+    },
+  });
+}
+
+ 
+// Client archive API is separately gated until queue, table and blob
+// permissions are provisioned and end-to-end download testing is complete.
+if (process.env.GALLERY_ARCHIVE_API_ENABLED === "true" &&
+    process.env.GALLERY_API_ENABLED === "true" &&
+    process.env.GALLERY_DELIVERY_ENABLED === "true") {
+  let handlers: ReturnType<typeof createConfiguredGalleryArchiveHttp> | undefined;
+  for (const [name, method, route, action] of [
+    ["galleryArchiveCreate", "POST", "galleries/{galleryId}/archives", "create"],
+    ["galleryArchiveStatus", "GET", "galleries/{galleryId}/archives/{jobId}", "status"],
+    ["galleryArchiveDownload", "GET", "galleries/{galleryId}/archives/{jobId}/download", "download"],
+  ] as const) {
+    app.http(name, {
+      methods: action === "download" ? ["GET", "HEAD"] : [method], authLevel: "anonymous", route,
+      handler: async (request, context) => {
+        try {
+          handlers ??= createConfiguredGalleryArchiveHttp();
+          return await handlers[action](request);
+        } catch {
+          context.error("[gallery-archive] Request failed");
+          return galleryResponse(503, { message: "Archive temporarily unavailable." });
+        }
       },
     });
   }

@@ -37,3 +37,6 @@ jobs:
 
       - name: Build Function
         run: npm run build
+
+      - name: Verify isolated archive HTTP checker
+        run: node scripts/gallery-archive-http-checks.selftest.cjs

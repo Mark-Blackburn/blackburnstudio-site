@@ -1,0 +1,34 @@
+name: Gallery archive container build
+
+on:
+  pull_request:
+    paths:
+      - 'functions/**'
+      - 'lib/contact/**'
+      - 'lib/client-galleries/**'
+      - '.dockerignore'
+      - '.github/workflows/gallery-archive-container.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build archive worker image (no push or deployment)
+        run: docker build --file functions/Dockerfile.gallery-archive --tag gallery-archive:ci .
+      - name: Verify entrypoint rejects unconfigured execution
+        run: |
+          docker run --rm gallery-archive:ci > /tmp/gallery-archive.out 2>&1 && {
+            echo "Container must fail closed without explicit enablement"
+            exit 1
+          }
+          if ! grep -q "Archive container job is disabled" /tmp/gallery-archive.out; then
+            echo "Container startup did not reach the disabled-entrypoint guard:"
+            sed -n '1,35p' /tmp/gallery-archive.out
+            exit 1
+          fi
