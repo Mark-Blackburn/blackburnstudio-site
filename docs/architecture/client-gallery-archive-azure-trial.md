@@ -72,6 +72,51 @@ revocation, queue behavior, memory under a larger workload or multi-GB delivery
 through Functions/SWA. A separate test API and controlled larger trials follow.
 Production recovery, retention and request limits remain release gates.
 
+## Worker trial result — 28 October 2026
+
+Execution `job-blackburn-archive-test-bqjy20y` succeeded (started
+`2026-10-28T09:52:12Z`). The operator verified READY, three photos, 1,541,589 source
+bytes and a 1,542,239-byte archive. Python confirmed entry numbering/order, CRC
+and exact JPEG SHA-256 equality. This is real Azure worker/Blob/Table evidence.
+
+## Direct Function HTTP trial
+
+The operator created `func-bsarchtest05c3168d` in the test group, running Node 22
+on Linux Consumption with the existing test identity. Application Insights is
+disabled. This deliberately matches the current production host type for the
+HTTP experiment; it does not migrate or configure production.
+
+From the updated draft-branch checkout:
+
+```bash
+npm exec --yes --package=node@22 -- bash functions/scripts/deploy-gallery-archive-test-api.sh
+npm exec --yes --package=node@22 -- node functions/scripts/gallery-archive-azure-test.cjs http-test
+```
+
+The deploy script builds and stages only the runtime files and production npm
+dependencies. It uploads the package to private `archive-test-code`, grants the
+test identity reader access to that container, and configures an external
+package URL with managed-identity authentication (no SAS). It sets gallery API,
+delivery and archive flags only on the fixed test Function App; admin, contact,
+retention and the Consumption queue worker stay disabled. It restarts and syncs
+that host. Failures do not trigger deployment to another app or plan.
+
+The HTTP checker uses a synthetic signed session from the private test fixture.
+It tests missing/tampered session rejection, READY status, full GET with exact
+ZIP bytes, HEAD (including ignored Range), prefix/suffix ranges, two-part resume,
+416 responses, wrong-origin POST and stale-selection rejection. It then
+**permanently revokes only the disposable gallery** with an ETag-guarded update
+and checks that the same session can no longer access status, GET or HEAD.
+Successful evidence is retained privately as `http-result.json`. Rerunning the
+complete suite after revocation requires a fresh trial fixture; never restore
+old production token/session versions to repeat a test.
+
+This suite does not test real browser token exchange/cookie issuance, SWA proxy
+forwarding, successful queue-backed POST creation or multi-GB HTTP delivery.
+Those remain separate practical checks. The offline HTTP assertion self-test
+runs in Function CI and rejects simulated auth leakage, ignored ranges,
+corrupted resumed bytes and ineffective revocation.
+
 ## Cleanup
 
 After collecting evidence, remove only the disposable group:
