@@ -14,6 +14,15 @@ export const metadata = createPageMetadata({
 
 const articles = [
   {
+    title: "Does Your Small Business Really Need a Website?",
+    summary:
+      "Before spending on a website, look at your Google presence, reviews, referrals and how you handle the enquiries you already have.",
+    href: "/insights/does-your-small-business-need-a-website",
+    published: "6 November 2026",
+    readTime: "8 min read",
+    category: "Small business & digital",
+  },
+  {
     title: "Why I’m Building Free Tools at Blackburn Studio",
     summary:
       "Small digital problems still waste time. Here is why Blackburn Studio is building focused tools to remove some of that friction.",
@@ -37,11 +46,11 @@ export default function InsightsPage() {
               id="insights-heading"
               className="mt-5 max-w-[20ch] text-4xl font-medium leading-[1.05] tracking-tight text-studio-text md:text-6xl"
             >
-              Practical thinking about better digital work
+              Practical thinking about running a business with better digital tools
             </h1>
             <p className="mt-7 max-w-[66ch] text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
-              Notes from Blackburn Studio on websites, digital tools, workflows
-              and the small decisions that can make technology easier to use.
+              Notes from Blackburn Studio on getting found online, making enquiries easier,
+              choosing the right tools and fixing the small things that slow businesses down.
             </p>
           </section>
 

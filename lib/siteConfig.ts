@@ -23,6 +23,7 @@ export const INDEXABLE_ROUTES = [
   "/tools/pdf-reducer",
   "/insights",
   "/insights/why-im-building-free-tools",
+  "/insights/does-your-small-business-need-a-website",
   "/work",
   "/work/portraits",
   "/work/families",

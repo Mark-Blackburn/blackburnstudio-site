@@ -26,7 +26,7 @@ const serviceCards = [
   {
     title: "Websites & digital presence",
     summary:
-      "New websites, rebuilds and practical improvements to how your business is found and understood online.",
+      "Help customers find you and choose your business, from Google presence and local visibility to websites, content and project photography.",
     href: "/digital/websites",
     tags: ["Websites", "Local discovery", "Content", "Online stores"],
   },
@@ -40,7 +40,7 @@ const serviceCards = [
   {
     title: "Workflow & business systems",
     summary:
-      "Microsoft 365, forms, SharePoint and practical automation that reduces friction in day-to-day work.",
+      "Enquiry tracking, follow-up, forms and practical systems that make day-to-day work easier.",
     href: "/digital/workflow-systems",
     tags: ["Microsoft 365", "Forms", "SharePoint", "Automation"],
   },
@@ -91,9 +91,10 @@ export default function DigitalPage() {
               one.
             </h1>
             <p className="mt-7 max-w-[66ch] text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
-              Blackburn Studio helps small businesses improve how customers
-              find them, what they see when they arrive, how easily they can get
-              in touch and how the systems behind the business work.
+              Blackburn Studio helps small businesses get found, make a good
+              impression and turn enquiries into work. That might involve
+              improving your Google presence, making it easier for customers
+              to contact you or simplifying the systems behind the business.
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
               <StudioButton href="/contact" variant="primary" tone="light">
@@ -126,8 +127,9 @@ export default function DigitalPage() {
               </p>
               <p>
                 Sometimes that means a new website. Sometimes it means improving
-                what you already have, fixing the surrounding setup or
+                your Google profile, making reviews easier to leave or
                 simplifying a process that has grown awkward over time.
+                And sometimes nothing new needs to be built.
               </p>
             </div>
           </section>
@@ -385,20 +387,20 @@ export default function DigitalPage() {
               id="digital-insight-heading"
               className="mt-3 max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
             >
-              Why I’m building free tools at Blackburn Studio
+              Does your small business really need a website?
             </h2>
             <p className="mt-5 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-              Small digital problems can still waste a lot of time. I’ve written
-              about why I’m building focused tools, and how the same thinking
-              shapes the websites and digital systems I work on.
+              A website can be valuable, but it isn’t always the first priority.
+              Google reviews, referrals and making better use of existing
+              enquiries might make a bigger difference.
             </p>
             <div className="mt-8">
               <StudioButton
-                href="/insights/why-im-building-free-tools"
+                href="/insights/does-your-small-business-need-a-website"
                 variant="secondary"
                 tone="light"
               >
-                Read why I’m building these tools
+                Read the article
               </StudioButton>
             </div>
           </section>

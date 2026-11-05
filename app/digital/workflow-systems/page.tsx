@@ -85,6 +85,17 @@ export default function WorkflowSystemsPage() {
             </DigitalInfoPanel>
           </section>
 
+          <section aria-labelledby="enquiry-heading" className="mt-20 max-w-[74ch] border-t border-studio-border pt-12 md:mt-24 md:pt-16">
+            <h2 id="enquiry-heading" className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl">
+              Turn more enquiries into work
+            </h2>
+            <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+              <p>When enquiries arrive through phone calls, email, Facebook and website forms, it can be difficult to keep track of every conversation.</p>
+              <p>A better process can make it easier to respond, prepare quotes, follow up and see where each opportunity stands. That might involve a shared enquiry register, a simple CRM, follow-up reminders or connecting the systems you already use.</p>
+              <p>The goal isn’t more administration. It’s fewer missed opportunities and a clearer view of what’s happening.</p>
+            </div>
+          </section>
+
           <section
             aria-labelledby="responses-heading"
             className="mt-20 md:mt-24"

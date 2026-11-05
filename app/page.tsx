@@ -98,9 +98,9 @@ export default function Home() {
               </h3>
               <div className="flex-1">
                 <p className="mt-4 text-[0.98rem] leading-relaxed text-studio-muted md:text-base">
-                  Help with how your business is found, presented and supported
-                  online, from websites and hosting to Microsoft 365, workflows
-                  and practical digital systems.
+                  Help small businesses get found, make a good impression and turn
+                  enquiries into work. From websites and Google Business
+                  Profiles to practical workflows and digital systems.
                 </p>
                 <p className="mt-3 text-[0.98rem] leading-relaxed text-studio-muted">
                   Recent work includes business websites, club platforms,
