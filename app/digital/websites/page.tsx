@@ -33,12 +33,13 @@ export default function DigitalWebsitesPage() {
             id="websites-heading"
             className="mt-4 max-w-[24ch] text-4xl font-medium leading-[1.08] tracking-tight text-studio-text md:text-6xl"
           >
-            Websites designed around how your business actually works
+            A website should help your business, not just look good.
           </h1>
           <p className="mt-7 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-            Blackburn Studio creates practical, well-structured websites for
-            businesses and organisations. The work can include strategy, content
-            structure, photography, development,{" "}
+            A useful website helps customers understand what you do, see the
+            quality of your work and take the next step. Blackburn Studio
+            creates practical websites around those needs, including content,
+            photography, development,{" "}
             <Link
               href="/digital/hosting-domains"
               className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text focus-visible:text-studio-text focus-visible:outline-none"
@@ -55,6 +56,11 @@ export default function DigitalWebsitesPage() {
             .
           </p>
         </section>
+
+        <p className="mt-6 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+          If your existing website can be improved, or a simpler solution will do,
+          that is where the conversation starts. <Link href="/insights/does-your-small-business-need-a-website" className="underline decoration-studio-border underline-offset-3 transition-colors hover:text-studio-text">Does your business need a website at all?</Link>
+        </p>
 
         <DigitalServicesSubnav
           currentPath="/digital/websites"
