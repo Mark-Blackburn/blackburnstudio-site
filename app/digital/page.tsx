@@ -110,7 +110,7 @@ export default function DigitalPage() {
 
           <section
             aria-labelledby="intro-heading"
-            className="mt-16 border-t border-studio-border pt-12 md:mt-20 md:pt-14"
+            className="mt-16 md:mt-20"
           >
             <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
               <h2
@@ -138,7 +138,7 @@ export default function DigitalPage() {
 
           <section
             aria-labelledby="approach-heading"
-            className="mt-16 border-t border-studio-border pt-12 md:mt-20 md:pt-14"
+            className="mt-16 md:mt-20"
           >
             <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
               <div>
@@ -170,7 +170,7 @@ export default function DigitalPage() {
 
           <section
             aria-labelledby="digital-insight-heading"
-            className="mt-16 border-t border-studio-border pt-12 md:mt-20 md:pt-14"
+            className="mt-16 md:mt-20"
           >
             <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
               <div>
