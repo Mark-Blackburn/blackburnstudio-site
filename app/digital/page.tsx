@@ -79,86 +79,119 @@ export default function DigitalPage() {
 
       <main className="editorial-light-theme w-full flex-1 bg-studio-base text-studio-muted">
         <div className="mx-auto w-full max-w-328 px-6 pt-14 pb-20 md:px-8 md:pt-20 md:pb-28">
-          <section aria-labelledby="digital-hero-heading" className="max-w-[76ch]">
-            <SectionEyebrow className="text-sm tracking-[0.24em] text-[#765d34]">
-              Digital
-            </SectionEyebrow>
-            <h1
-              id="digital-hero-heading"
-              className="mt-5 max-w-[22ch] text-4xl font-medium leading-[1.05] tracking-tight text-studio-text md:text-6xl"
-            >
-              Digital work should solve a business problem, not create another
-              one.
-            </h1>
-            <p className="mt-7 max-w-[66ch] text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
-              Blackburn Studio helps small businesses get found, make a good
-              impression and turn enquiries into work. That might involve
-              improving your Google presence, making it easier for customers
-              to contact you or simplifying the systems behind the business.
-            </p>
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:items-center">
-              <StudioButton href="/contact" variant="primary" tone="light">
-                Talk through what you need
-              </StudioButton>
-              <StudioButton href="#services" variant="secondary" tone="light">
-                Explore services
-              </StudioButton>
+          <section aria-labelledby="digital-hero-heading" className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(19rem,0.8fr)] lg:items-end lg:gap-16">
+            <div>
+              <SectionEyebrow className="text-sm tracking-[0.24em] text-[#765d34]">
+                Digital
+              </SectionEyebrow>
+              <h1
+                id="digital-hero-heading"
+                className="mt-5 max-w-[22ch] text-4xl font-medium leading-[1.05] tracking-tight text-studio-text md:text-6xl"
+              >
+                Digital work should solve a business problem, not create another
+                one.
+              </h1>
+            </div>
+            <div className="max-w-[65ch] lg:pb-1">
+              <p className="text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
+                Blackburn Studio helps small businesses get found, make a good
+                impression and turn enquiries into work. That might involve
+                improving your Google presence, making it easier for customers
+                to contact you or simplifying the systems behind the business.
+              </p>
+              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                <StudioButton href="/contact" variant="primary" tone="light">
+                  Talk through what you need
+                </StudioButton>
+                <StudioButton href="#services" variant="secondary" tone="light">
+                  Explore services
+                </StudioButton>
+              </div>
             </div>
           </section>
 
-          <DigitalServicesSubnav className="mt-12 max-w-[74ch] md:mt-14" />
+          <DigitalServicesSubnav className="mt-12 md:mt-16" />
+
+          <div className="mt-16 grid gap-12 border-t border-studio-border pt-12 md:mt-20 md:pt-14 lg:grid-cols-2 lg:gap-16">
+            <section aria-labelledby="intro-heading">
+              <h2
+                id="intro-heading"
+                className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+              >
+                Start with what is getting in the way
+              </h2>
+              <div className="mt-6 max-w-[65ch] space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+                <p>
+                  A slow website, weak local visibility, missed enquiries or a
+                  messy internal process can all look like technology problems
+                  from the outside. The useful starting point is to understand
+                  what is actually happening before deciding what to build.
+                </p>
+                <p>
+                  Sometimes that means a new website. Sometimes it means improving
+                  your Google profile, making reviews easier to leave or
+                  simplifying a process that has grown awkward over time.
+                  And sometimes nothing new needs to be built.
+                </p>
+              </div>
+            </section>
+
+            <section aria-labelledby="approach-heading">
+              <SectionEyebrow className="text-[#765d34]">Approach</SectionEyebrow>
+              <h2
+                id="approach-heading"
+                className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+              >
+                Practical problem solving, backed by engineering experience
+              </h2>
+              <div className="mt-6 max-w-[65ch] space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+                <p>
+                  Before starting Blackburn Studio, I spent more than 26 years
+                  working in engineering, leading teams around the world. That
+                  background shapes the way I approach digital work today:
+                  understand the problem first, work out what is actually getting
+                  in the way, then build what is needed to do the job properly.
+                </p>
+                <p>
+                  That might mean improving an existing website, fixing how a
+                  business is presented online, simplifying an enquiry process,
+                  connecting systems that do not talk to each other or building
+                  something new.
+                </p>
+              </div>
+            </section>
+          </div>
 
           <section
-            aria-labelledby="intro-heading"
-            className="mt-20 max-w-[74ch] border-t border-studio-border pt-12 md:mt-24 md:pt-16"
+            aria-labelledby="digital-insight-heading"
+            className="mt-16 border-t border-studio-border pt-12 md:mt-20 md:pt-14"
           >
-            <h2
-              id="intro-heading"
-              className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
-            >
-              Start with what is getting in the way
-            </h2>
-            <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-              <p>
-                A slow website, weak local visibility, missed enquiries or a
-                messy internal process can all look like technology problems
-                from the outside. The useful starting point is to understand
-                what is actually happening before deciding what to build.
-              </p>
-              <p>
-                Sometimes that means a new website. Sometimes it means improving
-                your Google profile, making reviews easier to leave or
-                simplifying a process that has grown awkward over time.
-                And sometimes nothing new needs to be built.
-              </p>
-            </div>
-          </section>
-
-          <section
-            aria-labelledby="approach-heading"
-            className="mt-20 max-w-[74ch] border-t border-studio-border pt-12 md:mt-24 md:pt-16"
-          >
-            <SectionEyebrow className="text-[#765d34]">Approach</SectionEyebrow>
-            <h2
-              id="approach-heading"
-              className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
-            >
-              Practical problem solving, backed by engineering experience
-            </h2>
-            <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-              <p>
-                Before starting Blackburn Studio, I spent more than 26 years
-                working in engineering, leading teams around the world. That
-                background shapes the way I approach digital work today:
-                understand the problem first, work out what is actually getting
-                in the way, then build what is needed to do the job properly.
-              </p>
-              <p>
-                That might mean improving an existing website, fixing how a
-                business is presented online, simplifying an enquiry process,
-                connecting systems that do not talk to each other or building
-                something new.
-              </p>
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
+              <div>
+                <SectionEyebrow className="text-[#765d34]">From the studio</SectionEyebrow>
+                <h2
+                  id="digital-insight-heading"
+                  className="mt-3 max-w-[25ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+                >
+                  Does your small business really need a website?
+                </h2>
+              </div>
+              <div className="max-w-[65ch]">
+                <p className="text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+                  A website can be valuable, but it isn’t always the first priority.
+                  Google reviews, referrals and making better use of existing
+                  enquiries might make a bigger difference.
+                </p>
+                <div className="mt-7">
+                  <StudioButton
+                    href="/insights/does-your-small-business-need-a-website"
+                    variant="secondary"
+                    tone="light"
+                  >
+                    Read the article
+                  </StudioButton>
+                </div>
+              </div>
             </div>
           </section>
 
@@ -376,33 +409,6 @@ export default function DigitalPage() {
                 </li>
               ))}
             </ol>
-          </section>
-
-          <section
-            aria-labelledby="digital-insight-heading"
-            className="mt-24 max-w-264 md:mt-28"
-          >
-            <SectionEyebrow className="text-[#765d34]">From the studio</SectionEyebrow>
-            <h2
-              id="digital-insight-heading"
-              className="mt-3 max-w-[24ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
-            >
-              Does your small business really need a website?
-            </h2>
-            <p className="mt-5 max-w-[68ch] text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-              A website can be valuable, but it isn’t always the first priority.
-              Google reviews, referrals and making better use of existing
-              enquiries might make a bigger difference.
-            </p>
-            <div className="mt-8">
-              <StudioButton
-                href="/insights/does-your-small-business-need-a-website"
-                variant="secondary"
-                tone="light"
-              >
-                Read the article
-              </StudioButton>
-            </div>
           </section>
 
           <section
