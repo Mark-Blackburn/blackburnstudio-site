@@ -90,7 +90,7 @@ export default function DigitalPage() {
               Digital work should solve a business problem, not create another
               one.
             </h1>
-            <p className="mt-7 max-w-[74ch] text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
+            <p className="mt-7 max-w-[100ch] text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
               Blackburn Studio helps small businesses get found, make a good
               impression and turn enquiries into work. That might involve
               improving your Google presence, making it easier for customers
@@ -110,7 +110,7 @@ export default function DigitalPage() {
 
           <section
             aria-labelledby="intro-heading"
-            className="mt-20 max-w-[74ch] md:mt-24"
+            className="mt-20 max-w-[100ch] md:mt-24"
           >
             <h2
               id="intro-heading"
@@ -136,7 +136,7 @@ export default function DigitalPage() {
 
           <section
             aria-labelledby="approach-heading"
-            className="mt-20 max-w-[74ch] md:mt-24"
+            className="mt-20 max-w-[100ch] md:mt-24"
           >
             <SectionEyebrow className="text-[#765d34]">Approach</SectionEyebrow>
             <h2
@@ -164,34 +164,28 @@ export default function DigitalPage() {
 
           <section
             aria-labelledby="digital-insight-heading"
-            className="mt-16 md:mt-20"
+            className="mt-20 max-w-[100ch] md:mt-24"
           >
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
-              <div>
-                <SectionEyebrow className="text-[#765d34]">From the studio</SectionEyebrow>
-                <h2
-                  id="digital-insight-heading"
-                  className="mt-3 max-w-[25ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
-                >
-                  Does your small business really need a website?
-                </h2>
-              </div>
-              <div className="max-w-[65ch]">
-                <p className="text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-                  A website can be valuable, but it isn’t always the first priority.
-                  Google reviews, referrals and making better use of existing
-                  enquiries might make a bigger difference.
-                </p>
-                <div className="mt-7">
-                  <StudioButton
-                    href="/insights/does-your-small-business-need-a-website"
-                    variant="secondary"
-                    tone="light"
-                  >
-                    Read the article
-                  </StudioButton>
-                </div>
-              </div>
+            <SectionEyebrow className="text-[#765d34]">From the studio</SectionEyebrow>
+            <h2
+              id="digital-insight-heading"
+              className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+            >
+              Does your small business really need a website?
+            </h2>
+            <p className="mt-6 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+              A website can be valuable, but it isn’t always the first priority.
+              Google reviews, referrals and making better use of existing
+              enquiries might make a bigger difference.
+            </p>
+            <div className="mt-7">
+              <StudioButton
+                href="/insights/does-your-small-business-need-a-website"
+                variant="secondary"
+                tone="light"
+              >
+                Read the article
+              </StudioButton>
             </div>
           </section>
 
