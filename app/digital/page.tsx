@@ -110,61 +110,55 @@ export default function DigitalPage() {
 
           <section
             aria-labelledby="intro-heading"
-            className="mt-16 md:mt-20"
+            className="mt-20 max-w-[74ch] md:mt-24"
           >
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
-              <h2
-                id="intro-heading"
-                className="max-w-[25ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
-              >
-                Start with what is getting in the way
-              </h2>
-              <div className="max-w-[65ch] space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-                <p>
-                  A slow website, weak local visibility, missed enquiries or a
-                  messy internal process can all look like technology problems
-                  from the outside. The useful starting point is to understand
-                  what is actually happening before deciding what to build.
-                </p>
-                <p>
-                  Sometimes that means a new website. Sometimes it means improving
-                  your Google profile, making reviews easier to leave or
-                  simplifying a process that has grown awkward over time.
-                  And sometimes nothing new needs to be built.
-                </p>
-              </div>
+            <h2
+              id="intro-heading"
+              className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+            >
+              Start with what is getting in the way
+            </h2>
+            <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+              <p>
+                A slow website, weak local visibility, missed enquiries or a
+                messy internal process can all look like technology problems
+                from the outside. The useful starting point is to understand
+                what is actually happening before deciding what to build.
+              </p>
+              <p>
+                Sometimes that means a new website. Sometimes it means improving
+                your Google profile, making reviews easier to leave or
+                simplifying a process that has grown awkward over time.
+                And sometimes nothing new needs to be built.
+              </p>
             </div>
           </section>
 
           <section
             aria-labelledby="approach-heading"
-            className="mt-16 md:mt-20"
+            className="mt-20 max-w-[74ch] md:mt-24"
           >
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
-              <div>
-                <SectionEyebrow className="text-[#765d34]">Approach</SectionEyebrow>
-                <h2
-                  id="approach-heading"
-                  className="mt-3 max-w-[25ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
-                >
-                  Practical problem solving, backed by engineering experience
-                </h2>
-              </div>
-              <div className="max-w-[65ch] space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
-                <p>
-                  Before starting Blackburn Studio, I spent more than 26 years
-                  working in engineering, leading teams around the world. That
-                  background shapes the way I approach digital work today:
-                  understand the problem first, work out what is actually getting
-                  in the way, then build what is needed to do the job properly.
-                </p>
-                <p>
-                  That might mean improving an existing website, fixing how a
-                  business is presented online, simplifying an enquiry process,
-                  connecting systems that do not talk to each other or building
-                  something new.
-                </p>
-              </div>
+            <SectionEyebrow className="text-[#765d34]">Approach</SectionEyebrow>
+            <h2
+              id="approach-heading"
+              className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+            >
+              Practical problem solving, backed by engineering experience
+            </h2>
+            <div className="mt-6 space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+              <p>
+                Before starting Blackburn Studio, I spent more than 26 years
+                working in engineering, leading teams around the world. That
+                background shapes the way I approach digital work today:
+                understand the problem first, work out what is actually getting
+                in the way, then build what is needed to do the job properly.
+              </p>
+              <p>
+                That might mean improving an existing website, fixing how a
+                business is presented online, simplifying an enquiry process,
+                connecting systems that do not talk to each other or building
+                something new.
+              </p>
             </div>
           </section>
 
