@@ -79,48 +79,47 @@ export default function DigitalPage() {
 
       <main className="editorial-light-theme w-full flex-1 bg-studio-base text-studio-muted">
         <div className="mx-auto w-full max-w-328 px-6 pt-14 pb-20 md:px-8 md:pt-20 md:pb-28">
-          <section aria-labelledby="digital-hero-heading" className="grid gap-8 lg:grid-cols-[minmax(0,1.2fr)_minmax(19rem,0.8fr)] lg:items-end lg:gap-16">
-            <div>
-              <SectionEyebrow className="text-sm tracking-[0.24em] text-[#765d34]">
-                Digital
-              </SectionEyebrow>
-              <h1
-                id="digital-hero-heading"
-                className="mt-5 max-w-[22ch] text-4xl font-medium leading-[1.05] tracking-tight text-studio-text md:text-6xl"
-              >
-                Digital work should solve a business problem, not create another
-                one.
-              </h1>
-            </div>
-            <div className="max-w-[65ch] lg:pb-1">
-              <p className="text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
-                Blackburn Studio helps small businesses get found, make a good
-                impression and turn enquiries into work. That might involve
-                improving your Google presence, making it easier for customers
-                to contact you or simplifying the systems behind the business.
-              </p>
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
-                <StudioButton href="/contact" variant="primary" tone="light">
-                  Talk through what you need
-                </StudioButton>
-                <StudioButton href="#services" variant="secondary" tone="light">
-                  Explore services
-                </StudioButton>
-              </div>
+          <section aria-labelledby="digital-hero-heading">
+            <SectionEyebrow className="text-sm tracking-[0.24em] text-[#765d34]">
+              Digital
+            </SectionEyebrow>
+            <h1
+              id="digital-hero-heading"
+              className="mt-5 max-w-[28ch] text-4xl font-medium leading-[1.05] tracking-tight text-studio-text md:text-6xl"
+            >
+              Digital work should solve a business problem, not create another
+              one.
+            </h1>
+            <p className="mt-7 max-w-[74ch] text-[1.02rem] leading-relaxed text-studio-muted md:text-[1.1rem]">
+              Blackburn Studio helps small businesses get found, make a good
+              impression and turn enquiries into work. That might involve
+              improving your Google presence, making it easier for customers
+              to contact you or simplifying the systems behind the business.
+            </p>
+            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <StudioButton href="/contact" variant="primary" tone="light">
+                Talk through what you need
+              </StudioButton>
+              <StudioButton href="#services" variant="secondary" tone="light">
+                Explore services
+              </StudioButton>
             </div>
           </section>
 
           <DigitalServicesSubnav className="mt-12 md:mt-16" />
 
-          <div className="mt-16 grid gap-12 border-t border-studio-border pt-12 md:mt-20 md:pt-14 lg:grid-cols-2 lg:gap-16">
-            <section aria-labelledby="intro-heading">
+          <section
+            aria-labelledby="intro-heading"
+            className="mt-16 border-t border-studio-border pt-12 md:mt-20 md:pt-14"
+          >
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
               <h2
                 id="intro-heading"
-                className="text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+                className="max-w-[25ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
               >
                 Start with what is getting in the way
               </h2>
-              <div className="mt-6 max-w-[65ch] space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+              <div className="max-w-[65ch] space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
                 <p>
                   A slow website, weak local visibility, missed enquiries or a
                   messy internal process can all look like technology problems
@@ -134,17 +133,24 @@ export default function DigitalPage() {
                   And sometimes nothing new needs to be built.
                 </p>
               </div>
-            </section>
+            </div>
+          </section>
 
-            <section aria-labelledby="approach-heading">
-              <SectionEyebrow className="text-[#765d34]">Approach</SectionEyebrow>
-              <h2
-                id="approach-heading"
-                className="mt-3 text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
-              >
-                Practical problem solving, backed by engineering experience
-              </h2>
-              <div className="mt-6 max-w-[65ch] space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
+          <section
+            aria-labelledby="approach-heading"
+            className="mt-16 border-t border-studio-border pt-12 md:mt-20 md:pt-14"
+          >
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-start lg:gap-16">
+              <div>
+                <SectionEyebrow className="text-[#765d34]">Approach</SectionEyebrow>
+                <h2
+                  id="approach-heading"
+                  className="mt-3 max-w-[25ch] text-3xl font-medium tracking-tight text-studio-text md:text-4xl"
+                >
+                  Practical problem solving, backed by engineering experience
+                </h2>
+              </div>
+              <div className="max-w-[65ch] space-y-5 text-base leading-relaxed text-studio-muted md:text-[1.08rem]">
                 <p>
                   Before starting Blackburn Studio, I spent more than 26 years
                   working in engineering, leading teams around the world. That
@@ -159,8 +165,8 @@ export default function DigitalPage() {
                   something new.
                 </p>
               </div>
-            </section>
-          </div>
+            </div>
+          </section>
 
           <section
             aria-labelledby="digital-insight-heading"
